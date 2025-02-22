@@ -3,9 +3,7 @@ package com.example.verdexpress
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-
-import com.example.auth.AuthScreen
-import com.example.home.HomeScreen
+import com.example.navigation.MainScreen
 
 class MainActivity : AppCompatActivity() {
 
@@ -13,7 +11,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            AuthScreen()
+            MainScreen()
         }
     }
 }
