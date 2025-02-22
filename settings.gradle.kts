@@ -23,3 +23,5 @@ rootProject.name = "VerdeXpress"
 include(":app")
 include(":feature:home")
 include(":feature:auth")
+include(":core:navigation")
+include(":core:design")
