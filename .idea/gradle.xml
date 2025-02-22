@@ -16,7 +16,11 @@
             <option value="$PROJECT_DIR$/core/navigation" />
             <option value="$PROJECT_DIR$/feature" />
             <option value="$PROJECT_DIR$/feature/auth" />
+            <option value="$PROJECT_DIR$/feature/donations" />
             <option value="$PROJECT_DIR$/feature/home" />
+            <option value="$PROJECT_DIR$/feature/notifications" />
+            <option value="$PROJECT_DIR$/feature/parks" />
+            <option value="$PROJECT_DIR$/feature/profile" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />
