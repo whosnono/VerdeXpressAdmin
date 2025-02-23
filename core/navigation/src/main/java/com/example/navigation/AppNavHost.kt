@@ -1,5 +1,7 @@
 package com.example.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -13,7 +15,15 @@ import com.example.profile.ProfileScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
-    NavHost(navController = navController, startDestination = NavigationItem.Home.route, modifier = modifier) {
+    NavHost(
+        navController = navController,
+        startDestination = NavigationItem.Home.route,
+        modifier = modifier,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
+    ) {
         composable(NavigationItem.Home.route) { HomeScreen() }
         composable(NavigationItem.Parks.route) { ParksScreen() }
         composable(NavigationItem.Donations.route) { DonationsScreen() }

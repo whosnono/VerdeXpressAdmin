@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Colores personalizados verdes y blancos -->
+    <color name="colorPrimary">#78B153</color> <!-- Verde principal -->
+    <color name="colorPrimaryVariant">#5C8A3B</color> <!-- Verde más oscuro -->
+    <color name="colorOnPrimary">#FFFFFF</color> <!-- Blanco para el texto sobre el verde -->
+
+    <color name="colorSecondary">#A1C8A7</color> <!-- Verde claro para color secundario -->
+    <color name="colorSecondaryVariant">#8BBA8E</color> <!-- Variante de verde claro -->
+    <color name="colorOnSecondary">#FFFFFF</color> <!-- Blanco para el texto sobre el verde claro -->
+
+    <color name="white">#FFFFFF</color> <!-- Blanco -->
 </resources>
