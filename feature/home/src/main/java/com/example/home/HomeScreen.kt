@@ -1,9 +1,17 @@
 package com.example.home
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.example.design.MainAppBar
+
 
 @Composable
 fun HomeScreen() {
-    Text("Home Screen!!!!")
+    Column {
+        MainAppBar()
+
+        Text("Home Screen!!!!")
+    }
 }
+
