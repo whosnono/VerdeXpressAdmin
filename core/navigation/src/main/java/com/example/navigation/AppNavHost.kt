@@ -8,7 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.home.HomeScreen
-import com.example.parks.ParksScreen
+import com.example.parks.ui.ParksScreen
 import com.example.donations.DonationsScreen
 import com.example.notifications.NotificationsScreen
 import com.example.profile.ProfileScreen

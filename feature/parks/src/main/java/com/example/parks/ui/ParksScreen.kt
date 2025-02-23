@@ -1,4 +1,4 @@
-package com.example.parks
+package com.example.parks.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
