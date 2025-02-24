@@ -12,6 +12,7 @@ import com.example.parks.ui.ParksScreen
 import com.example.donations.DonationsScreen
 import com.example.notifications.NotificationsScreen
 import com.example.profile.ProfileScreen
+import com.example.parks.ui.RegisterParkScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -25,9 +26,10 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         popExitTransition = { ExitTransition.None }
     ) {
         composable(NavigationItem.Home.route) { HomeScreen() }
-        composable(NavigationItem.Parks.route) { ParksScreen() }
+        composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) }
         composable(NavigationItem.Donations.route) { DonationsScreen() }
         composable(NavigationItem.Notifications.route) { NotificationsScreen() }
         composable(NavigationItem.Profile.route) { ProfileScreen() }
+        composable("registerPark") { RegisterParkScreen(navController) }
     }
 }

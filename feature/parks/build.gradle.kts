@@ -53,6 +53,8 @@ dependencies {
     implementation(libs.androidx.foundation.android)
     implementation(libs.androidx.ui.android)
     implementation(libs.androidx.ui.android)
+    implementation(libs.androidx.navigation.runtime.android)
+    implementation(libs.androidx.ui.test.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

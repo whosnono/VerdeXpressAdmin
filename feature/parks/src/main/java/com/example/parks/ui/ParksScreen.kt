@@ -5,7 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,12 +30,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.design.MainAppBar
 import com.example.design.R
+import androidx.navigation.NavController
 
 val SFProDisplayBold = FontFamily(Font(R.font.sf_pro_display_bold))
 val RobotoBold = FontFamily(Font(R.font.roboto_bold))
 
 @Composable
-fun ParksScreen(viewModel: ParkViewModel = viewModel()) {
+fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavController) {
     LaunchedEffect(Unit) {
         viewModel.fetchParks()
     }
@@ -60,6 +66,20 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel()) {
             items(parks) { park ->
                 ParkItem(imageUrl = park.primeraImagen, parkName = park.nombre)
             }
+        }
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        FloatingActionButton(
+            onClick = {
+                navController.navigate("registerPark") // Navegar a la pantalla de registro
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.BottomEnd),
+            containerColor = Color(0xFF78B153),
+            shape = CircleShape
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Park", tint = Color.White)
         }
     }
 }
