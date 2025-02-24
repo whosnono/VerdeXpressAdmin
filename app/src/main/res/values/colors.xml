@@ -2,7 +2,7 @@
 <resources>
     <!-- Colores personalizados verdes y blancos -->
     <color name="colorPrimary">#78B153</color> <!-- Verde principal -->
-    <color name="colorPrimaryVariant">#5C8A3B</color> <!-- Verde más oscuro -->
+    <color name="colorPrimaryVariant">#FFFFFF</color>
     <color name="colorOnPrimary">#FFFFFF</color> <!-- Blanco para el texto sobre el verde -->
 
     <color name="colorSecondary">#A1C8A7</color> <!-- Verde claro para color secundario -->
@@ -10,4 +10,5 @@
     <color name="colorOnSecondary">#FFFFFF</color> <!-- Blanco para el texto sobre el verde claro -->
 
     <color name="white">#FFFFFF</color> <!-- Blanco -->
+    <color name="black">#000000</color>
 </resources>
