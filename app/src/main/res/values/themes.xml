@@ -3,7 +3,7 @@
     <style name="Theme.VerdeXpress" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/colorPrimary</item> <!-- Verde principal -->
-        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item> <!-- Verde más oscuro -->
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item> <!-- Blanco para el texto sobre verde -->
 
         <!-- Secondary brand color -->
@@ -11,8 +11,10 @@
         <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item> <!-- Variante de verde claro -->
         <item name="colorOnSecondary">@color/colorOnSecondary</item> <!-- Blanco para el texto sobre verde claro -->
 
-        <!-- Status bar color -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Otros personalizaciones -->
+        <!-- Color de fondo de la barra de estado -->
+        <item name="android:statusBarColor">@color/white</item> <!-- Fondo blanco -->
+
+        <!-- Habilitar íconos y texto oscuros -->
+        <item name="android:windowLightStatusBar">true</item> <!-- Íconos y texto oscuros -->
     </style>
 </resources>
