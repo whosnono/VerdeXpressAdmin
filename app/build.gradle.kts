@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -42,16 +43,55 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(project(":core:navigation"))
+    implementation(libs.firebase.common.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
+    implementation(libs.google.firebase.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation (libs.androidx.activity.compose)
+    implementation(libs.androidx.activity.compose)
 
     implementation(project(":feature:auth"))
     implementation(project(":feature:home"))
+
+    constraints {
+        implementation("com.google.android.gms:play-services-measurement-api:21.5.0")
+        implementation("com.google.android.gms:play-services-measurement-impl:21.5.0")
+        implementation("com.google.android.gms:play-services-measurement:21.5.0")
+    }
+
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("com.google.android.gms:play-services-measurement-api:21.5.0")
+        force("com.google.android.gms:play-services-measurement-impl:21.5.0")
+        force("com.google.android.gms:play-services-measurement:21.5.0")
+
+        // Forzar versiones de Kotlin
+        force("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
+        force("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.24")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24")
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("com.google.android.gms:play-services-measurement-api:21.5.0")
+        force("com.google.android.gms:play-services-measurement-impl:21.5.0")
+        force("com.google.android.gms:play-services-measurement:21.5.0")
+
+        // Forzar todas las dependencias de Kotlin a usar la misma versión
+        force("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
+        force("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.24")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24")
+    }
 }

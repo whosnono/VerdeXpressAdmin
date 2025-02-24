@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.verdexpress" />
+                  <option name="mobileSdkAppId" value="1:184952834303:android:b81836b8b5fd55a63164ca" />
+                  <option name="projectId" value="verdexpress-ffba8" />
+                  <option name="projectNumber" value="184952834303" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
