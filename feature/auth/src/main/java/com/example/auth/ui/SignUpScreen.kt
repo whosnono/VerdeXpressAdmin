@@ -165,6 +165,6 @@ fun SignUpScreen(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewSignUpScreeno() {
+fun PreviewSignUpScreen() {
     SignUpScreen()
 }
