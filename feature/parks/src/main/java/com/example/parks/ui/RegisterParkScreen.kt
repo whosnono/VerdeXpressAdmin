@@ -22,8 +22,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.example.design.R
-import com.example.design.MainAppBarWhite
+import com.example.design.SecondaryAppBar
 import androidx.navigation.NavController
+import com.example.design.SecondaryAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +35,7 @@ fun RegisterParkScreen(navController: NavController) {
     val roundedShape = RoundedCornerShape(12.dp)
 
     Column {
-        MainAppBarWhite(
+        SecondaryAppBar(
             showIcon = true,
             onIconClick = {
                 navController.navigate("Parques") // Navegar a la pantalla de "Parques"

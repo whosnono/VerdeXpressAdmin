@@ -7,14 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.*
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
-import com.example.design.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainAppBarWhite(showIcon: Boolean = false, onIconClick: () -> Unit = {}) {
+fun SecondaryAppBar(showIcon: Boolean = false, onIconClick: () -> Unit = {}) {
     TopAppBar(
         title = {
             Box(
