@@ -2,6 +2,7 @@ package com.example.auth.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -189,12 +191,13 @@ fun SignUpScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
+
 
             Button(
                 onClick = { navController.navigate("Inicio") },
                 modifier = Modifier
-                    .padding(bottom = 8.dp, start = 100.dp)
+                    .padding(start = 100.dp)
                     .width(175.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
@@ -216,11 +219,12 @@ fun SignUpScreen(navController: NavController) {
                 Text(
                     text = "¿Ya tienes cuenta?",
                     fontSize = 14.sp,
-                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
                 )
-                TextButton(onClick = { navController.navigate("signIn") }) {
+                TextButton(onClick = { navController.navigate("signIn")}, contentPadding = PaddingValues(4.dp)) {
                     Text(
                         text = "Iniciar sesión",
+                        textDecoration = TextDecoration.Underline,
                         color = verdeBoton,
                         fontSize = 14.sp,
                         fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))

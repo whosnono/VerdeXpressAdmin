@@ -132,6 +132,7 @@ fun SignInScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
+
             colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
             shape = roundedShape
         ) {
@@ -161,7 +162,7 @@ fun SignInScreen(navController: NavController) {
                     text = "Regístrate",
                     textDecoration = TextDecoration.Underline,
                     color = verdeBoton,
-                    fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
                     fontSize = 14.sp
                 )
             }
