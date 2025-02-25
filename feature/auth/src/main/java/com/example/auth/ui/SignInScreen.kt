@@ -1,123 +1,169 @@
 package com.example.auth.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.auth.R
+import com.example.design.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignInScreen(navController: NavController) {
+    val verdeBoton = Color(0xFF78B153)
+    val roundedShape = RoundedCornerShape(12.dp)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(18.dp),
+            .padding(horizontal = 30.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
+        // Logo and app name
         Image(
             painter = painterResource(id = R.drawable.logo),
-            contentDescription = "Logo",
+            contentDescription = "Logo VerdeXpress",
             modifier = Modifier
-                .size(150.dp)
-                .padding(bottom = 19.dp)
+                .size(200.dp)
+                .padding(bottom = 8.dp)
         )
 
         Text(
             text = "VerdeXpress",
-            fontSize = 35.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF78B153)
+            fontSize = 30.sp,
+            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+            color = verdeBoton,
+            modifier = Modifier.padding(bottom = 42.dp)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
+        // Login heading
+        Text(
+            text = "Iniciar sesión",
+            fontSize = 25.sp,
+            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp)
-        ) {
-            Text(
-                text = "Iniciar sesión",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-        }
+                .align(Alignment.Start)
+                .padding(bottom = 16.dp)
+        )
 
-        Spacer(modifier = Modifier.height(5.dp))
-
+        // Username field
         var usuario by remember { mutableStateOf("") }
         OutlinedTextField(
             value = usuario,
             onValueChange = { usuario = it },
-            label = { Text(text = "Usuario") },
-            modifier = Modifier.fillMaxWidth()
+            label = {
+                Text(
+                    text = "Usuario",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+            },
+            shape = roundedShape,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = verdeBoton,
+                focusedLabelColor = verdeBoton,
+                cursorColor = verdeBoton
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
+        // Password field
         var password by remember { mutableStateOf("") }
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text(text = "Contraseña") },
+            label = {
+                Text(
+                    text = "Contraseña",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+            },
+            shape = roundedShape,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = verdeBoton,
+                focusedLabelColor = verdeBoton,
+                cursorColor = verdeBoton
+            ),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(3.dp))
-
-        TextButton(onClick = { navController.navigate("resetPassword") }) {
-            Text(text = "Recuperar contraseña", color = Color(0xFF78B153))
+        // Recover password link
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            TextButton(
+                onClick = { navController.navigate("resetPassword") },
+                contentPadding = PaddingValues(4.dp)
+            ) {
+                Text(
+                    text = "Recuperar contraseña",
+                    textDecoration = TextDecoration.Underline,
+                    fontSize = 14.sp,
+                    color = verdeBoton,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Login button
         Button(
             onClick = { navController.navigate("Inicio") },
-            modifier = Modifier.widthIn(max = 250.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF78B153))
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
+            shape = roundedShape
         ) {
-            Text("Ingresar", color = Color.White, fontSize = 20.sp)
+            Text(
+                text = "Ingresar",
+                fontSize = 14.sp,
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+            )
         }
 
-        Spacer(modifier = Modifier.height(1.dp))
-
+        // Registration link
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "¿No tienes cuenta?", fontSize = 15.sp)
-            TextButton(onClick = { navController.navigate("signUp")}) {
-                Text(text = "Regístrate", color = Color(0xFF78B153), fontSize = 14.sp)
+            Text(
+                text = "¿No tienes cuenta?",
+                fontSize = 14.sp,
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+            )
+            TextButton(
+                onClick = { navController.navigate("signUp") },
+                contentPadding = PaddingValues(4.dp)
+            ) {
+                Text(
+                    text = "Regístrate",
+                    textDecoration = TextDecoration.Underline,
+                    color = verdeBoton,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
+                    fontSize = 14.sp
+                )
             }
         }
     }
