@@ -101,7 +101,7 @@ fun SignInScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { navController.navigate("Home") },
+            onClick = { navController.navigate("Inicio") },
             modifier = Modifier.widthIn(max = 250.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF78B153))
         ) {
@@ -116,7 +116,7 @@ fun SignInScreen(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "¿No tienes cuenta?", fontSize = 15.sp)
-            TextButton(onClick = { navController.navigate("signUp") }) {
+            TextButton(onClick = { navController.navigate("signUp")}) {
                 Text(text = "Regístrate", color = Color(0xFF78B153), fontSize = 14.sp)
             }
         }
