@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.ui.android)
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.ui.test.android)
+    implementation(libs.androidx.navigation.runtime.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
