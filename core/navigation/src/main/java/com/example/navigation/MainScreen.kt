@@ -18,6 +18,9 @@ fun MainScreen() {
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             showBottomBar.value = when (destination.route) {
+                "signIn" -> false
+                "signUp" -> false
+                "resetPassword" -> false
                 "registerPark" -> false
                 else -> true
             }

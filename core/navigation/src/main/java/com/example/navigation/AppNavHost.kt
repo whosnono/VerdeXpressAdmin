@@ -18,10 +18,10 @@ import com.example.profile.ProfileScreen
 import com.example.parks.ui.RegisterParkScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController, startDestination: String, modifier: Modifier = Modifier) {
+fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = "signIn",
         modifier = modifier,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
