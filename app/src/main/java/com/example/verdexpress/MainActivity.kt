@@ -5,7 +5,6 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.FirebaseApp
 import com.example.navigation.MainScreen
-//import com.example.auth.ui.SignUpScreen
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,8 +14,13 @@ class MainActivity : AppCompatActivity() {
         initializeFirebase()
 
         setContent {
-            // Aquí hay que implementar una lógica tipo, si no hay una sesión inicidiada, entonces muestra la pantalla de inicio de sesión, y si sí, que ejecute MainScreen
-            //SignUpScreen()
+            /*
+            Flujo propuesto:
+                1. Comprobar si hay una sesión activa, si sí, redirigir a MainScreen()
+                2. Si no hay sesión activa, redirigir a SignInScreen()
+            * */
+
+            //SignIpScreen()
             MainScreen()
         }
     }
