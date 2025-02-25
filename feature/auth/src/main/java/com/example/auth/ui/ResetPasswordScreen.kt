@@ -52,27 +52,19 @@ fun ResetPasswordScreen(navController: NavController) {
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "VerdeXpress",
-                fontSize = 24.sp,
-                color = verdeBoton,
-                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "Restablecer contraseña",
-                fontSize = 24.sp,
+                fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 24.dp)
             )
 
             Text(
                 text = "Se enviarán las instrucciones para restablecer su contraseña a su correo electrónico.",
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 textAlign = TextAlign.Center,
                 fontFamily = FontFamily(Font(R.font.sf_pro_display_regular)),
                 modifier = Modifier.padding(bottom = 24.dp)
@@ -85,8 +77,9 @@ fun ResetPasswordScreen(navController: NavController) {
                 label = {
                     Text(
                         text = "Correo electrónico",
+                        fontSize = 14.sp,
                         color = Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
                     )
                 },
                 shape = roundedShape,
@@ -111,8 +104,8 @@ fun ResetPasswordScreen(navController: NavController) {
                 Text(
                     text = "Enviar",
                     color = Color.White,
-                    fontSize = 16.sp,
-                    fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
                 )
             }
         }
