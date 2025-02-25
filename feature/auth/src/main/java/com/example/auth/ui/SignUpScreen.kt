@@ -192,7 +192,7 @@ fun SignUpScreen(navController: NavController) {
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { /* Acción al hacer clic */ },
+                onClick = { navController.navigate("Home") },
                 modifier = Modifier
                     .padding(bottom = 8.dp, start = 100.dp)
                     .width(175.dp)
