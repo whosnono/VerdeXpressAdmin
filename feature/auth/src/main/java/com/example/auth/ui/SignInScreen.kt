@@ -29,12 +29,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.auth.R
 
 @Composable
-fun Login(modifier: Modifier = Modifier) {
+fun SignInScreen(navController: NavController) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(18.dp),
         verticalArrangement = Arrangement.Center,
@@ -93,14 +94,14 @@ fun Login(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(3.dp))
 
-        TextButton(onClick = {  }) {
+        TextButton(onClick = { navController.navigate("resetPassword") }) {
             Text(text = "Recuperar contraseña", color = Color(0xFF78B153))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = {  },
+            onClick = { navController.navigate("Home") },
             modifier = Modifier.widthIn(max = 250.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF78B153))
         ) {
@@ -115,15 +116,9 @@ fun Login(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "¿No tienes cuenta?", fontSize = 15.sp)
-            TextButton(onClick = {  }) {
+            TextButton(onClick = { navController.navigate("signUp") }) {
                 Text(text = "Regístrate", color = Color(0xFF78B153), fontSize = 14.sp)
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun VerLogin() {
-    Login()
 }

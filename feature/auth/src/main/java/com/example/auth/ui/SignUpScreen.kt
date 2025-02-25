@@ -43,7 +43,7 @@ fun SignUpScreen(navController: NavController) {
         SecondaryAppBar(
             showIcon = true,
             onIconClick = {
-                navController.navigate("Home") // #TODO: Esto debe redireccionar a SignIn
+                navController.navigate("signIn")
             }
         )
 
@@ -218,7 +218,7 @@ fun SignUpScreen(navController: NavController) {
                     fontSize = 14.sp,
                     fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
                 )
-                TextButton(onClick = { /* Acción al hacer clic */ }) {
+                TextButton(onClick = { navController.navigate("signIn") }) {
                     Text(
                         text = "Iniciar sesión",
                         color = verdeBoton,

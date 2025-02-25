@@ -42,7 +42,7 @@ fun ResetPasswordScreen(navController: NavController) {
         SecondaryAppBar(
             showIcon = true,
             onIconClick = {
-                navController.navigate("Home") // #TODO: Esto debe redireccionar a SignIn
+                navController.navigate("signIn")
             }
         )
 
