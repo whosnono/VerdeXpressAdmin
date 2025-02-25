@@ -16,11 +16,13 @@ class MainActivity : AppCompatActivity() {
         setContent {
             /*
             Flujo propuesto:
-                1. Comprobar si hay una sesión activa, si sí, redirigir a MainScreen()
-                2. Si no hay sesión activa, redirigir a SignInScreen()
+                1. Comprobar si hay una sesión activa, si sí, startDestination = "Inicio"
+                2. Si no hay sesión activa, startDestination = "signIn"
+
+                Nota: Para que esto funcione, se debe establecer startDestination como
+                parametro en AppNavHost o MainScreen o algo así
             * */
 
-            //SignIpScreen()
             MainScreen()
         }
     }
