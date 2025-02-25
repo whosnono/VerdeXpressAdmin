@@ -7,16 +7,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,144 +25,208 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.design.R
+import com.example.design.SecondaryAppBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(modifier: Modifier = Modifier) {
-    Column( //Aquí es para que todos los elementos se encuentren en una sola fila
-        modifier = modifier
-            .fillMaxSize()
-            .padding(18.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = {  },
-                modifier = Modifier
-                    .padding(0.dp) // Quita el espacio que puse para centrar los elementos de la ventana y puedo colocarlo en la esquina
-                    .offset(x = (-8).dp) // La posición exacta de la flecha
-            ) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+fun SignUpScreen(navController: NavController) {
+    val verdeBoton = Color(0xFF78B153)
+    val roundedShape = RoundedCornerShape(12.dp)
+
+    Column {
+        SecondaryAppBar(
+            showIcon = true,
+            onIconClick = {
+                navController.navigate("Home") // #TODO: Esto debe redireccionar a SignIn
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "VerdeXpress",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF78B153)
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(24.dp)) //Estos son solo para hacer espacio entre las cosas
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
             Text(
                 text = "Regístrate",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 25.sp,
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-            Spacer(modifier = Modifier.weight(1f)) // Spacer para alinear a la izquierda
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            var nombre by remember { mutableStateOf("") }
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = {
+                    Text(
+                        text = "Nombre",
+                        color = Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                },
+                shape = roundedShape,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = verdeBoton,
+                    focusedLabelColor = verdeBoton,
+                    cursorColor = verdeBoton
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        var nombre by remember { mutableStateOf("") } //textfield de nombre
-        OutlinedTextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text(text = "Nombre") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            var apellidos by remember { mutableStateOf("") }
+            OutlinedTextField(
+                value = apellidos,
+                onValueChange = { apellidos = it },
+                label = {
+                    Text(
+                        text = "Apellidos",
+                        color = Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                },
+                shape = roundedShape,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = verdeBoton,
+                    focusedLabelColor = verdeBoton,
+                    cursorColor = verdeBoton
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        var apellidos by remember { mutableStateOf("") } //textfield de appellidos
-        OutlinedTextField(
-            value = apellidos,
-            onValueChange = { apellidos = it },
-            label = { Text(text = "Apellidos") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            var numeroContacto by remember { mutableStateOf("") }
+            OutlinedTextField(
+                value = numeroContacto,
+                onValueChange = { numeroContacto = it },
+                label = {
+                    Text(
+                        text = "Número de contacto",
+                        color = Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                },
+                shape = roundedShape,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = verdeBoton,
+                    focusedLabelColor = verdeBoton,
+                    cursorColor = verdeBoton
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        var numeroContacto by remember { mutableStateOf("") }
-        OutlinedTextField(
-            value = numeroContacto,
-            onValueChange = { numeroContacto = it },
-            label = { Text(text = "Número de contacto") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            var correoElectronico by remember { mutableStateOf("") }
+            OutlinedTextField(
+                value = correoElectronico,
+                onValueChange = { correoElectronico = it },
+                label = {
+                    Text(
+                        text = "Correo electrónico",
+                        color = Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                },
+                shape = roundedShape,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = verdeBoton,
+                    focusedLabelColor = verdeBoton,
+                    cursorColor = verdeBoton
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        var correoElectronico by remember { mutableStateOf("") }
-        OutlinedTextField(
-            value = correoElectronico,
-            onValueChange = { correoElectronico = it },
-            label = { Text(text = "Correo electrónico") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            var password by remember { mutableStateOf("") }
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = {
+                    Text(
+                        text = "Contraseña",
+                        color = Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                },
+                shape = roundedShape,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = verdeBoton,
+                    focusedLabelColor = verdeBoton,
+                    cursorColor = verdeBoton
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        var password by remember { mutableStateOf("") }
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(text = "Contraseña") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            var confirmPassword by remember { mutableStateOf("") }
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = {
+                    Text(
+                        text = "Confirmar contraseña",
+                        color = Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                },
+                shape = roundedShape,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = verdeBoton,
+                    focusedLabelColor = verdeBoton,
+                    cursorColor = verdeBoton
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        var confirmPassword by remember { mutableStateOf("") }
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text(text = "Confirmar contraseña") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.weight(1f))
 
-        Spacer(modifier = Modifier.height(45.dp))
+            Button(
+                onClick = { /* Acción al hacer clic */ },
+                modifier = Modifier
+                    .padding(bottom = 8.dp, start = 100.dp)
+                    .width(175.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
+                shape = roundedShape
+            ) {
+                Text(
+                    text = "Regístrarse",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+            }
 
-        Button(
-            onClick = {  },
-            modifier = Modifier.widthIn(max = 250.dp).align(Alignment.CenterHorizontally),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF78B153))
-        ) {
-            Text("Regístrarse", color = Color.White,
-                fontSize = 17.sp)
-        }
-
-        Spacer(modifier = Modifier.height(1.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "¿Ya tienes cuenta?", fontSize = 14.sp)
-            TextButton(onClick = {  }) {
-                Text(text = "Iniciar sesión", color = Color(0xFF78B153),
-                    fontSize = 14.sp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "¿Ya tienes cuenta?",
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+                TextButton(onClick = { /* Acción al hacer clic */ }) {
+                    Text(
+                        text = "Iniciar sesión",
+                        color = verdeBoton,
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                }
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewSignUpScreen() {
-    SignUpScreen()
 }
