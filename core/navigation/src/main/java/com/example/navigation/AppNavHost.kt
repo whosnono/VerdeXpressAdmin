@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.auth.ui.ResetPasswordEmailSentScreen
 import com.example.auth.ui.ResetPasswordScreen
 import com.example.auth.ui.SignInScreen
 import com.example.auth.ui.SignUpScreen
@@ -36,6 +37,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable("signIn") { SignInScreen(navController)}
         composable("signUp") { SignUpScreen(navController)}
         composable("resetPassword") { ResetPasswordScreen(navController)}
+        composable("resetPasswordEmailSent") { ResetPasswordEmailSentScreen(navController)}
         composable("registerPark") { RegisterParkScreen(navController) }
 
     }

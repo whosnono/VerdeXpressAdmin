@@ -21,6 +21,7 @@ fun MainScreen() {
                 "signIn" -> false
                 "signUp" -> false
                 "resetPassword" -> false
+                "resetPasswordEmailSent" -> false
                 "registerPark" -> false
                 else -> true
             }
