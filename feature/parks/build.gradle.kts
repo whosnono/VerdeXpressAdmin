@@ -39,24 +39,29 @@ android {
 }
 
 dependencies {
-
+    // Dependencias básicas
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.runtime.android)
     implementation(libs.androidx.material3.android)
     implementation(project(":core:design"))
-    implementation(libs.firebase.firestore.ktx)
     implementation(libs.coil.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.foundation.android)
     implementation(libs.androidx.ui.android)
-    implementation(libs.androidx.ui.android)
     implementation(libs.androidx.navigation.runtime.android)
-    implementation(libs.androidx.ui.test.android)
     implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
 
+    // Firebase
+    implementation(platform(libs.firebase.bom)) // Firebase BoM
+    implementation(libs.firebase.storage.ktx) // Firebase Storage con Kotlin
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.ui.graphics.android) // Firebase Firestore con Kotlin
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

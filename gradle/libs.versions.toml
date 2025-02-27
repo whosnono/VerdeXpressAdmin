@@ -4,6 +4,7 @@ agp = "8.8.1"
 coilCompose = "2.4.0"
 firebaseBomVersion = "33.9.0"
 firebaseCore = "21.1.1"
+firebase-storage = "20.2.1"
 kotlin = "1.9.24"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -30,6 +31,7 @@ firebase-bom = "32.7.0"
 uiAndroid = "1.7.0"
 navigationRuntimeAndroid = "2.9.0-alpha06"
 uiTestAndroid = "1.7.8"
+uiGraphicsAndroid = "1.7.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -58,10 +60,12 @@ firebase-common-ktx = { group = "com.google.firebase", name = "firebase-common-k
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
+firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebase-storage" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
 androidx-ui-android = { group = "androidx.compose.ui", name = "ui-android", version.ref = "uiAndroid" }
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
 androidx-ui-test-android = { group = "androidx.compose.ui", name = "ui-test-android", version.ref = "uiTestAndroid" }
+androidx-ui-graphics-android = { group = "androidx.compose.ui", name = "ui-graphics-android", version.ref = "uiGraphicsAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
