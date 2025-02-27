@@ -20,11 +20,19 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 
-
 @Composable
 fun SignInScreen(navController: NavController) {
     val verdeBoton = Color(0xFF78B153)
+    val rojoError = Color.Red
     val roundedShape = RoundedCornerShape(12.dp)
+
+    //Estos los cree para la lógica de detectar errores al tratar de ingresar a la app :)
+    var usuario by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var usuarioError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+    var usuarioErrorMessage by remember { mutableStateOf("") }
+    var passwordErrorMessage by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -33,7 +41,7 @@ fun SignInScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Logo and app name
+        // Logo y nombre de la app
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo VerdeXpress",
@@ -50,63 +58,105 @@ fun SignInScreen(navController: NavController) {
             modifier = Modifier.padding(bottom = 42.dp)
         )
 
-        // Login heading
+        // Login
         Text(
             text = "Iniciar sesión",
             fontSize = 25.sp,
             fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         // Username field
-        var usuario by remember { mutableStateOf("") }
         OutlinedTextField(
             value = usuario,
-            onValueChange = { usuario = it },
+            onValueChange = {
+                usuario = it
+                usuarioError = false
+                usuarioErrorMessage = ""
+            },
             label = {
-                Text(
-                    text = "Usuario",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                )
+                Row {
+                    Text(
+                        text = "Usuario",
+                        fontSize = 14.sp,
+                        color = if (usuarioError) rojoError else Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                    if (usuarioError) {
+                        Text(
+                            text = "*",
+                            color = rojoError,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
             },
             shape = roundedShape,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = verdeBoton,
-                focusedLabelColor = verdeBoton,
-                cursorColor = verdeBoton
+            colors = OutlinedTextFieldDefaults.colors( //Esto es para cambiar el color del borde a rojo si hay un error en los datos
+                focusedBorderColor = if (usuarioError) rojoError else verdeBoton,
+                focusedLabelColor = if (usuarioError) rojoError else verdeBoton,
+                cursorColor = if (usuarioError) rojoError else verdeBoton
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 4.dp)
+                .padding(bottom = if (usuarioError) 4.dp else 4.dp)
         )
+        if (usuarioError) {
+            Text(
+                text = usuarioErrorMessage,
+                color = rojoError,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+        }
 
         // Password field
-        var password by remember { mutableStateOf("") }
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                passwordError = false
+                passwordErrorMessage = ""
+            },
             label = {
-                Text(
-                    text = "Contraseña",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                )
+                Row {
+                    Text(
+                        text = "Contraseña",
+                        fontSize = 14.sp,
+                        color = if (passwordError) rojoError else Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                    if (passwordError) {
+                        Text(
+                            text = "*",
+                            color = rojoError,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
             },
             shape = roundedShape,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = verdeBoton,
-                focusedLabelColor = verdeBoton,
-                cursorColor = verdeBoton
+            colors = OutlinedTextFieldDefaults.colors( //Esto es para cambiar el color del borde a rojo si hay un error en los datos
+                focusedBorderColor = if (passwordError) rojoError else verdeBoton,
+                focusedLabelColor = if (passwordError) rojoError else verdeBoton,
+                cursorColor = if (passwordError) rojoError else verdeBoton
             ),
             modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(), // Esto oculta la contraseña
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password) // Teclado para contraseñas
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
+        if (passwordError) {
+            Text(
+                text = passwordErrorMessage,
+                color = rojoError,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 8.dp)
+            )
+        }
 
         Box(
             modifier = Modifier
@@ -131,8 +181,31 @@ fun SignInScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         // Login button
-        Button(
-            onClick = { navController.navigate("Inicio") },
+        Button( //Aquí solo es la lógica que va a seguir para identificar errores, si el correo no es válido, si dejaron un campo vacio, etc.
+            onClick = {
+                if (usuario.isEmpty()) {
+                    usuarioError = true
+                    usuarioErrorMessage = "Ingresa tu correo"
+                } else if (!usuario.contains("@") || (!usuario.contains(".com") && !usuario.contains(".es"))) {
+                    usuarioError = true
+                    usuarioErrorMessage = "Ingresa un correo válido"
+                } else {
+                    usuarioError = false
+                    usuarioErrorMessage = ""
+                }
+
+                if (password.isEmpty()) {
+                    passwordError = true
+                    passwordErrorMessage = "Ingresa tu contraseña"
+                } else {
+                    passwordError = false
+                    passwordErrorMessage = ""
+                }
+
+                if (!usuarioError && !passwordError) {
+                    navController.navigate("Inicio")
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
