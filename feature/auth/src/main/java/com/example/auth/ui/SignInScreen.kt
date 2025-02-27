@@ -16,8 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.R
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun SignInScreen(navController: NavController) {
     val verdeBoton = Color(0xFF78B153)
@@ -100,10 +103,11 @@ fun SignInScreen(navController: NavController) {
                 focusedLabelColor = verdeBoton,
                 cursorColor = verdeBoton
             ),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation(), // Esto oculta la contraseña
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password) // Teclado para contraseñas
         )
 
-        // Recover password link
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -132,7 +136,6 @@ fun SignInScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-
             colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
             shape = roundedShape
         ) {
