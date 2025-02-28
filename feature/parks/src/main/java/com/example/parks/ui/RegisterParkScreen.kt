@@ -224,7 +224,8 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                     focusedLabelColor = verdeBoton,
                     cursorColor = verdeBoton
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true, // Esto hace que el campo sea de solo lectura
             )
 
             Spacer(modifier = Modifier.height(8.dp))
