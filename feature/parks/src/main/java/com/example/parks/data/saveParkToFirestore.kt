@@ -2,7 +2,6 @@ package com.example.parks.data
 
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.tasks.await
 
 fun saveParkToFirestore(
     name: String,
@@ -11,18 +10,26 @@ fun saveParkToFirestore(
     status: String,
     needs: List<String>,
     comments: String,
-    imageUrl: String?
+    imageUrl: String?,
+    latitude: String? = null,
+    longitude: String? = null
 ) {
     val db = Firebase.firestore
     val parkData = hashMapOf(
-        "name" to name,
-        "location" to location,
-        "description" to description,
-        "status" to status,
-        "imageUrl" to imageUrl,
-        "needs" to needs,
-        "comments" to comments
+        "nombre" to name,
+        "ubicacion" to location,
+        "descripcion" to description,
+        "estado_actual" to status,
+        "imagenes" to imageUrl,
+        "necesidades" to needs,
+        "comentarios" to comments
     )
+
+    // Añadir las coordenadas si están disponibles
+    if (latitude != null && longitude != null) {
+        parkData["latitud"] = latitude
+        parkData["longitud"] = longitude
+    }
 
     db.collection("parques")
         .add(parkData)

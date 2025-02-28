@@ -23,6 +23,7 @@ fun MainScreen() {
                 "resetPassword" -> false
                 "resetPasswordEmailSent" -> false
                 "registerPark" -> false
+                "map" -> false
                 else -> true
             }
         }

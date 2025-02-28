@@ -41,14 +41,24 @@ import com.example.parks.data.saveParkToFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterParkScreen(navController: NavController) {
+fun RegisterParkScreen(navController: NavController, latitude: String? = null, longitude: String? = null, address: String? = null) {
     val verdeBoton = Color(0xFF78B153)
     var showNeedsDialog by remember { mutableStateOf(false) }
     var selectedNeeds by remember { mutableStateOf(setOf<String>()) }
     val roundedShape = RoundedCornerShape(12.dp)
+
+    // Decodificar la dirección recibida si no es nula
+    val decodedAddress = address?.let {
+        try {
+            java.net.URLDecoder.decode(it, "UTF-8")
+        } catch (e: Exception) {
+            it // Si hay un error en la decodificación, usar el valor original
+        }
+    }
+
     // Estados para los campos de texto
     var parkName by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf(address ?: "") }
     var description by remember { mutableStateOf("") }
     var comments by remember { mutableStateOf("") }
     var selectedOptionText by remember { mutableStateOf("") }
@@ -64,6 +74,9 @@ fun RegisterParkScreen(navController: NavController) {
     val context = LocalContext.current
     // Estado para controlar la visibilidad del diálogo de permisos
     var showPermissionDialog by remember { mutableStateOf(false) }
+    // Geopoint del parque
+    var parkLatitude by remember { mutableStateOf(latitude) }
+    var parkLongitude by remember { mutableStateOf(longitude) }
 
     // Lanzador para seleccionar imágenes
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -554,7 +567,9 @@ fun RegisterParkScreen(navController: NavController) {
                             status = selectedOptionText,
                             needs = selectedNeeds.toList(),
                             comments = comments,
-                            imageUrl = imageUrl
+                            imageUrl = imageUrl,
+                            latitude = parkLatitude,  // Pasamos la latitud
+                            longitude = parkLongitude  // Pasamos la longitud
                         )
                         imageError = null
                     }
@@ -697,7 +712,7 @@ fun RegisterParkScreen(navController: NavController) {
                             .fillMaxWidth()
                             .padding(top = 14.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = verdeBoton,
+                            containerColor = verdeBoton
                         )
                     ) {
                         Text("Aceptar")
