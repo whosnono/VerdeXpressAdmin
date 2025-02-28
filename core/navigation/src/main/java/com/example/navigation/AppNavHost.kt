@@ -15,6 +15,7 @@ import com.example.home.HomeScreen
 import com.example.parks.ui.ParksScreen
 import com.example.donations.DonationsScreen
 import com.example.notifications.NotificationsScreen
+import com.example.parks.ui.MapScreen
 import com.example.profile.ProfileScreen
 import com.example.parks.ui.RegisterParkScreen
 
@@ -39,6 +40,6 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable("resetPassword") { ResetPasswordScreen(navController)}
         composable("resetPasswordEmailSent") { ResetPasswordEmailSentScreen(navController)}
         composable("registerPark") { RegisterParkScreen(navController) }
-
+        composable("map") { MapScreen(navController) }
     }
 }

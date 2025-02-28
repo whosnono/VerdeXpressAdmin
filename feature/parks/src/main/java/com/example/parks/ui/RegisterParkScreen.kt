@@ -3,6 +3,7 @@ package com.example.parks.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -112,11 +113,33 @@ fun RegisterParkScreen(navController: NavController) {
     // Función para verificar y solicitar permisos
     fun checkAndRequestPermission() {
         when {
-            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED -> {
-                openImagePicker()
+            // Para Android 13 (API 33) y posteriores
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                when {
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.READ_MEDIA_IMAGES
+                    ) == PackageManager.PERMISSION_GRANTED -> {
+                        openImagePicker()
+                    }
+                    else -> {
+                        permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                    }
+                }
             }
+            // Para versiones anteriores a Android 13
             else -> {
-                permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                when {
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    ) == PackageManager.PERMISSION_GRANTED -> {
+                        openImagePicker()
+                    }
+                    else -> {
+                        permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    }
+                }
             }
         }
     }
@@ -174,7 +197,7 @@ fun RegisterParkScreen(navController: NavController) {
                     )
                 },
                 trailingIcon = {
-                    IconButton(onClick = { /* Acción al hacer clic */ }) {
+                    IconButton(onClick = { navController.navigate("map") }) {
                         Image(
                             painter = painterResource(id = R.drawable.map_add),
                             contentDescription = "Select location",
@@ -565,12 +588,23 @@ fun RegisterParkScreen(navController: NavController) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
             title = { Text("Permiso necesario") },
-            text = { Text("Para seleccionar una imagen, necesitas otorgar permiso para acceder a la galería.") },
+            text = {
+                Text(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                        "Para seleccionar imágenes, necesitas otorgar permiso para acceder a las fotos."
+                    else
+                        "Para seleccionar una imagen, necesitas otorgar permiso para acceder a la galería."
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = {
                         showPermissionDialog = false
-                        permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = verdeBoton)
                 ) {

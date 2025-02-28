@@ -14,6 +14,7 @@ appcompat = "1.7.0"
 lifecycleViewmodelCompose = "2.8.7"
 material = "1.12.0"
 materialIconsExtended = "1.7.8"
+osmdroidAndroid = "6.1.16"
 runtimeAndroid = "1.7.8"
 material3Android = "1.3.1"
 navigationRuntimeKtx = "2.8.7"
@@ -32,6 +33,7 @@ uiAndroid = "1.7.0"
 navigationRuntimeAndroid = "2.9.0-alpha06"
 uiTestAndroid = "1.7.8"
 uiGraphicsAndroid = "1.7.0"
+playServicesMaps = "19.1.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -66,6 +68,8 @@ androidx-ui-android = { group = "androidx.compose.ui", name = "ui-android", vers
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
 androidx-ui-test-android = { group = "androidx.compose.ui", name = "ui-test-android", version.ref = "uiTestAndroid" }
 androidx-ui-graphics-android = { group = "androidx.compose.ui", name = "ui-graphics-android", version.ref = "uiGraphicsAndroid" }
+osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroid" }
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -53,13 +53,15 @@ dependencies {
     implementation(libs.androidx.ui.android)
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.osmdroid.android)
+    implementation(libs.play.services.maps)
     implementation(libs.androidx.activity.compose)
 
     // Firebase
     implementation(platform(libs.firebase.bom)) // Firebase BoM
     implementation(libs.firebase.storage.ktx) // Firebase Storage con Kotlin
     implementation(libs.firebase.firestore.ktx)
-    implementation(libs.androidx.ui.graphics.android) // Firebase Firestore con Kotlin
+    implementation(libs.androidx.ui.graphics.android)
 
     // Testing
     testImplementation(libs.junit)
