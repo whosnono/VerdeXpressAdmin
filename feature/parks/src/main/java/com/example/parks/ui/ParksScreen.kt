@@ -2,9 +2,8 @@ package com.example.parks.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,10 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,36 +39,58 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
     }
 
     val parks = viewModel.parksList.value
+    // Reorganizamos la lista para mostrarla como cuadrícula en un LazyColumn
+    val rows = parks.chunked(2)
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Barra de navegación (fija)
+            MainAppBar()
 
-        MainAppBar()
+            // Usamos un único LazyColumn para el contenido scrollable
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 32.dp)
+            ) {
+                // Elemento 1: El título "Parques"
+                item {
+                    Text(
+                        text = "Parques",
+                        fontFamily = SFProDisplayBold,
+                        fontSize = 25.sp,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 26.dp)
+                    )
+                }
 
-        Text(
-            text = "Parques",
-            fontFamily = SFProDisplayBold,
-            fontSize = 25.sp,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 26.dp)
-        )
+                // Elementos para las filas de parques (2 parques por fila)
+                items(rows) { rowParks ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        rowParks.forEach { park ->
+                            Box(modifier = Modifier.weight(1f)) {
+                                ParkItem(imageUrl = park.primeraImagen, parkName = park.nombre)
+                            }
+                        }
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(0.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(parks) { park ->
-                ParkItem(imageUrl = park.primeraImagen, parkName = park.nombre)
+                        // Si hay un solo elemento en la fila, añadimos un espacio vacío
+                        if (rowParks.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
-    }
-    Box(modifier = Modifier.fillMaxSize()) {
+
+        // FAB en posición absoluta
         FloatingActionButton(
             onClick = {
-                navController.navigate("registerPark") // Navegar a la pantalla de registro
+                navController.navigate("registerPark")
             },
             modifier = Modifier
                 .padding(16.dp)
@@ -88,7 +107,7 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
 fun ParkItem(imageUrl: String, parkName: String) {
     Box(
         modifier = Modifier
-            .width(183.dp)
+            .fillMaxWidth()
             .height(122.dp)
     ) {
         AsyncImage(
