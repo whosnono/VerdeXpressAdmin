@@ -3,8 +3,12 @@ package com.example.verdexpress
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.google.firebase.FirebaseApp
 import com.example.navigation.MainScreen
+import com.example.auth.ui.IntroScreen
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,16 +18,15 @@ class MainActivity : AppCompatActivity() {
         initializeFirebase()
 
         setContent {
-            /*
-            Flujo propuesto:
-                1. Comprobar si hay una sesión activa, si sí, startDestination = "Inicio"
-                2. Si no hay sesión activa, startDestination = "signIn"
+            val showIntro = remember { mutableStateOf(true) }
 
-                Nota: Para que esto funcione, se debe establecer startDestination como
-                parametro en AppNavHost o MainScreen o algo así
-            * */
-
-            MainScreen()
+            if (showIntro.value) {
+                IntroScreen {
+                    showIntro.value = false
+                }
+            } else {
+                MainScreen()
+            }
         }
     }
 
