@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -37,7 +39,11 @@ import com.example.design.R
 import com.example.design.SecondaryAppBar
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.example.parks.data.ImageUploadManager
 import com.example.parks.data.saveParkToFirestore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,6 +83,10 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
     // Geopoint del parque
     var parkLatitude by remember { mutableStateOf(latitude) }
     var parkLongitude by remember { mutableStateOf(longitude) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val imageUploadManager = remember { ImageUploadManager(context) }
+    var isUploading by remember { mutableStateOf(false) }
 
     // Lanzador para seleccionar imágenes
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -560,18 +570,50 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                     } else if (selectedImageUris.size > 5) {
                         imageError = "Solo puedes subir un máximo de 5 imágenes."
                     } else {
-                        // Guardar los datos del parque en Firestore
-                        saveParkToFirestore(
-                            name = parkName,
-                            location = location,
-                            description = description,
-                            status = selectedOptionText,
-                            needs = selectedNeeds.toList(),
-                            comments = comments,
-                            imageUrl = imageUrl,
-                            latitude = parkLatitude,  // Pasamos la latitud
-                            longitude = parkLongitude  // Pasamos la longitud
-                        )
+                        // Indicar que estamos subiendo las imágenes
+                        isUploading = true
+
+                        // Proceso de subida de imágenes y guardado en Firestore
+                        coroutineScope.launch {
+                            try {
+                                // Paso 1: Subir imágenes y obtener URLs
+                                val imageUrls = imageUploadManager.uploadImages(selectedImageUris)
+
+                                // Paso 2: Guardar los datos del parque en Firestore con las URLs
+                                saveParkToFirestore(
+                                    name = parkName,
+                                    location = location,
+                                    description = description,
+                                    status = selectedOptionText,
+                                    needs = selectedNeeds.toList(),
+                                    comments = comments,
+                                    imageUrls = imageUrls,  // Pasamos la lista de URLs
+                                    latitude = parkLatitude,
+                                    longitude = parkLongitude
+                                )
+
+                                // Paso 3: Resetear el formulario y mostrar éxito
+                                withContext(Dispatchers.Main) {
+                                    isUploading = false
+                                    Toast.makeText(context, "¡Parque registrado con éxito!", Toast.LENGTH_LONG).show()
+
+                                    // Puedes añadir aquí la navegación a otra pantalla si es necesario
+                                    // navController.navigate("ruta_destino")
+
+                                }
+                            } catch (e: Exception) {
+                                // Manejo de errores
+                                withContext(Dispatchers.Main) {
+                                    isUploading = false
+                                    Toast.makeText(
+                                        context,
+                                        "Error: ${e.message ?: "No se pudo completar la operación"}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    Log.e("RegisterPark", "Error: ${e.message}", e)
+                                }
+                            }
+                        }
                         imageError = null
                     }
                 },
@@ -580,16 +622,55 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                     .width(175.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
-                shape = roundedShape
+                shape = roundedShape,
+                enabled = !isUploading // Deshabilitar el botón durante la subida
             ) {
-                Text(
-                    text = "Validar",
-                    fontSize = 16.sp,
-                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                )
+                if (isUploading) {
+                    // Mostrar indicador de carga
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Validar",
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                }
             }
-        }
-    }
+
+// Puedes añadir un indicador de carga global si es necesario
+            if (isUploading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .width(200.dp)
+                            .height(100.dp),
+                        elevation = CardDefaults.cardElevation(4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(color = verdeBoton)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Subiendo imágenes...",
+                                fontSize = 14.sp,
+                                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                            )
+                        }
+                    }
+                }
+            }
 
     // SnackbarHost para mostrar mensajes de error fugaces
     SnackbarHost(
@@ -722,4 +803,4 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
             }
         }
     }
-}
+}}}

@@ -49,7 +49,7 @@ fun IntroScreen(onTimeout: () -> Unit) {
     }
 
     LaunchedEffect(true) {
-        delay(4000) // Espera 4 segundos antes de mostrar la app
+        delay(2000) // Espera 4 segundos antes de mostrar la app
         onTimeout()
     }
 }

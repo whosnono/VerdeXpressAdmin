@@ -1,5 +1,6 @@
 package com.example.parks.data
 
+import android.util.Log
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -10,7 +11,7 @@ fun saveParkToFirestore(
     status: String,
     needs: List<String>,
     comments: String,
-    imageUrl: String?,
+    imageUrls: List<String>,
     latitude: String? = null,
     longitude: String? = null
 ) {
@@ -20,7 +21,7 @@ fun saveParkToFirestore(
         "ubicacion" to location,
         "descripcion" to description,
         "estado_actual" to status,
-        "imagenes" to imageUrl,
+        "imagenes" to imageUrls,
         "necesidades" to needs,
         "comentarios" to comments
     )
@@ -35,10 +36,10 @@ fun saveParkToFirestore(
         .add(parkData)
         .addOnSuccessListener {
             // Éxito al guardar los datos
-            println("Parque guardado correctamente")
+            Log.d("Firestore", "Parque guardado correctamente con id: ${it.id}")
         }
         .addOnFailureListener { e ->
             // Error al guardar los datos
-            println("Error al guardar el parque: ${e.message}")
+            Log.e("Firestore", "Error al guardar el parque: ${e.message}")
         }
 }

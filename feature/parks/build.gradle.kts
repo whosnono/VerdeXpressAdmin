@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    kotlin("plugin.serialization") version "1.9.24"
 }
 
 android {
@@ -62,6 +63,12 @@ dependencies {
     implementation(libs.firebase.storage.ktx) // Firebase Storage con Kotlin
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.androidx.ui.graphics.android)
+
+    // Supabase
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.storage.kt)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.androidx.activity.ktx)
 
     // Testing
     testImplementation(libs.junit)
