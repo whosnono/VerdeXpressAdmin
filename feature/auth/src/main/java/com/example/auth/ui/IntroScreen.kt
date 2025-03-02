@@ -31,12 +31,12 @@ fun IntroScreen(onTimeout: () -> Unit) {
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo de la aplicación",
-                modifier = Modifier.size(200.dp) // Ajusta el tamaño del logo
+                modifier = Modifier.size(200.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp)) // Espacio entre el logo y el nombre
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
+            Text( //El texto
                 text = "VerdeXpress",
                 fontSize = 30.sp,
                 lineHeight = 20.sp,

@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val showIntro = remember { mutableStateOf(true) }
 
-            if (showIntro.value) {
+            if (showIntro.value) { //Para mostrar la página de Intro
                 IntroScreen {
                     showIntro.value = false
                 }
