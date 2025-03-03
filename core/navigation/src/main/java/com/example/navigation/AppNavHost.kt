@@ -79,7 +79,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
                 try {
                     URLDecoder.decode(it, "UTF-8")
                 } catch (e: Exception) {
-                    it // Si hay un error en la decodificación, usar el valor original
+                    it
                 }
             }
 
@@ -95,7 +95,6 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
     }
 }
 
-// Extensión útil para navegar con parámetros que pueden contener espacios
 fun NavHostController.navigateToRegisterPark(
     latitude: String?,
     longitude: String?,

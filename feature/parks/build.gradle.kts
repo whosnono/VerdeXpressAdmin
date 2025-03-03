@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.osmdroid.android)
     implementation(libs.play.services.maps)
     implementation(libs.androidx.activity.compose)
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
     // Firebase
     implementation(platform(libs.firebase.bom)) // Firebase BoM
