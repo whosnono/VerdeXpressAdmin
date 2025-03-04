@@ -13,6 +13,7 @@ import com.example.auth.ui.ResetPasswordEmailSentScreen
 import com.example.auth.ui.ResetPasswordScreen
 import com.example.auth.ui.SignInScreen
 import com.example.auth.ui.SignUpScreen
+import com.example.auth.ui.SignUpSuccessScreen
 import com.example.home.HomeScreen
 import com.example.parks.ui.ParksScreen
 import com.example.donations.DonationsScreen
@@ -43,6 +44,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable("signUp") { SignUpScreen(navController) }
         composable("resetPassword") { ResetPasswordScreen(navController) }
         composable("resetPasswordEmailSent") { ResetPasswordEmailSentScreen(navController) }
+        composable("signUpSuccess") { SignUpSuccessScreen(navController) }
 
         // Ruta sin parámetros para RegisterPark
         composable("registerPark") {

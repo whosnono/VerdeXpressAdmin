@@ -14,6 +14,7 @@ appcompat = "1.7.0"
 kotlinxSerializationJson = "1.7.3"
 ktorClientOkhttp = "2.3.12"
 lifecycleViewmodelCompose = "2.8.7"
+lottieCompose = "6.3.0"
 material = "1.12.0"
 materialIconsExtended = "1.7.8"
 osmdroidAndroid = "6.1.16"
@@ -54,6 +55,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }

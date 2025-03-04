@@ -20,6 +20,7 @@ fun MainScreen() {
             showBottomBar.value = when (destination.route) {
                 "signIn" -> false
                 "signUp" -> false
+                "signUpSuccess" -> false
                 "resetPassword" -> false
                 "resetPasswordEmailSent" -> false
                 "registerPark" -> false

@@ -312,7 +312,7 @@ fun SignUpScreen(navController: NavController) {
                             numeroContactoError = true
                             numeroContactoErrorMessage = "Ingrese solo números"
                         } else {
-                            navController.navigate("Inicio")
+                            navController.navigate("signUpSuccess")
                         }
                     }
                 },
@@ -324,7 +324,7 @@ fun SignUpScreen(navController: NavController) {
                 shape = roundedShape
             ) {
                 Text(
-                    text = "Regístrarse",
+                    text = "Registrarse",
                     color = Color.White,
                     fontSize = 16.sp,
                     fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
