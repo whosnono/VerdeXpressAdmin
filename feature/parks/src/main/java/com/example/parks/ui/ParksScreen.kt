@@ -46,7 +46,7 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                contentPadding = PaddingValues(bottom = 32.dp)
             ) {
                 item {
                     Text(
