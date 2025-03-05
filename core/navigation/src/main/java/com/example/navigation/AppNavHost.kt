@@ -1,5 +1,6 @@
 package com.example.navigation
 
+import android.net.Uri
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
@@ -20,12 +21,14 @@ import com.example.notifications.NotificationsScreen
 import com.example.parks.ui.MapScreen
 import com.example.profile.ProfileScreen
 import com.example.parks.ui.RegisterParkScreen
+import com.example.parks.ui.SharedViewModel
 import java.net.URLDecoder
-import java.net.URLEncoder
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
-    NavHost(
+    val sharedViewModel: SharedViewModel = viewModel()
+    NavHost( 
         navController = navController,
         startDestination = "signIn",
         modifier = modifier,
@@ -46,12 +49,12 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
         // Ruta sin parámetros para RegisterPark
         composable("registerPark") {
-            RegisterParkScreen(navController = navController)
+            RegisterParkScreen(navController = navController,  sharedViewModel = sharedViewModel)
         }
 
         // Ruta con parámetros para RegisterPark y decodificación automática
         composable(
-            route = "registerPark?lat={lat}&lon={lon}&address={address}",
+            route = "registerPark?lat={lat}&lon={lon}&address={address}&name={name}&desc={desc}&status={status}&imageUris={imageUris}&needs={needs}&comments={comments}",
             arguments = listOf(
                 navArgument("lat") {
                     type = NavType.StringType
@@ -67,12 +70,48 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null
+                },
+                navArgument("name") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("desc") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("status") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("imageUris") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("needs") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("comments") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
                 }
             )
         ) { backStackEntry ->
             val latitude = backStackEntry.arguments?.getString("lat")
             val longitude = backStackEntry.arguments?.getString("lon")
             val address = backStackEntry.arguments?.getString("address")
+            val name = backStackEntry.arguments?.getString("name")?.let { URLDecoder.decode(it, "UTF-8") }
+            val desc = backStackEntry.arguments?.getString("desc")?.let { URLDecoder.decode(it, "UTF-8") }
+            val status = backStackEntry.arguments?.getString("status")?.let { URLDecoder.decode(it, "UTF-8") }
+            val imageUris = backStackEntry.arguments?.getString("imageUris")?.split(",")?.map { Uri.parse(it) } ?: emptyList()
+            val needs = backStackEntry.arguments?.getString("needs")?.split(",") ?: emptyList()
+            val comments = backStackEntry.arguments?.getString("comments")?.let { URLDecoder.decode(it, "UTF-8") }
 
             // Decodificar la dirección automáticamente
             val decodedAddress = address?.let {
@@ -85,24 +124,68 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
             RegisterParkScreen(
                 navController = navController,
+                sharedViewModel = sharedViewModel,
                 latitude = latitude,
                 longitude = longitude,
-                address = decodedAddress
+                address = decodedAddress,
+                parkNameArg = name,
+                descriptionArg = desc,
+                statusArg = status,
+                imageUrisArg = imageUris,
+                needsArg = needs,
+                commentsArg = comments
             )
         }
 
-        composable("map") { MapScreen(navController = navController) }
-    }
-}
+        composable("map?name={name}&desc={desc}&status={status}&needs={needs}&comments={comments}",
+            arguments = listOf(
+                navArgument("name") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("desc") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("status") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("imageUris") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("needs") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("comments") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("name")?.let { URLDecoder.decode(it, "UTF-8") }
+            val desc = backStackEntry.arguments?.getString("desc")?.let { URLDecoder.decode(it, "UTF-8") }
+            val status = backStackEntry.arguments?.getString("status")?.let { URLDecoder.decode(it, "UTF-8") }
+            val needs = backStackEntry.arguments?.getString("needs")?.split(",") ?: emptyList()
+            val comments = backStackEntry.arguments?.getString("comments")?.let { URLDecoder.decode(it, "UTF-8") }
 
-fun NavHostController.navigateToRegisterPark(
-    latitude: String?,
-    longitude: String?,
-    address: String?
-) {
-    val encodedAddress = address?.let {
-        URLEncoder.encode(it, "UTF-8")
+            MapScreen(
+                navController = navController,
+                sharedViewModel = sharedViewModel,
+                name = name,
+                desc = desc,
+                status = status,
+                needs = needs.joinToString(","),
+                comments = comments
+                )
+        }
     }
-
-    navigate("registerPark?lat=$latitude&lon=$longitude&address=$encodedAddress")
 }

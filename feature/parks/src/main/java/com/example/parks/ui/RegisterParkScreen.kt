@@ -8,7 +8,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -19,20 +18,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.design.R
@@ -44,38 +50,31 @@ import com.example.parks.data.saveParkToFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterParkScreen(navController: NavController, latitude: String? = null, longitude: String? = null, address: String? = null) {
+fun RegisterParkScreen(navController: NavController, sharedViewModel: SharedViewModel, latitude: String? = null, longitude: String? = null, address: String? = null, parkNameArg: String? = null, descriptionArg: String? = null, statusArg: String? = null, imageUrisArg: List<Uri>? = null, needsArg: List<String>? = null, commentsArg: String? = null) {
     val verdeBoton = Color(0xFF78B153)
     var showNeedsDialog by remember { mutableStateOf(false) }
-    var selectedNeeds by remember { mutableStateOf(setOf<String>()) }
+    var selectedNeeds by rememberSaveable { mutableStateOf(needsArg ?: emptyList()) }
     val roundedShape = RoundedCornerShape(12.dp)
-
-    // Decodificar la dirección recibida si no es nula
-    val decodedAddress = address?.let {
-        try {
-            java.net.URLDecoder.decode(it, "UTF-8")
-        } catch (e: Exception) {
-            it // Si hay un error en la decodificación, usar el valor original
-        }
-    }
-
+    // Contenedor de imágenes con scroll
+    val scrollState = rememberScrollState()
     // Estados para los campos de texto
-    var parkName by remember { mutableStateOf("") }
+    var parkName by rememberSaveable { mutableStateOf(parkNameArg ?: "") }
     var location by remember { mutableStateOf(address ?: "") }
-    var description by remember { mutableStateOf("") }
-    var comments by remember { mutableStateOf("") }
-    var selectedOptionText by remember { mutableStateOf("") }
-    // Estado para la URL de la imagen subida
-    var imageUrl by remember { mutableStateOf<String?>(null) }
+    var description by rememberSaveable { mutableStateOf(descriptionArg ?: "") }
+    var comments by rememberSaveable { mutableStateOf(commentsArg ?: "") }
+    var selectedOptionText by rememberSaveable { mutableStateOf(statusArg ?: "") }
     // Estado para manejar el mensaje de error con Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     // Estado para manejar el mensaje de error
     var imageError by remember { mutableStateOf<String?>(null) }
-    // Estado para almacenar las URIs de las imágenes seleccionadas
-    var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    // Obtener las URIs desde el ViewModel
+    val imageUrisFromViewModel by sharedViewModel.selectedImageUris.collectAsState()
+    // Estado para las URIs de las imágenes
+    var selectedImageUris by rememberSaveable { mutableStateOf(imageUrisFromViewModel) }
     // Usar la lógica de subida de imágenes
     val context = LocalContext.current
     // Estado para controlar la visibilidad del diálogo de permisos
@@ -110,6 +109,15 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
             snackbarHostState.showSnackbar(errorMessage)
             imageError = null // Limpiar el mensaje de error después de mostrarlo
         }
+    }
+
+    // Almacenar las URIs en el ViewModel antes de navegar
+    LaunchedEffect(selectedImageUris) {
+        sharedViewModel.setImageUris(selectedImageUris)
+    }
+
+    LaunchedEffect(Unit) {
+        sharedViewModel.setImageUris(emptyList())
     }
 
     // Función para abrir el selector de imágenes
@@ -166,7 +174,29 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
             }
         }
     }
+    // Define un NestedScrollConnection para manejar los gestos de desplazamiento anidados
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // Permite que el desplazamiento vertical tenga prioridad
+                return Offset.Zero
+            }
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                // Maneja el desplazamiento horizontal
+                return Offset.Zero
+            }
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                // Permite que el fling vertical tenga prioridad
+                return Velocity.Zero
+            }
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                // Maneja el fling horizontal
+                return Velocity.Zero
+            }
+        }
+    }
 
+Box{
     Column {
         SecondaryAppBar(
             showIcon = true,
@@ -177,6 +207,7 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
             Text(
@@ -186,7 +217,6 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Campo: Nombre del Parque
             OutlinedTextField(
                 value = parkName,
                 onValueChange = { parkName = it },
@@ -220,7 +250,8 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                     )
                 },
                 trailingIcon = {
-                    IconButton(onClick = { navController.navigate("map") }) {
+                    IconButton(onClick = { navController.navigate("map?name=${URLEncoder.encode(parkName, "UTF-8")}&desc=${URLEncoder.encode(description, "UTF-8")}&status=${URLEncoder.encode(selectedOptionText, "UTF-8")}"+
+                            "&needs=${URLEncoder.encode(selectedNeeds.joinToString(","), "UTF-8")}&comments=${URLEncoder.encode(comments, "UTF-8")}")}) {
                         Image(
                             painter = painterResource(id = R.drawable.map_add),
                             contentDescription = "Select location",
@@ -360,46 +391,18 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
             // Mostrar las imágenes seleccionadas con scroll mejorado y indicadores visuales
             if (selectedImageUris.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-
-                // Título e indicador de scroll
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 2.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Imágenes seleccionadas (${selectedImageUris.size}/5)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
-                        color = Color.Gray
-                    )
-                }
-
-                // Contenedor de imágenes con scroll
-                val scrollState = rememberScrollState()
-
-                // Efecto para animar el scroll cuando hay más de 3 imágenes
-                LaunchedEffect(selectedImageUris.size) {
-                    if (selectedImageUris.size > 3 && !scrollState.isScrollInProgress) {
-                        // Pequeña animación de scroll para indicar que hay más contenido
-                        scrollState.animateScrollTo(20, animationSpec = tween(500))
-                        scrollState.animateScrollTo(0, animationSpec = tween(500))
-                    }
-                }
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(110.dp)
+                        .heightIn(min = 110.dp, max = 110.dp) // Limita la altura del contenedor
                         .background(Color(0xFFF8F8F8), RoundedCornerShape(8.dp))
                         .padding(vertical = 4.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(scrollState)
+                            .horizontalScroll(rememberScrollState()) // Scroll horizontal para las imágenes
+                            .nestedScroll(nestedScrollConnection) // Aplica nestedScroll
                             .padding(horizontal = 4.dp)
                     ) {
                         selectedImageUris.forEachIndexed { index, uri ->
@@ -560,7 +563,7 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(30.dp))
 
             // Validar antes de guardar los datos del parque
             Button(
@@ -619,8 +622,8 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .width(175.dp)
-                    .height(50.dp),
+                    .height(50.dp)
+                    .padding(horizontal = 118.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
                 shape = roundedShape,
                 enabled = !isUploading // Deshabilitar el botón durante la subida
@@ -641,7 +644,7 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                 }
             }
 
-// Puedes añadir un indicador de carga global si es necesario
+            // Puedes añadir un indicador de carga global si es necesario
             if (isUploading) {
                 Box(
                     modifier = Modifier
@@ -671,14 +674,6 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
                     }
                 }
             }
-
-    // SnackbarHost para mostrar mensajes de error fugaces
-    SnackbarHost(
-        hostState = snackbarHostState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    )
 
     // Diálogo: Solicitar permisos
     if (showPermissionDialog) {
@@ -803,4 +798,14 @@ fun RegisterParkScreen(navController: NavController, latitude: String? = null, l
             }
         }
     }
-}}}
+}
+    }
+    // SnackbarHost para mostrar mensajes de error fugaces
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    )
+    }
+}

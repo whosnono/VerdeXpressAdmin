@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
+import android.net.Uri
 import android.os.Build
 import android.preference.PreferenceManager
 import android.util.Log
@@ -20,13 +21,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import com.example.design.SecondaryAppBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,7 +41,6 @@ import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-import java.io.IOException
 import java.net.URLEncoder
 import java.util.*
 import kotlin.math.abs
@@ -56,7 +56,12 @@ private const val MAX_DISTANCE_FROM_CENTER = 0.15 // Aproximadamente 15 km en co
 fun NavController.navigateToRegisterPark(
     latitude: Double?,
     longitude: Double?,
-    address: String?
+    address: String?,
+    name: String?,
+    desc: String?,
+    status: String?,
+    needs: String?,
+    comments: String?
 ) {
     val encodedAddress = address?.let {
         try {
@@ -66,12 +71,19 @@ fun NavController.navigateToRegisterPark(
             it
         }
     }
-
-    navigate("registerPark?lat=$latitude&lon=$longitude&address=$encodedAddress")
+    navigate("registerPark?lat=$latitude&lon=$longitude&address=$encodedAddress&name=$name&desc=$desc&status=$status&needs=$needs&comments=$comments")
 }
 
 @Composable
-fun MapScreen(navController: NavController) {
+fun MapScreen(
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
+    name: String?,
+    desc: String?,
+    status: String?,
+    needs: String?,
+    comments: String?
+) {
     val verdeBoton = Color(0xFF78B153)
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -480,7 +492,12 @@ fun MapScreen(navController: NavController) {
                                 navController.navigateToRegisterPark(
                                     latitude = selectedLocation?.latitude,
                                     longitude = selectedLocation?.longitude,
-                                    address = addressText
+                                    address = addressText,
+                                    name = name,
+                                    desc = desc,
+                                    status = status,
+                                    needs = needs,
+                                    comments = comments
                                 )
                             }
                         },

@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.storage.kt)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.androidx.activity.ktx)
+    implementation(libs.ui.android)
 
     // Testing
     testImplementation(libs.junit)

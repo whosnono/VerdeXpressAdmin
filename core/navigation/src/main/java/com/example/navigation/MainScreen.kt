@@ -23,7 +23,8 @@ fun MainScreen() {
                 "resetPassword" -> false
                 "resetPasswordEmailSent" -> false
                 "registerPark" -> false
-                "map" -> false
+                "map?name={name}&desc={desc}&status={status}&needs={needs}&comments={comments}" -> false
+                "registerPark?lat={lat}&lon={lon}&address={address}&name={name}&desc={desc}&status={status}&imageUris={imageUris}&needs={needs}&comments={comments}" -> false
                 else -> true
             }
         }
