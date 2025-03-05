@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.foundation.android)
     implementation(libs.foundation.android)
     implementation(libs.foundation.android)
+    implementation(libs.osmdroid.android)
+    implementation(libs.ui.text.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

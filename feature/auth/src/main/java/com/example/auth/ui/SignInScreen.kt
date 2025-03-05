@@ -11,15 +11,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.R
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import kotlinx.coroutines.launch
 
 @Composable
@@ -32,6 +37,7 @@ fun SignInScreen(navController: NavController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val auth = FirebaseAuth.getInstance()
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -68,25 +74,40 @@ fun SignInScreen(navController: NavController) {
         // Username field
         OutlinedTextField(
             value = usuario,
-            onValueChange = { usuario = it },
+            onValueChange = { usuario = it.replace("\n", "") },
             label = { Text(text = "Correo electrónico", fontSize = 14.sp, fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))) },
             shape = roundedShape,
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = verdeBoton, focusedLabelColor = verdeBoton, cursorColor = verdeBoton),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .padding(bottom = 8.dp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
         )
 
         // Password field
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { password = it.replace("\n", "") },
             label = { Text(text = "Contraseña", fontSize = 14.sp, fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)) )},
             shape = roundedShape,
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = verdeBoton, focusedLabelColor = verdeBoton, cursorColor = verdeBoton),
             modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            trailingIcon = {
+                IconButton(
+                    onClick = { passwordVisible = !passwordVisible },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = verdeBoton
+                    ))
+                 {
+                    Text(
+                        text = if (passwordVisible) "Ocultar" else "Mostrar",
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
+                        fontSize = 12.sp
+                        )
+                }
+            }
         )
 
         errorMessage?.let {
@@ -132,7 +153,12 @@ fun SignInScreen(navController: NavController) {
                                 if (task.isSuccessful) {
                                     navController.navigate("Inicio")
                                 } else {
-                                    errorMessage = task.exception?.message ?: "Error al iniciar sesión"
+                                    errorMessage = when (task.exception) {
+                                        is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrectos"
+                                        is FirebaseAuthInvalidUserException -> "Usuario no encontrado"
+                                        is FirebaseNetworkException -> "Error de red, por favor verifica tu conexión"
+                                        else -> "Error al iniciar sesión"
+                                    }
                                 }
                             }
                     } catch (e: Exception) {
