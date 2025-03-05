@@ -27,21 +27,17 @@ fun BottomNavigationBar(navController: NavController, items: List<NavigationItem
             .background(Color.White)
     ) {
         NavigationBar(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             items.forEach { item ->
                 val isSelected = currentRoute == item.route
-                val iconColor = if (isSelected) Color(0xFF78B153) else Color(0xFF3F4946)
-                val textColor = if (isSelected) Color(0xFF78B153) else Color(0xFF484C52)
 
                 NavigationBarItem(
                     icon = {
                         Icon(
                             imageVector = item.icon,
                             contentDescription = item.route,
-                            modifier = Modifier.size(24.dp),
-                            tint = iconColor
+                            modifier = Modifier.size(24.dp)
                         )
                     },
                     label = {
@@ -52,7 +48,6 @@ fun BottomNavigationBar(navController: NavController, items: List<NavigationItem
                             fontSize = 10.sp,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth(),
-                            color = textColor,
                             fontFamily = SFProDisplayMedium
                         )
                     },
@@ -63,7 +58,15 @@ fun BottomNavigationBar(navController: NavController, items: List<NavigationItem
                                 launchSingleTop = true
                             }
                         }
-                    }
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFF78B153),
+                        unselectedIconColor = Color(0xFF3F4946),
+                        selectedTextColor = Color(0xFF78B153),
+                        unselectedTextColor = Color(0xFF484C52),
+                        indicatorColor = Color.Transparent
+                    ),
+                    alwaysShowLabel = true
                 )
             }
         }
