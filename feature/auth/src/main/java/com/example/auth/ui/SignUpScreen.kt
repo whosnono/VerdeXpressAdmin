@@ -34,11 +34,15 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.auth.data.SignUpValidator
 import com.example.design.R
 import com.example.design.SecondaryAppBar
 
 @Composable
-fun SignUpScreen(navController: NavController) {
+fun SignUpScreen(
+    navController: NavController,
+    signUpValidator: SignUpValidator
+) {
     val verdeBoton = Color(0xFF78B153)
     val rojoError = Color.Red
     val roundedShape = RoundedCornerShape(12.dp)
@@ -63,7 +67,7 @@ fun SignUpScreen(navController: NavController) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Variables de estado para los campos y errores
+            // Estados de los campos
             var nombre by remember { mutableStateOf("") }
             var apellidos by remember { mutableStateOf("") }
             var numeroContacto by remember { mutableStateOf("") }
@@ -71,249 +75,96 @@ fun SignUpScreen(navController: NavController) {
             var password by remember { mutableStateOf("") }
             var confirmPassword by remember { mutableStateOf("") }
 
-            var nombreError by remember { mutableStateOf(false) }
-            var apellidosError by remember { mutableStateOf(false) }
-            var numeroContactoError by remember { mutableStateOf(false) }
-            var correoElectronicoError by remember { mutableStateOf(false) }
-            var passwordError by remember { mutableStateOf(false) }
-            var confirmPasswordError by remember { mutableStateOf(false) }
+            // Estados de errores
+            var errorMessages by remember { mutableStateOf(mapOf<String, List<String>>()) }
 
-            var nombreErrorMessage by remember { mutableStateOf("") }
-            var apellidosErrorMessage by remember { mutableStateOf("") }
-            var numeroContactoErrorMessage by remember { mutableStateOf("") }
-            var correoElectronicoErrorMessage by remember { mutableStateOf("") }
-            var passwordErrorMessage by remember { mutableStateOf("") }
-            var confirmPasswordErrorMessage by remember { mutableStateOf("") }
-
-            // Nombre
-            OutlinedTextField(
+            // Campos de texto
+            SignUpTextField(
                 value = nombre,
-                onValueChange = {
-                    nombre = it
-                    nombreError = false
-                    nombreErrorMessage = ""
-                },
-                label = {
-                    Row {
-                        Text(
-                            text = "Nombre",
-                            color = if (nombreError) rojoError else Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                        if (nombreError) {
-                            Text(text = "*", color = rojoError) //Un * para resaltar donde hay un error
-                        }
-                    }
-                },
-                shape = roundedShape,
-                colors = OutlinedTextFieldDefaults.colors( //Cambio de color del field si el usuario se equivoca
-                    focusedBorderColor = if (nombreError) rojoError else verdeBoton,
-                    focusedLabelColor = if (nombreError) rojoError else verdeBoton,
-                    cursorColor = if (nombreError) rojoError else verdeBoton
-                ),
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { nombre = it },
+                label = "Nombre",
+                errors = errorMessages["nombre"] ?: emptyList(),
+                roundedShape = roundedShape,
+                verdeBoton = verdeBoton,
+                rojoError = rojoError
             )
-            if (nombreError) {
-                Text(text = nombreErrorMessage, color = rojoError, fontSize = 12.sp)
-            }
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Apellidos
-            OutlinedTextField(
+            SignUpTextField(
                 value = apellidos,
-                onValueChange = {
-                    apellidos = it
-                    apellidosError = false
-                    apellidosErrorMessage = ""
-                },
-                label = {
-                    Row {
-                        Text(
-                            text = "Apellidos",
-                            color = if (apellidosError) rojoError else Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                        if (apellidosError) {
-                            Text(text = "*", color = rojoError) //Un * para resaltar donde hay un error
-                        }
-                    }
-                },
-                shape = roundedShape,
-                colors = OutlinedTextFieldDefaults.colors( //Cambio de color del field si el usuario se equivoca
-                    focusedBorderColor = if (apellidosError) rojoError else verdeBoton,
-                    focusedLabelColor = if (apellidosError) rojoError else verdeBoton,
-                    cursorColor = if (apellidosError) rojoError else verdeBoton
-                ),
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { apellidos = it },
+                label = "Apellidos",
+                errors = errorMessages["apellidos"] ?: emptyList(),
+                roundedShape = roundedShape,
+                verdeBoton = verdeBoton,
+                rojoError = rojoError
             )
-            if (apellidosError) {
-                Text(text = apellidosErrorMessage, color = rojoError, fontSize = 12.sp)
-            }
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Número de contacto
-            OutlinedTextField(
+            SignUpTextField(
                 value = numeroContacto,
-                onValueChange = {
-                    numeroContacto = it
-                    numeroContactoError = false
-                    numeroContactoErrorMessage = ""
-                },
-                label = {
-                    Row {
-                        Text(
-                            text = "Número de contacto",
-                            color = if (numeroContactoError) rojoError else Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                        if (numeroContactoError) {
-                            Text(text = "*", color = rojoError) //Un * para resaltar donde hay un error
-                        }
-                    }
-                },
-                shape = roundedShape,
-                colors = OutlinedTextFieldDefaults.colors( //Cambio de color del field si el usuario se equivoca
-                    focusedBorderColor = if (numeroContactoError) rojoError else verdeBoton,
-                    focusedLabelColor = if (numeroContactoError) rojoError else verdeBoton,
-                    cursorColor = if (numeroContactoError) rojoError else verdeBoton
-                ),
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { numeroContacto = it },
+                label = "Número de contacto",
+                errors = errorMessages["numeroContacto"] ?: emptyList(),
+                roundedShape = roundedShape,
+                verdeBoton = verdeBoton,
+                rojoError = rojoError,
+                keyboardType = KeyboardType.Number
             )
-            if (numeroContactoError) {
-                Text(text = numeroContactoErrorMessage, color = rojoError, fontSize = 12.sp)
-            }
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Correo electrónico
-            OutlinedTextField(
+            SignUpTextField(
                 value = correoElectronico,
-                onValueChange = {
-                    correoElectronico = it
-                    correoElectronicoError = false
-                    correoElectronicoErrorMessage = ""
-                },
-                label = {
-                    Row {
-                        Text(
-                            text = "Correo electrónico",
-                            color = if (correoElectronicoError) rojoError else Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                        if (correoElectronicoError) {
-                            Text(text = "*", color = rojoError) //Un * para resaltar donde hay un error
-                        }
-                    }
-                },
-                shape = roundedShape,
-                colors = OutlinedTextFieldDefaults.colors( //Cambio de color del field si el usuario se equivoca
-                    focusedBorderColor = if (correoElectronicoError) rojoError else verdeBoton,
-                    focusedLabelColor = if (correoElectronicoError) rojoError else verdeBoton,
-                    cursorColor = if (correoElectronicoError) rojoError else verdeBoton
-                ),
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { correoElectronico = it },
+                label = "Correo electrónico",
+                errors = errorMessages["correoElectronico"] ?: emptyList(),
+                roundedShape = roundedShape,
+                verdeBoton = verdeBoton,
+                rojoError = rojoError,
+                keyboardType = KeyboardType.Email
             )
-            if (correoElectronicoError) {
-                Text(text = correoElectronicoErrorMessage, color = rojoError, fontSize = 12.sp)
-            }
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Contraseña
-            OutlinedTextField(
+            SignUpTextField(
                 value = password,
-                onValueChange = {
-                    password = it
-                    passwordError = false
-                    passwordErrorMessage = ""
-                },
-                label = {
-                    Row {
-                        Text(
-                            text = "Contraseña",
-                            color = if (passwordError) rojoError else Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                        if (passwordError) {
-                            Text(text = "*", color = rojoError) //Un * para resaltar donde hay un error
-                        }
-                    }
-                },
-                shape = roundedShape,
-                colors = OutlinedTextFieldDefaults.colors( //Cambio de color del field si el usuario se equivoca
-                    focusedBorderColor = if (passwordError) rojoError else verdeBoton,
-                    focusedLabelColor = if (passwordError) rojoError else verdeBoton,
-                    cursorColor = if (passwordError) rojoError else verdeBoton
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                onValueChange = { password = it },
+                label = "Contraseña",
+                errors = errorMessages["password"] ?: emptyList(),
+                roundedShape = roundedShape,
+                verdeBoton = verdeBoton,
+                rojoError = rojoError,
+                isPassword = true
             )
-            if (passwordError) {
-                Text(text = passwordErrorMessage, color = rojoError, fontSize = 12.sp)
-            }
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Confirmar contraseña
-            OutlinedTextField(
+            SignUpTextField(
                 value = confirmPassword,
-                onValueChange = {
-                    confirmPassword = it
-                    confirmPasswordError = false
-                    confirmPasswordErrorMessage = ""
-                },
-                label = {
-                    Row {
-                        Text(
-                            text = "Confirmar contraseña",
-                            color = if (confirmPasswordError) rojoError else Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                        if (confirmPasswordError) {
-                            Text(text = "*", color = rojoError) //Un * para resaltar donde hay un error
-                        }
-                    }
-                },
-                shape = roundedShape,
-                colors = OutlinedTextFieldDefaults.colors( //Cambio de color del field si el usuario se equivoca
-                    focusedBorderColor = if (confirmPasswordError) rojoError else verdeBoton,
-                    focusedLabelColor = if (confirmPasswordError) rojoError else verdeBoton,
-                    cursorColor = if (confirmPasswordError) rojoError else verdeBoton
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                onValueChange = { confirmPassword = it },
+                label = "Confirmar contraseña",
+                errors = errorMessages["confirmPassword"] ?: emptyList(),
+                roundedShape = roundedShape,
+                verdeBoton = verdeBoton,
+                rojoError = rojoError,
+                isPassword = true
             )
-            if (confirmPasswordError) {
-                Text(text = confirmPasswordErrorMessage, color = rojoError, fontSize = 12.sp)
-            }
             Spacer(modifier = Modifier.height(32.dp))
 
             // Botón de registro
             Button(
                 onClick = {
-                    // Validación de campos (Cuando se encuentran vacios todos)
-                    nombreError = nombre.isEmpty().also { if (it) nombreErrorMessage = "Ingrese su nombre" }
-                    apellidosError = apellidos.isEmpty().also { if (it) apellidosErrorMessage = "Ingrese al menos un apellido" }
-                    numeroContactoError = numeroContacto.isEmpty().also { if (it) numeroContactoErrorMessage = "Ingrese su número de contacto" }
-                    correoElectronicoError = correoElectronico.isEmpty().also { if (it) correoElectronicoErrorMessage = "Ingrese su correo electrónico" }
-                    passwordError = password.isEmpty().also { if (it) passwordErrorMessage = "Ingrese su contraseña" }
-                    confirmPasswordError = confirmPassword.isEmpty().also { if (it) confirmPasswordErrorMessage = "Confirme su contraseña" }
+                    // Validar campos
+                    errorMessages = signUpValidator.validate(
+                        nombre,
+                        apellidos,
+                        numeroContacto,
+                        correoElectronico,
+                        password,
+                        confirmPassword
+                    )
 
-                    if (!nombreError && !apellidosError && !numeroContactoError && !correoElectronicoError && !passwordError && !confirmPasswordError) {
-                        if (!correoElectronico.contains("@") || (!correoElectronico.contains(".com") && !correoElectronico.contains(".es"))) { //Que tenga los parámetros correctos de un correo electronico
-                            correoElectronicoError = true
-                            correoElectronicoErrorMessage = "Ingrese un correo válido"
-                        } else if (password.length < 8 || !password.any { it.isDigit() } || !password.any { it.isUpperCase() }) { //La contraseña debe ser mayor a 8 caracteres y debe tener al menos un numero y una mayúscula
-                            passwordError = true
-                            passwordErrorMessage = "La contraseña debe tener al menos 8 caracteres, 1 número y 1 mayúscula"
-                        } else if (password != confirmPassword) { //Que la contraseña en la confirmación sea la misma
-                            confirmPasswordError = true
-                            confirmPasswordErrorMessage = "Las contraseñas no coinciden"
-                        } else if (numeroContacto.toIntOrNull() == null) { // Verifica que sean solo números en el field de contacto
-                            numeroContactoError = true
-                            numeroContactoErrorMessage = "Ingrese solo números"
-                        } else {
-                            navController.navigate("signUpSuccess")
-                        }
+                    // Si no hay errores, navegar
+                    if (errorMessages.isEmpty()) {
+                        navController.navigate("signUpSuccess")
                     }
                 },
                 modifier = Modifier
@@ -331,6 +182,7 @@ fun SignUpScreen(navController: NavController) {
                 )
             }
 
+            // Enlace a inicio de sesión
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -358,3 +210,53 @@ fun SignUpScreen(navController: NavController) {
     }
 }
 
+// Componente reutilizable para campos de texto
+@Composable
+fun SignUpTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    errors: List<String>,
+    roundedShape: RoundedCornerShape,
+    verdeBoton: Color,
+    rojoError: Color,
+    isPassword: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = {
+                Row {
+                    Text(
+                        text = label,
+                        color = if (errors.isNotEmpty()) rojoError else Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                    if (errors.isNotEmpty()) {
+                        Text(text = "*", color = rojoError)
+                    }
+                }
+            },
+            shape = roundedShape,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = if (errors.isNotEmpty()) rojoError else verdeBoton,
+                focusedLabelColor = if (errors.isNotEmpty()) rojoError else verdeBoton,
+                cursorColor = if (errors.isNotEmpty()) rojoError else verdeBoton
+            ),
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
+        )
+
+        // Mostrar mensajes de error
+        errors.forEach { errorMessage ->
+            Text(
+                text = errorMessage,
+                color = rojoError,
+                fontSize = 12.sp
+            )
+        }
+    }
+}

@@ -40,6 +40,7 @@ uiGraphicsAndroid = "1.7.0"
 playServicesMaps = "19.1.0"
 activityKtx = "1.8.2"
 uiAndroidVersion = "1.7.2"
+annotations = "15.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -82,6 +83,7 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 storage-kt = { module = "io.github.jan-tennert.supabase:storage-kt", version.ref = "storageKt" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
 ui-android = { group = "androidx.compose.ui", name = "ui-android", version.ref = "uiAndroidVersion" }
+annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

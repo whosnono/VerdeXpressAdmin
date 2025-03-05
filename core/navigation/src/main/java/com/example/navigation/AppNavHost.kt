@@ -26,6 +26,7 @@ import com.example.parks.ui.RegisterParkSuccessScreen
 import com.example.parks.ui.SharedViewModel
 import java.net.URLDecoder
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.auth.data.SignUpValidator
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -45,7 +46,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable(NavigationItem.Notifications.route) { NotificationsScreen() }
         composable(NavigationItem.Profile.route) { ProfileScreen() }
         composable("signIn") { SignInScreen(navController) }
-        composable("signUp") { SignUpScreen(navController) }
+        composable("signUp") { SignUpScreen(navController, SignUpValidator) }
         composable("resetPassword") { ResetPasswordScreen(navController) }
         composable("resetPasswordEmailSent") { ResetPasswordEmailSentScreen(navController) }
         composable("signUpSuccess") { SignUpSuccessScreen(navController) }
