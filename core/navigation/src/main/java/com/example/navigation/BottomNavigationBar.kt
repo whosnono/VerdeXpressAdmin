@@ -2,9 +2,11 @@ package com.example.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.style.*
@@ -20,14 +22,24 @@ fun BottomNavigationBar(navController: NavController, items: List<NavigationItem
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .background(Color.White)
     ) {
+        // Barra gris
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp) // Ajusta la altura de la barra gris aquí
+                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                .background(Color(0xFFEEEEEE)) // Gris claro, puedes ajustar el color
+        )
+
         NavigationBar(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = Color.White
         ) {
             items.forEach { item ->
                 val isSelected = currentRoute == item.route
