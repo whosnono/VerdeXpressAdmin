@@ -20,12 +20,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -34,7 +34,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.AlertDialog
@@ -75,12 +74,10 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Velocity
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
@@ -97,13 +94,8 @@ import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterParkScreen(navController: NavController, sharedViewModel: SharedViewModel, latitude: String? = null, longitude: String? = null, address: String? = null, parkNameArg: String? = null, descriptionArg: String? = null, statusArg: String? = null, imageUrisArg: List<Uri>? = null, needsArg: List<String>? = null, commentsArg: String? = null) {
-fun RegisterParkScreen(
-    navController: NavController,
-    latitude: String? = null,
-    longitude: String? = null,
-    address: String? = null
-) {
+fun RegisterParkScreen(navController: NavController, sharedViewModel: SharedViewModel, latitude: String? = null, longitude: String? = null, address: String? = null, parkNameArg: String? = null, descriptionArg: String? = null, statusArg: String? = null, imageUrisArg: List<Uri>? = null, needsArg: List<String>? = null, commentsArg: String? = null)
+{
     val verdeBoton = Color(0xFF78B153)
     var showNeedsDialog by remember { mutableStateOf(false) }
     var selectedNeeds by rememberSaveable { mutableStateOf(needsArg ?: emptyList()) }
@@ -263,23 +255,6 @@ Box{
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            OutlinedTextField(
-                value = parkName,
-                onValueChange = { parkName = it },
-                label = {
-                    Text(
-                        text = "Nombre del Parque",
-                        color = Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                    )
-                },
-                shape = roundedShape,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = verdeBoton,
-                    focusedLabelColor = verdeBoton,
-                    cursorColor = verdeBoton
-                ),
-                modifier = Modifier.fillMaxWidth()
             // Campo: Nombre del Parque
             OutlinedTextField(value = parkName, onValueChange = { parkName = it }, label = {
                 Text(
@@ -831,7 +806,7 @@ Box{
                     }
                 }
             }
-        }
+        })
     }
 }
     }
@@ -843,5 +818,4 @@ Box{
             .padding(16.dp)
     )
     }
-}
 }

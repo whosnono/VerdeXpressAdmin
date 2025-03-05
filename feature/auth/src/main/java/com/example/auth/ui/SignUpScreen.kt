@@ -1,28 +1,11 @@
 package com.example.auth.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import SignUpViewModel
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,9 +13,11 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.auth.data.SignUpValidator
 import com.example.design.R
@@ -41,23 +26,53 @@ import com.example.design.SecondaryAppBar
 @Composable
 fun SignUpScreen(
     navController: NavController,
-    signUpValidator: SignUpValidator
+    signUpValidator: SignUpValidator,
+    signUpViewModel: SignUpViewModel = viewModel()
 ) {
     val verdeBoton = Color(0xFF78B153)
     val rojoError = Color.Red
     val roundedShape = RoundedCornerShape(12.dp)
 
-    Column {
-        SecondaryAppBar(
-            showIcon = true,
-            onIconClick = {
-                navController.navigate("signIn")
-            }
-        )
+    // Estados del ViewModel
+    val signUpState by signUpViewModel.signUpState.collectAsState()
 
+    // Estados locales de los campos
+    var nombre by remember { mutableStateOf("") }
+    var apellidos by remember { mutableStateOf("") }
+    var numeroContacto by remember { mutableStateOf("") }
+    var correoElectronico by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
+    // Estados de errores
+    var errorMessages by remember { mutableStateOf(mapOf<String, List<String>>()) }
+
+    // Efecto para manejar estados de registro
+    LaunchedEffect(signUpState) {
+        when (val state = signUpState) {
+            is SignUpState.Success -> {
+                navController.navigate("signUpSuccess")
+            }
+            is SignUpState.Error -> {
+                // Actualizar errores con el mensaje de Firebase
+                errorMessages = errorMessages + ("general" to listOf(state.message))
+            }
+            else -> {} // Otros estados
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            SecondaryAppBar(
+                showIcon = true,
+                onIconClick = { navController.navigate("signIn") }
+            )
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
                 .padding(16.dp)
         ) {
             Text(
@@ -67,16 +82,18 @@ fun SignUpScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Estados de los campos
-            var nombre by remember { mutableStateOf("") }
-            var apellidos by remember { mutableStateOf("") }
-            var numeroContacto by remember { mutableStateOf("") }
-            var correoElectronico by remember { mutableStateOf("") }
-            var password by remember { mutableStateOf("") }
-            var confirmPassword by remember { mutableStateOf("") }
-
-            // Estados de errores
-            var errorMessages by remember { mutableStateOf(mapOf<String, List<String>>()) }
+            // Mostrar error general de Firebase si existe
+            errorMessages["general"]?.let { generalErrors ->
+                generalErrors.forEach { errorMessage ->
+                    Text(
+                        text = errorMessage,
+                        color = rojoError,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    )
+                }
+            }
 
             // Campos de texto
             SignUpTextField(
@@ -152,8 +169,11 @@ fun SignUpScreen(
             // Botón de registro
             Button(
                 onClick = {
-                    // Validar campos
-                    errorMessages = signUpValidator.validate(
+                    // Limpiar errores generales
+                    errorMessages = errorMessages - "general"
+
+                    // Validar campos localmente
+                    val localErrors = signUpValidator.validate(
                         nombre,
                         apellidos,
                         numeroContacto,
@@ -162,9 +182,18 @@ fun SignUpScreen(
                         confirmPassword
                     )
 
-                    // Si no hay errores, navegar
-                    if (errorMessages.isEmpty()) {
-                        navController.navigate("signUpSuccess")
+                    // Actualizar errores locales
+                    errorMessages = localErrors
+
+                    // Si no hay errores locales, intentar registro
+                    if (localErrors.isEmpty()) {
+                        signUpViewModel.signUp(
+                            nombre,
+                            apellidos,
+                            numeroContacto,
+                            correoElectronico,
+                            password
+                        )
                     }
                 },
                 modifier = Modifier
@@ -172,14 +201,22 @@ fun SignUpScreen(
                     .width(175.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
-                shape = roundedShape
+                shape = roundedShape,
+                enabled = signUpState !is SignUpState.Loading
             ) {
-                Text(
-                    text = "Registrarse",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                )
+                if (signUpState is SignUpState.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Registrarse",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                    )
+                }
             }
 
             // Enlace a inicio de sesión
@@ -246,16 +283,19 @@ fun SignUpTextField(
                 cursorColor = if (errors.isNotEmpty()) rojoError else verdeBoton
             ),
             modifier = Modifier.fillMaxWidth(),
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = keyboardType
+            )
         )
 
-        // Mostrar mensajes de error
-        errors.forEach { errorMessage ->
+        // Mostrar errores debajo del campo de texto
+        errors.forEach { error ->
             Text(
-                text = errorMessage,
+                text = error,
                 color = rojoError,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
             )
         }
     }
