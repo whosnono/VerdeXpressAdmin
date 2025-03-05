@@ -2,9 +2,8 @@ package com.example.parks.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,32 +40,47 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
 
     val parks = viewModel.parksList.value
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            MainAppBar()
 
-        MainAppBar()
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Parques",
+                        fontFamily = SFProDisplayBold,
+                        fontSize = 25.sp,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 26.dp)
+                    )
+                }
 
-        Text(
-            text = "Parques",
-            fontFamily = SFProDisplayBold,
-            fontSize = 25.sp,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 26.dp)
-        )
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(0.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(parks) { park ->
-                ParkItem(imageUrl = park.primeraImagen, parkName = park.nombre)
+                items(parks.chunked(2)) { parksPair ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        parksPair.forEach { park ->
+                            Box(modifier = Modifier.weight(1f)) {
+                                ParkItem(
+                                    imageUrl = park.primeraImagen,
+                                    parkName = park.nombre
+                                )
+                            }
+                        }
+                        // Add an empty Box if there's an odd number of parks
+                        if (parksPair.size < 2) {
+                            Box(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
             }
         }
-    }
-    Box(modifier = Modifier.fillMaxSize()) {
+
         FloatingActionButton(
             onClick = {
                 navController.navigate("registerPark") // Navegar a la pantalla de registro
