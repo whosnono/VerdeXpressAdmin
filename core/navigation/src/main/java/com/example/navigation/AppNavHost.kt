@@ -21,6 +21,7 @@ import com.example.notifications.NotificationsScreen
 import com.example.parks.ui.MapScreen
 import com.example.profile.ProfileScreen
 import com.example.parks.ui.RegisterParkScreen
+import com.example.parks.ui.RegisterParkSuccessScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -45,6 +46,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable("resetPassword") { ResetPasswordScreen(navController) }
         composable("resetPasswordEmailSent") { ResetPasswordEmailSentScreen(navController) }
         composable("signUpSuccess") { SignUpSuccessScreen(navController) }
+        composable("registerParkSuccess") { RegisterParkSuccessScreen(navController = navController) }
 
         // Ruta sin parámetros para RegisterPark
         composable("registerPark") {

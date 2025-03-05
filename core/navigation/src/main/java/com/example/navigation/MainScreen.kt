@@ -25,6 +25,7 @@ fun MainScreen() {
                 "resetPasswordEmailSent" -> false
                 "registerPark" -> false
                 "map" -> false
+                "registerParkSuccess" -> false
                 else -> true
             }
         }
