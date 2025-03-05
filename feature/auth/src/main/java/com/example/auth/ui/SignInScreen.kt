@@ -19,20 +19,19 @@ import com.example.design.R
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignInScreen(navController: NavController) {
     val verdeBoton = Color(0xFF78B153)
-    val rojoError = Color.Red
     val roundedShape = RoundedCornerShape(12.dp)
 
-    //Estos los cree para la lógica de detectar errores al tratar de ingresar a la app :)
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var usuarioError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
-    var usuarioErrorMessage by remember { mutableStateOf("") }
-    var passwordErrorMessage by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = Modifier
@@ -69,88 +68,31 @@ fun SignInScreen(navController: NavController) {
         // Username field
         OutlinedTextField(
             value = usuario,
-            onValueChange = {
-                usuario = it
-                usuarioError = false
-                usuarioErrorMessage = ""
-            },
-            label = {
-                Row {
-                    Text(
-                        text = "Usuario",
-                        fontSize = 14.sp,
-                        color = if (usuarioError) rojoError else Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                    )
-                    if (usuarioError) {
-                        Text(
-                            text = "*",
-                            color = rojoError,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-            },
+            onValueChange = { usuario = it },
+            label = { Text(text = "Correo electrónico", fontSize = 14.sp, fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))) },
             shape = roundedShape,
-            colors = OutlinedTextFieldDefaults.colors( //Esto es para cambiar el color del borde a rojo si hay un error en los datos
-                focusedBorderColor = if (usuarioError) rojoError else verdeBoton,
-                focusedLabelColor = if (usuarioError) rojoError else verdeBoton,
-                cursorColor = if (usuarioError) rojoError else verdeBoton
-            ),
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = verdeBoton, focusedLabelColor = verdeBoton, cursorColor = verdeBoton),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = if (usuarioError) 4.dp else 4.dp)
+                .padding(bottom = 8.dp)
         )
-        if (usuarioError) {
-            Text(
-                text = usuarioErrorMessage,
-                color = rojoError,
-                fontSize = 12.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-            )
-        }
 
         // Password field
         OutlinedTextField(
             value = password,
-            onValueChange = {
-                password = it
-                passwordError = false
-                passwordErrorMessage = ""
-            },
-            label = {
-                Row {
-                    Text(
-                        text = "Contraseña",
-                        fontSize = 14.sp,
-                        color = if (passwordError) rojoError else Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                    )
-                    if (passwordError) {
-                        Text(
-                            text = "*",
-                            color = rojoError,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-            },
+            onValueChange = { password = it },
+            label = { Text(text = "Contraseña", fontSize = 14.sp, fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)) )},
             shape = roundedShape,
-            colors = OutlinedTextFieldDefaults.colors( //Esto es para cambiar el color del borde a rojo si hay un error en los datos
-                focusedBorderColor = if (passwordError) rojoError else verdeBoton,
-                focusedLabelColor = if (passwordError) rojoError else verdeBoton,
-                cursorColor = if (passwordError) rojoError else verdeBoton
-            ),
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = verdeBoton, focusedLabelColor = verdeBoton, cursorColor = verdeBoton),
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
-        if (passwordError) {
+
+        errorMessage?.let {
             Text(
-                text = passwordErrorMessage,
-                color = rojoError,
+                text = it,
+                color = Color.Red,
                 fontSize = 12.sp,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -181,29 +123,21 @@ fun SignInScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         // Login button
-        Button( //Aquí solo es la lógica que va a seguir para identificar errores, si el correo no es válido, si dejaron un campo vacio, etc.
+        Button(
             onClick = {
-                if (usuario.isEmpty()) {
-                    usuarioError = true
-                    usuarioErrorMessage = "Ingresa tu correo"
-                } else if (!usuario.contains("@") || (!usuario.contains(".com") && !usuario.contains(".es"))) {
-                    usuarioError = true
-                    usuarioErrorMessage = "Ingresa un correo válido"
-                } else {
-                    usuarioError = false
-                    usuarioErrorMessage = ""
-                }
-
-                if (password.isEmpty()) {
-                    passwordError = true
-                    passwordErrorMessage = "Ingresa tu contraseña"
-                } else {
-                    passwordError = false
-                    passwordErrorMessage = ""
-                }
-
-                if (!usuarioError && !passwordError) {
-                    navController.navigate("Inicio")
+                scope.launch {
+                    try {
+                        auth.signInWithEmailAndPassword(usuario, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    navController.navigate("Inicio")
+                                } else {
+                                    errorMessage = task.exception?.message ?: "Error al iniciar sesión"
+                                }
+                            }
+                    } catch (e: Exception) {
+                        errorMessage = e.message ?: "Error al iniciar sesión"
+                    }
                 }
             },
             modifier = Modifier
