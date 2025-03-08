@@ -146,12 +146,14 @@ fun SignUpScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = "Contraseña",
+
                 errors = errorMessages["password"] ?: emptyList(),
                 roundedShape = roundedShape,
                 verdeBoton = verdeBoton,
                 rojoError = rojoError,
                 isPassword = true
             )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             SignUpTextField(

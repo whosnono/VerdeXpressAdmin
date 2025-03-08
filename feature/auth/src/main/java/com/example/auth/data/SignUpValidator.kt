@@ -31,92 +31,85 @@ object SignUpValidator {
         // Validación de nombre
         val nombreValidations = mutableListOf<String>()
         when {
-            nombre.trim().isEmpty() ->
-                nombreValidations.add("El nombre no puede estar vacío")
-            nombre.length < 2 ->
-                nombreValidations.add("El nombre debe tener al menos 2 caracteres")
-            nombre.length > 50 ->
-                nombreValidations.add("El nombre no puede exceder 50 caracteres")
-            !namePattern.matcher(nombre).matches() ->
-                nombreValidations.add("El nombre solo puede contener letras y espacios")
+            nombre.trim().isEmpty() -> nombreValidations.add("El nombre no puede estar vacío.")
+
+            nombre.length < 2 -> nombreValidations.add("El nombre debe tener al menos 2 caracteres.")
+
+            nombre.length > 50 -> nombreValidations.add("El nombre no puede exceder 50 caracteres.")
+
+            !namePattern.matcher(nombre)
+                .matches() -> nombreValidations.add("El nombre solo puede contener letras y espacios.")
         }
         if (nombreValidations.isNotEmpty()) errors["nombre"] = nombreValidations
 
         // Validación de apellidos
         val apellidosValidations = mutableListOf<String>()
         when {
-            apellidos.trim().isEmpty() ->
-                apellidosValidations.add("Los apellidos no pueden estar vacíos")
-            apellidos.length < 2 ->
-                apellidosValidations.add("Los apellidos deben tener al menos 2 caracteres")
-            apellidos.length > 50 ->
-                apellidosValidations.add("Los apellidos no pueden exceder 50 caracteres")
-            !namePattern.matcher(apellidos).matches() ->
-                apellidosValidations.add("Los apellidos solo pueden contener letras y espacios")
+            apellidos.trim()
+                .isEmpty() -> apellidosValidations.add("Los apellidos no pueden estar vacíos.")
+
+            apellidos.length < 2 -> apellidosValidations.add("Los apellidos deben tener al menos 2 caracteres.")
+
+            apellidos.length > 50 -> apellidosValidations.add("Los apellidos no pueden exceder 50 caracteres.")
+
+            !namePattern.matcher(apellidos)
+                .matches() -> apellidosValidations.add("Los apellidos solo pueden contener letras y espacios.")
         }
         if (apellidosValidations.isNotEmpty()) errors["apellidos"] = apellidosValidations
 
         // Validación de número de contacto
         val contactoValidations = mutableListOf<String>()
         when {
-            numeroContacto.trim().isEmpty() ->
-                contactoValidations.add("El número de contacto no puede estar vacío")
-            numeroContacto.length < 9 ->
-                contactoValidations.add("El número de contacto es demasiado corto")
-            numeroContacto.length > 15 ->
-                contactoValidations.add("El número de contacto es demasiado largo")
-            !phonePattern.matcher(numeroContacto).matches() ->
-                contactoValidations.addAll(listOf(
-                    "El número solo puede contener dígitos",
-                    "Se permiten '+', espacios y guiones"
-                ))
+            numeroContacto.trim()
+                .isEmpty() -> contactoValidations.add("El número de contacto no puede estar vacío.")
+
+            numeroContacto.length < 10 -> contactoValidations.add("El número de contacto es demasiado corto.")
+
+            numeroContacto.length > 10 -> contactoValidations.add("El número de contacto es demasiado largo.")
+
+            !phonePattern.matcher(numeroContacto).matches() -> contactoValidations.addAll(
+                listOf(
+                    "El número solo puede contener dígitos", "Se permiten '+', espacios y guiones"
+                )
+            )
         }
         if (contactoValidations.isNotEmpty()) errors["numeroContacto"] = contactoValidations
 
         // Validación de correo electrónico
         val correoValidations = mutableListOf<String>()
         when {
-            correoElectronico.trim().isEmpty() ->
-                correoValidations.add("El correo electrónico no puede estar vacío")
-            correoElectronico.length > 100 ->
-                correoValidations.add("El correo electrónico es demasiado largo")
-            !emailPattern.matcher(correoElectronico).matches() ->
-                correoValidations.addAll(listOf(
-                    "Formato de correo electrónico inválido",
-                    "Ejemplo de formato correcto: usuario@dominio.com"
-                ))
+            correoElectronico.trim()
+                .isEmpty() -> correoValidations.add("El correo electrónico no puede estar vacío.")
+
+            correoElectronico.length > 100 -> correoValidations.add("El correo electrónico es demasiado largo.")
+
+            !emailPattern.matcher(correoElectronico).matches() -> correoValidations.add(
+                    "Formato de correo electrónico inválido."
+            )
         }
         if (correoValidations.isNotEmpty()) errors["correoElectronico"] = correoValidations
 
         // Validación de contraseña
         val passwordValidations = mutableListOf<String>()
         when {
-            password.trim().isEmpty() ->
-                passwordValidations.add("La contraseña no puede estar vacía")
-            password.length < 8 ->
-                passwordValidations.add("La contraseña debe tener al menos 8 caracteres")
-            !password.any { it.isLowerCase() } ->
-                passwordValidations.add("Debe contener al menos una letra minúscula")
-            !password.any { it.isUpperCase() } ->
-                passwordValidations.add("Debe contener al menos una letra mayúscula")
-            !password.any { it.isDigit() } ->
-                passwordValidations.add("Debe contener al menos un número")
-            !password.any { !it.isLetterOrDigit() } ->
-                passwordValidations.add("Debe contener al menos un carácter especial")
-            !passwordPattern.matcher(password).matches() ->
-                passwordValidations.add("La contraseña no cumple con los requisitos de seguridad")
+            (password.trim()
+                .isEmpty() || password.length < 8 || !password.any { it.isLowerCase() } || !password.any { it.isUpperCase() } || !password.any { it.isDigit() } || !passwordPattern.matcher(
+                password
+            )
+                .matches()) -> passwordValidations.add("La contraseña debe tener al menos 8 caracteres, una letra minúscula, una letra mayúscula y un número. ")
         }
         if (passwordValidations.isNotEmpty()) errors["password"] = passwordValidations
 
         // Validación de confirmación de contraseña
         val confirmPasswordValidations = mutableListOf<String>()
         when {
-            confirmPassword.trim().isEmpty() ->
-                confirmPasswordValidations.add("Debe confirmar la contraseña")
-            password != confirmPassword ->
-                confirmPasswordValidations.add("Las contraseñas no coinciden")
+            confirmPassword.trim()
+                .isEmpty() -> confirmPasswordValidations.add("Debe confirmar la contraseña.")
+
+            password != confirmPassword -> confirmPasswordValidations.add("Las contraseñas no coinciden.")
         }
-        if (confirmPasswordValidations.isNotEmpty()) errors["confirmPassword"] = confirmPasswordValidations
+        if (confirmPasswordValidations.isNotEmpty()) errors["confirmPassword"] =
+            confirmPasswordValidations
 
         return errors
     }
