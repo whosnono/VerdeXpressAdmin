@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
@@ -58,6 +59,7 @@ fun MainScreen() {
     }
 
     Scaffold(
+        containerColor = Color(0xFFFFFFFF),
         bottomBar = {
             if (showBottomBar.value) {
                 BottomNavigationBar(

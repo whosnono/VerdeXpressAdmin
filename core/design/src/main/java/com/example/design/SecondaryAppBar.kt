@@ -29,6 +29,7 @@ fun SecondaryAppBar(showIcon: Boolean = false, onIconClick: () -> Unit = {}) {
         },
         modifier = Modifier.fillMaxWidth(),
         colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.White,
             titleContentColor = Color(0xFF78B153)
         ),
         navigationIcon = {
