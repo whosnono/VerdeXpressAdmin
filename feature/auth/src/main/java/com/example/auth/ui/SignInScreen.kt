@@ -1,10 +1,38 @@
 package com.example.auth.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.R
-import androidx.compose.foundation.text.KeyboardOptions
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -75,9 +102,19 @@ fun SignInScreen(navController: NavController) {
         OutlinedTextField(
             value = usuario,
             onValueChange = { usuario = it.replace("\n", "") },
-            label = { Text(text = "Correo electrónico", fontSize = 14.sp, fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))) },
+            label = {
+                Text(
+                    text = "Correo electrónico",
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+            },
             shape = roundedShape,
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = verdeBoton, focusedLabelColor = verdeBoton, cursorColor = verdeBoton),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = verdeBoton,
+                focusedLabelColor = verdeBoton,
+                cursorColor = verdeBoton
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
@@ -85,30 +122,41 @@ fun SignInScreen(navController: NavController) {
         )
 
         // Password field
-        OutlinedTextField(
-            value = password,
+        OutlinedTextField(value = password,
             onValueChange = { password = it.replace("\n", "") },
-            label = { Text(text = "Contraseña", fontSize = 14.sp, fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)) )},
+            label = {
+                Text(
+                    text = "Contraseña",
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+            },
             shape = roundedShape,
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = verdeBoton, focusedLabelColor = verdeBoton, cursorColor = verdeBoton),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = verdeBoton,
+                focusedLabelColor = verdeBoton,
+                cursorColor = verdeBoton
+            ),
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password, imeAction = ImeAction.Done
+            ),
             trailingIcon = {
                 IconButton(
                     onClick = { passwordVisible = !passwordVisible },
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = verdeBoton
-                    ))
-                 {
-                    Text(
-                        text = if (passwordVisible) "Ocultar" else "Mostrar",
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
-                        fontSize = 12.sp
-                        )
+                        contentColor = Color(0xFF9E9E9E)
+                    )
+                ) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                        tint = Color(0xFF9E9E9E),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
-            }
-        )
+            })
 
         errorMessage?.let {
             Text(
@@ -191,8 +239,7 @@ fun SignInScreen(navController: NavController) {
                 fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
             )
             TextButton(
-                onClick = { navController.navigate("signUp") },
-                contentPadding = PaddingValues(4.dp)
+                onClick = { navController.navigate("signUp") }, contentPadding = PaddingValues(4.dp)
             ) {
                 Text(
                     text = "Regístrate",

@@ -67,4 +67,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.lottie.compose)
+    implementation(libs.androidx.material.icons.extended)
 }
