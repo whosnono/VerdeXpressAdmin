@@ -167,7 +167,7 @@ fun SignInScreen(navController: NavController) {
                 }
             },
             modifier = Modifier
-                .fillMaxWidth()
+                .width(175.dp)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
             shape = roundedShape

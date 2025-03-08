@@ -197,9 +197,9 @@ fun SignUpScreen(
                     }
                 },
                 modifier = Modifier
-                    .padding(start = 100.dp)
                     .width(175.dp)
-                    .height(50.dp),
+                    .height(50.dp)
+                    .align(Alignment.CenterHorizontally),
                 colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
                 shape = roundedShape,
                 enabled = signUpState !is SignUpState.Loading
