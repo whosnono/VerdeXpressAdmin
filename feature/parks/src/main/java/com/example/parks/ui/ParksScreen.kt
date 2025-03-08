@@ -93,19 +93,6 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
                 }
             }
         }
-
-        FloatingActionButton(
-            onClick = {
-                navController.navigate("registerPark") // Navegar a la pantalla de registro
-            },
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.BottomEnd),
-            containerColor = Color(0xFF78B153),
-            shape = CircleShape
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Park", tint = Color.White)
-        }
     }
 }
 
