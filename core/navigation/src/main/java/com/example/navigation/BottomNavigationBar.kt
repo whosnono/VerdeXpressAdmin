@@ -2,25 +2,60 @@ package com.example.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.*
-import androidx.compose.ui.text.style.*
-import androidx.compose.ui.unit.*
-import androidx.navigation.NavController
-import androidx.navigation.compose.*
-import com.example.design.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.design.R
 
 val SFProDisplayMedium = FontFamily(Font(R.font.sf_pro_display_medium))
 
+// Data class for FAB configuration
+data class FabConfig(
+    val visible: Boolean = false,
+    val route: String = "",
+    val icon: ImageVector = Icons.Default.Add,
+    val contentDescription: String = "Add"
+)
+
 @Composable
-fun BottomNavigationBar(navController: NavController, items: List<NavigationItem>) {
+fun BottomNavigationBar(
+    navController: NavController, items: List<NavigationItem>, fabConfig: FabConfig? = null
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -57,21 +92,23 @@ fun BottomNavigationBar(navController: NavController, items: List<NavigationItem
                     items.forEach { item ->
                         val isSelected = currentRoute == item.route
 
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable {
-                                    if (currentRoute != item.route) {
-                                        navController.navigate(item.route) {
-                                            launchSingleTop = true
-                                            popUpTo(navController.graph.startDestinationId) {
-                                                saveState = true
-                                            }
-                                            restoreState = true
+                        Box(modifier = Modifier
+                            .weight(1f)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                if (currentRoute != item.route) {
+                                    navController.navigate(item.route) {
+                                        launchSingleTop = true
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
                                         }
+                                        restoreState = true
                                     }
                                 }
-                        ) {
+                            }
+                            .background(Color.Transparent)) {
                             // Green indicator line at the very top for selected items
                             if (isSelected) {
                                 Box(
@@ -109,6 +146,45 @@ fun BottomNavigationBar(navController: NavController, items: List<NavigationItem
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // Optional FAB positioned to overlap exactly with the top edge of the gray box
+        // and aligned with the last icon horizontally
+        fabConfig?.let {
+            if (it.visible) {
+                // Calculate the position of the last item
+                val itemWidth = with(LocalDensity.current) {
+                    (items.size).inv().dp.toPx()
+                }
+
+                val fabSize = 56.dp // Standard FAB size
+
+                // Position the FAB at the right edge, aligned with the top of the gray box
+                FloatingActionButton(
+                    onClick = {
+                        navController.navigate(it.route)
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 25.dp)
+                        .offset(y = -(fabSize / 2)) // Position to overlap exactly at the halfway point of the button
+                        .zIndex(1f), // Ensure the FAB is drawn on top
+                    containerColor = Color(0xFF78B153),
+                    shape = CircleShape,
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                        focusedElevation = 0.dp,
+                        hoveredElevation = 0.dp
+                    )
+                ) {
+                    Icon(
+                        imageVector = it.icon,
+                        contentDescription = it.contentDescription,
+                        tint = Color.White
+                    )
                 }
             }
         }
