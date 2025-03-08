@@ -101,7 +101,7 @@ fun SignInScreen(navController: NavController) {
         // Username field
         OutlinedTextField(
             value = usuario,
-            onValueChange = { usuario = it.replace("\n", "") },
+            onValueChange = { usuario = it.replace(" ", "").replace("\n", "") }, // Elimina espacios y saltos de línea
             label = {
                 Text(
                     text = "Correo electrónico",
@@ -195,6 +195,22 @@ fun SignInScreen(navController: NavController) {
         Button(
             onClick = {
                 scope.launch {
+                    if (usuario.trim().isEmpty() && password.trim().isEmpty()) {
+                        errorMessage = "Por favor, ingresa correo y contraseña."
+                        return@launch
+                    }
+                    if (usuario.trim().isEmpty()) {
+                        errorMessage = "Por favor, ingresa el correo electrónico."
+                        return@launch
+                    }
+                    if (!isValidEmail(usuario.trim())) {
+                        errorMessage = "Por favor, ingresa un correo electrónico válido."
+                        return@launch
+                    }
+                    if (password.trim().isEmpty()) {
+                        errorMessage = "Por favor, ingresa la contraseña."
+                        return@launch
+                    }
                     try {
                         auth.signInWithEmailAndPassword(usuario, password)
                             .addOnCompleteListener { task ->
@@ -202,15 +218,15 @@ fun SignInScreen(navController: NavController) {
                                     navController.navigate("Inicio")
                                 } else {
                                     errorMessage = when (task.exception) {
-                                        is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrectos"
-                                        is FirebaseAuthInvalidUserException -> "Usuario no encontrado"
-                                        is FirebaseNetworkException -> "Error de red, por favor verifica tu conexión"
-                                        else -> "Error al iniciar sesión"
+                                        is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrectos."
+                                        is FirebaseNetworkException -> "Error de red, por favor verifica tu conexión."
+                                        is FirebaseAuthInvalidUserException -> "Usuario no encontrado."
+                                        else -> "Error al iniciar sesión."
                                     }
                                 }
                             }
                     } catch (e: Exception) {
-                        errorMessage = e.message ?: "Error al iniciar sesión"
+                        errorMessage = "Error al iniciar sesión."
                     }
                 }
             },
@@ -223,32 +239,61 @@ fun SignInScreen(navController: NavController) {
             Text(
                 text = "Ingresar",
                 fontSize = 14.sp,
-                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-            )
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)))
         }
 
-        // Registration link
+
+// Registration link
+
         Row(
+
             modifier = Modifier.fillMaxWidth(),
+
             horizontalArrangement = Arrangement.Center,
+
             verticalAlignment = Alignment.CenterVertically
+
         ) {
+
             Text(
+
                 text = "¿No tienes cuenta?",
+
                 fontSize = 14.sp,
+
                 fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+
             )
+
             TextButton(
+
                 onClick = { navController.navigate("signUp") }, contentPadding = PaddingValues(4.dp)
+
             ) {
+
                 Text(
+
                     text = "Regístrate",
+
                     textDecoration = TextDecoration.Underline,
+
                     color = verdeBoton,
+
                     fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+
                     fontSize = 14.sp
+
                 )
+
             }
+
         }
+
     }
+
+}
+
+fun isValidEmail(email: String): Boolean {
+    val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
+    return email.matches(emailRegex.toRegex())
 }
