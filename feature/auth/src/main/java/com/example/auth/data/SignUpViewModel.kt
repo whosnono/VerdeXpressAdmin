@@ -37,11 +37,12 @@ class SignUpViewModel : ViewModel() {
                         "nombre" to nombre,
                         "apellidos" to apellidos,
                         "numeroContacto" to numeroContacto,
-                        "correoElectronico" to correoElectronico
+                        "correoElectronico" to correoElectronico,
+                        "tipoUsuario" to "usuario"
                     )
 
                     // Guardar datos adicionales en Firestore
-                    firestore.collection("users").document(userId).set(userData).await()
+                    firestore.collection("usuarios").document(userId).set(userData).await()
 
                     _signUpState.value = SignUpState.Success
                 } else {
