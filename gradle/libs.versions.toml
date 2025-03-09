@@ -2,7 +2,6 @@
 activityCompose = "1.10.0"
 agp = "8.8.1"
 coilCompose = "2.4.0"
-firebaseBomVersion = "33.9.0"
 firebaseCore = "21.1.1"
 firebase-storage = "20.2.1"
 kotlin = "1.9.24"
@@ -35,7 +34,6 @@ google-services = "4.4.2"
 firebase-bom = "32.7.0"
 uiAndroid = "1.7.0"
 navigationRuntimeAndroid = "2.9.0-alpha06"
-uiTestAndroid = "1.7.8"
 uiGraphicsAndroid = "1.7.0"
 playServicesMaps = "19.1.0"
 activityKtx = "1.8.2"
@@ -44,7 +42,6 @@ annotations = "15.0"
 firebaseAuthKtx = "21.0.0"
 foundationAndroidVersion = "1.7.2"
 uiTextAndroidVersion = "1.7.0"
-firebaseAuthKtxVersion = "21.0.0"
 googleFirebaseAuthKtx = "21.0.0"
 navigationRuntimeKtxVersion = "2.8.8"
 googleFirebaseAuthKtxVersion = "21.0.0"
@@ -56,7 +53,6 @@ androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtim
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
-firebase-bom-v3270 = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBomVersion" }
 google-firebase-core = { module = "com.google.firebase:firebase-core", version.ref = "firebaseCore" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -83,7 +79,6 @@ firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
 androidx-ui-android = { group = "androidx.compose.ui", name = "ui-android", version.ref = "uiAndroid" }
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
-androidx-ui-test-android = { group = "androidx.compose.ui", name = "ui-test-android", version.ref = "uiTestAndroid" }
 androidx-ui-graphics-android = { group = "androidx.compose.ui", name = "ui-graphics-android", version.ref = "uiGraphicsAndroid" }
 osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroid" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
@@ -94,7 +89,6 @@ annotations = { group = "org.jetbrains", name = "annotations", version.ref = "an
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroidVersion" }
 ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "uiTextAndroidVersion" }
-google-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtxVersion" }
 com-google-firebase-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "googleFirebaseAuthKtx" }
 navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtxVersion" }
 com-google-firebase-firebase-auth-ktx2 = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "googleFirebaseAuthKtxVersion" }

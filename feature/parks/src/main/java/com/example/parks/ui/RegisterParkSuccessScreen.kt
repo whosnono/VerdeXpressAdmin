@@ -33,7 +33,6 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.design.R
-import com.example.design.SecondaryAppBar
 import kotlinx.coroutines.delay
 
 @Composable
