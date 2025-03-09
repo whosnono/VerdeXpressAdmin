@@ -49,17 +49,12 @@ fun MainScreen() {
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             showBottomBar.value = when (destination.route) {
-                "signIn" -> false
-                "signUp" -> false
-                "signUpSuccess" -> false
-                "resetPassword" -> false
-                "resetPasswordEmailSent" -> false
-                "registerPark" -> false
-                "map" -> false
-                "registerParkSuccess" -> false
-                "map?name={name}&desc={desc}&status={status}&needs={needs}&comments={comments}" -> false
-                "registerPark?lat={lat}&lon={lon}&address={address}&name={name}&desc={desc}&status={status}&imageUris={imageUris}&needs={needs}&comments={comments}" -> false
-                else -> true
+                "Inicio" -> true
+                "Parques" -> true
+                "Donaciones" -> true
+                "Notificaciones" -> true
+                "Perfil" -> true
+                else -> false
             }
         }
     }

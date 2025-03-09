@@ -17,7 +17,7 @@ import com.example.auth.ui.SignUpScreen
 import com.example.auth.ui.SignUpSuccessScreen
 import com.example.home.HomeScreen
 import com.example.parks.ui.ParksScreen
-import com.example.donations.DonationsScreen
+import com.example.donations.ui.inicio.DonationsScreen
 import com.example.notifications.NotificationsScreen
 import com.example.parks.ui.MapScreen
 import com.example.profile.ProfileScreen
@@ -27,6 +27,9 @@ import com.example.parks.ui.SharedViewModel
 import java.net.URLDecoder
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.auth.data.SignUpValidator
+import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
+import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
+
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -194,5 +197,9 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         }
 
         composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true) }
+
+        composable("donacionEspecie") { EspecieFormScreen(navController) }
+        composable("donacionMonetaria") { MonetariaFormScreen(navController) }
+
     }
 }
