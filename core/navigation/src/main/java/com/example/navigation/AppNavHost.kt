@@ -42,7 +42,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
     ) {
         composable(NavigationItem.Home.route) { HomeScreen() }
         composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) }
-        composable(NavigationItem.Donations.route) { DonationsScreen() }
+        composable(NavigationItem.Donations.route) { DonationsScreen(navController) }
         composable(NavigationItem.Notifications.route) { NotificationsScreen() }
         composable(NavigationItem.Profile.route) { ProfileScreen() }
         composable("signIn") { SignInScreen(navController) }
@@ -192,5 +192,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
                 comments = comments
                 )
         }
+
+        composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true) }
     }
 }

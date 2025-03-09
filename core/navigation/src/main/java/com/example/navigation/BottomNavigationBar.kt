@@ -164,7 +164,15 @@ fun BottomNavigationBar(
                 // Position the FAB at the right edge, aligned with the top of the gray box
                 FloatingActionButton(
                     onClick = {
-                        navController.navigate(it.route)
+                        if (it.route == "donations") {
+                            // Envía el estado a DonationsScreen para abrir el diálogo
+                            navController.currentBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("showDonationDialog", true)
+                        } else {
+                            // Para otras rutas, navega normalmente
+                            navController.navigate(it.route)
+                        }
                     },
                     modifier = Modifier
                         .align(Alignment.TopEnd)

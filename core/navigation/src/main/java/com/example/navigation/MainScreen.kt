@@ -35,6 +35,12 @@ fun MainScreen() {
                     icon = Icons.Default.Add,
                     contentDescription = "Add Park"
                 )
+                "Donaciones" -> FabConfig(
+                    visible = true,
+                    route = "donations",
+                    icon = Icons.Default.Add,
+                    contentDescription = "Add Donation"
+                )
                 else -> null
             }
         }
