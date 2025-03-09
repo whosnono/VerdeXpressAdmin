@@ -215,7 +215,10 @@ fun SignInScreen(navController: NavController) {
                         auth.signInWithEmailAndPassword(usuario, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    navController.navigate("Inicio")
+                                    navController.navigate("Inicio") {
+                                        popUpTo("signIn") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 } else {
                                     errorMessage = when (task.exception) {
                                         is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrectos."

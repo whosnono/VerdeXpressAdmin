@@ -4,6 +4,12 @@ import android.net.Uri
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -27,16 +33,102 @@ import com.example.parks.ui.SharedViewModel
 import java.net.URLDecoder
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.auth.data.SignUpValidator
+import com.google.firebase.auth.FirebaseAuth
 import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
 import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
-
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
     val sharedViewModel: SharedViewModel = viewModel()
+    val auth = FirebaseAuth.getInstance()
+
+    // Lista de rutas protegidas que requieren autenticación
+    val protectedRoutes = listOf(
+        NavigationItem.Home.route,
+        NavigationItem.Parks.route,
+        NavigationItem.Donations.route,
+        NavigationItem.Notifications.route,
+        NavigationItem.Profile.route,
+        "registerPark",
+        "map",
+        "donationsWithDialog",
+        "donacionEspecie",
+        "donacionMonetaria"
+    )
+
+    // Estado de autenticación mantenido en tiempo real
+    var isAuthenticated by remember { mutableStateOf(auth.currentUser != null) }
+
+    // Listener para cambios en el estado de autenticación
+    DisposableEffect(Unit) {
+        val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            isAuthenticated = firebaseAuth.currentUser != null
+        }
+
+        auth.addAuthStateListener(authStateListener)
+
+        onDispose {
+            auth.removeAuthStateListener(authStateListener)
+        }
+    }
+
+    // Monitoreamos cambios en la navegación para verificar la autenticación
+    LaunchedEffect(navController) {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val currentRoute = destination.route ?: return@addOnDestinationChangedListener
+
+            // Verifica si la ruta actual está protegida y el usuario no está autenticado
+            val routeRequiresAuth = protectedRoutes.any { route ->
+                if (route.contains("?")) {
+                    // Para rutas con parámetros, verificar solo la parte base
+                    val baseRoute = route.split("?")[0]
+                    currentRoute.startsWith(baseRoute)
+                } else {
+                    currentRoute == route
+                }
+            }
+
+            if (routeRequiresAuth && !isAuthenticated) {
+                // Redirigir a signIn si intenta acceder a una ruta protegida sin autenticación
+                navController.navigate("signIn") {
+                    // Limpiar el stack de navegación
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+
+    // Efecto para manejar cambios en el estado de autenticación
+    LaunchedEffect(isAuthenticated) {
+        val currentRoute = navController.currentDestination?.route
+
+        if (!isAuthenticated && currentRoute != null) {
+            val routeRequiresAuth = protectedRoutes.any { route ->
+                if (route.contains("?")) {
+                    val baseRoute = route.split("?")[0]
+                    currentRoute.startsWith(baseRoute)
+                } else {
+                    currentRoute == route
+                }
+            }
+
+            if (routeRequiresAuth) {
+                // Si el usuario cierra sesión mientras está en una ruta protegida
+                navController.navigate("signIn") {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+
+    // Decidir destino inicial basado en el estado de autenticación
+    val startDestination = if (isAuthenticated) NavigationItem.Home.route else "signIn"
+
     NavHost(
         navController = navController,
-        startDestination = "signIn",
+        startDestination = startDestination,
         modifier = modifier,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
@@ -47,7 +139,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) }
         composable(NavigationItem.Donations.route) { DonationsScreen(navController) }
         composable(NavigationItem.Notifications.route) { NotificationsScreen() }
-        composable(NavigationItem.Profile.route) { ProfileScreen() }
+        composable(NavigationItem.Profile.route) { ProfileScreen(navController) }
         composable("signIn") { SignInScreen(navController) }
         composable("signUp") { SignUpScreen(navController, SignUpValidator) }
         composable("resetPassword") { ResetPasswordScreen(navController) }
@@ -193,13 +285,12 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
                 status = status,
                 needs = needs.joinToString(","),
                 comments = comments
-                )
+            )
         }
 
         composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true) }
 
         composable("donacionEspecie") { EspecieFormScreen(navController) }
         composable("donacionMonetaria") { MonetariaFormScreen(navController) }
-
     }
 }

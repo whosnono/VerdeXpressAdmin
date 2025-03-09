@@ -44,6 +44,10 @@ annotations = "15.0"
 firebaseAuthKtx = "21.0.0"
 foundationAndroidVersion = "1.7.2"
 uiTextAndroidVersion = "1.7.0"
+firebaseAuthKtxVersion = "21.0.0"
+googleFirebaseAuthKtx = "21.0.0"
+navigationRuntimeKtxVersion = "2.8.8"
+googleFirebaseAuthKtxVersion = "21.0.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -90,6 +94,10 @@ annotations = { group = "org.jetbrains", name = "annotations", version.ref = "an
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroidVersion" }
 ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "uiTextAndroidVersion" }
+google-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtxVersion" }
+com-google-firebase-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "googleFirebaseAuthKtx" }
+navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtxVersion" }
+com-google-firebase-firebase-auth-ktx2 = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "googleFirebaseAuthKtxVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

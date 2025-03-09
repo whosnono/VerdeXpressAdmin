@@ -57,6 +57,7 @@ dependencies {
     implementation(project(":feature:notifications"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:auth"))
+    implementation(libs.com.google.firebase.firebase.auth.ktx2)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
