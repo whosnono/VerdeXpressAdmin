@@ -56,7 +56,7 @@ fun NavController.navigateToRegisterPark(
     name: String?,
     desc: String?,
     status: String?,
-    needs: String?,
+    needs: List<String>?,
     comments: String?
 ) {
     val encodedAddress = address?.let {
@@ -67,7 +67,8 @@ fun NavController.navigateToRegisterPark(
             it
         }
     }
-    navigate("registerPark?lat=$latitude&lon=$longitude&address=$encodedAddress&name=$name&desc=$desc&status=$status&needs=$needs&comments=$comments")
+    val encodedNeeds = needs?.joinToString(",")
+    navigate("registerPark?lat=$latitude&lon=$longitude&address=$encodedAddress&name=$name&desc=$desc&status=$status&needs=$encodedNeeds&comments=$comments")
 }
 
 @Composable
@@ -77,7 +78,7 @@ fun MapScreen(
     name: String?,
     desc: String?,
     status: String?,
-    needs: String?,
+    needs: List<String>?,
     comments: String?
 ) {
     val verdeBoton = Color(0xFF78B153)

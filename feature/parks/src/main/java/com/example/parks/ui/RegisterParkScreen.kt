@@ -10,27 +10,20 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,8 +42,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,25 +54,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
 import com.example.design.R
 import com.example.design.SecondaryAppBar
 import com.example.parks.data.ImageUploadManager
@@ -118,8 +102,13 @@ fun RegisterParkScreen(
     var description by rememberSaveable { mutableStateOf(descriptionArg ?: "") }
     var comments by rememberSaveable { mutableStateOf(commentsArg ?: "") }
     var selectedOptionText by rememberSaveable { mutableStateOf(statusArg ?: "") }
-    // Estado para manejar el mensaje de error con Snackbar
-    val snackbarHostState = remember { SnackbarHostState() }
+    //Estados para mensajes de error
+    var parkNameError by remember { mutableStateOf<String?>(null) }
+    var descriptionError by remember { mutableStateOf<String?>(null) }
+    var commentsError by remember { mutableStateOf<String?>(null) }
+    var locationError by remember { mutableStateOf<String?>(null) }
+    var statusError by remember { mutableStateOf<String?>(null) }
+    var needsError by remember { mutableStateOf<String?>(null) }
     // Estado para manejar el mensaje de error
     var imageError by remember { mutableStateOf<String?>(null) }
     // Obtener las URIs desde el ViewModel
@@ -133,10 +122,12 @@ fun RegisterParkScreen(
     // Geopoint del parque
     var parkLatitude by remember { mutableStateOf(latitude) }
     var parkLongitude by remember { mutableStateOf(longitude) }
-
     val coroutineScope = rememberCoroutineScope()
     val imageUploadManager = remember { ImageUploadManager(context) }
     var isUploading by remember { mutableStateOf(false) }
+
+    // Validador de formulario
+    val validator = rememberParkFormValidator()
 
     // Lanzador para seleccionar imágenes
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -151,14 +142,6 @@ fun RegisterParkScreen(
             }
         } else {
             imageError = "Debes seleccionar al menos una imagen."
-        }
-    }
-
-    // Mostrar el Snackbar si hay un error
-    LaunchedEffect(imageError) {
-        imageError?.let { errorMessage ->
-            snackbarHostState.showSnackbar(errorMessage)
-            imageError = null // Limpiar el mensaje de error después de mostrarlo
         }
     }
 
@@ -225,36 +208,115 @@ fun RegisterParkScreen(
             }
         }
     }
-    // Define un NestedScrollConnection para manejar los gestos de desplazamiento anidados
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                // Permite que el desplazamiento vertical tenga prioridad
-                return Offset.Zero
-            }
 
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource
-            ): Offset {
-                // Maneja el desplazamiento horizontal
-                return Offset.Zero
-            }
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = verdeBoton,
+        focusedLabelColor = verdeBoton,
+        cursorColor = verdeBoton,
+        errorBorderColor = Color.Red,
+        errorLabelColor = Color.Red,
+        errorCursorColor = Color.Red
+    )
 
-            override suspend fun onPreFling(available: Velocity): Velocity {
-                // Permite que el fling vertical tenga prioridad
-                return Velocity.Zero
-            }
+    @Composable
+    fun ErrorText(errorMessage: String) {
+        Text(
+            text = errorMessage,
+            color = Color.Red,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+        )
+    }
 
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                // Maneja el fling horizontal
-                return Velocity.Zero
+    // Función de validación y guardado
+    fun validateAndSavePark() {
+        val formState = ParkFormState(
+            parkName = parkName,
+            location = location,
+            description = description,
+            status = selectedOptionText,
+            comments = comments,
+            selectedNeeds = selectedNeeds,
+            selectedImageUris = selectedImageUris
+        )
+
+        val validationResult = validator(formState)
+
+        // Actualizar estados de error
+        parkNameError = validationResult.parkNameError
+        locationError = validationResult.locationError
+        descriptionError = validationResult.descriptionError
+        statusError = validationResult.statusError
+        needsError = validationResult.needsError
+        commentsError = validationResult.commentsError
+        imageError = validationResult.imageError
+
+        if (validationResult.isValid()) {
+            isUploading = true
+
+            coroutineScope.launch {
+                try {
+                    val imageUrls = imageUploadManager.uploadImages(selectedImageUris)
+
+                    saveParkToFirestore(
+                        name = parkName,
+                        location = location,
+                        description = description,
+                        status = selectedOptionText,
+                        needs = selectedNeeds.toList(),
+                        comments = comments,
+                        imageUrls = imageUrls,
+                        latitude = parkLatitude,
+                        longitude = parkLongitude
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        isUploading = false
+                        navController.navigate("registerParkSuccess")
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        isUploading = false
+                        Toast.makeText(
+                            context,
+                            "Error: ${e.message ?: "No se pudo completar la operación"}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        Log.e("RegisterPark", "Error: ${e.message}", e)
+                    }
+                }
             }
+            imageError = null
         }
     }
 
-    Box {
+    @Composable
+    fun CustomOutlinedTextField(
+        value: String,
+        onValueChange: (String) -> Unit,
+        label: String,
+        isError: Boolean,
+        errorMessage: String?,
+        modifier: Modifier = Modifier,
+        trailingIcon: @Composable (() -> Unit)? = null,
+        readOnly: Boolean = false
+    ) {
+        Column {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(text = label, color = Color.Gray, fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))) },
+                isError = isError,
+                trailingIcon = trailingIcon,
+                shape = roundedShape,
+                colors = textFieldColors,
+                modifier = modifier.fillMaxWidth(),
+                readOnly = readOnly
+            )
+            errorMessage?.let { ErrorText(it) }
+        }
+    }
+
         Column {
             SecondaryAppBar(showIcon = true, onIconClick = {
                 navController.navigate("Parques") // Navegar a la pantalla de "Parques"
@@ -272,35 +334,31 @@ fun RegisterParkScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Campo: Nombre del Parque
-                OutlinedTextField(value = parkName, onValueChange = { parkName = it }, label = {
-                    Text(
-                        text = "Nombre del Parque",
-                        color = Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                    )
-                }, shape = roundedShape, colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = verdeBoton,
-                    focusedLabelColor = verdeBoton,
-                    cursorColor = verdeBoton
-                ), modifier = Modifier.fillMaxWidth()
+                CustomOutlinedTextField(
+                    value = parkName,
+                    onValueChange = { parkName = it
+                        parkNameError = when {
+                            it.isEmpty() -> "El nombre no puede estar vacío"
+                            it.length > 100 -> "El nombre no puede exceder 100 caracteres"
+                            else -> null
+                        }},
+                    label = "Nombre del Parque",
+                    isError = parkNameError != null,
+                    errorMessage = parkNameError
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Campo: Ubicación
-                OutlinedTextField(
+                CustomOutlinedTextField(
                     value = location,
-                    onValueChange = { location = it },
-                    label = {
-                        Text(
-                            text = "Ubicación",
-                            color = Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                    },
-                    trailingIcon = {
-                        IconButton(onClick = {
+                    onValueChange = { location = it
+                        locationError = when {
+                            it.isEmpty() -> "La ubicación no puede estar vacía"
+                            else -> null
+                        }},
+                    label = "Ubicación",
+                    isError = locationError != null,
+                    trailingIcon = { IconButton(onClick = {
                             navController.navigate(
                                 "map?name=${
                                     URLEncoder.encode(
@@ -328,36 +386,22 @@ fun RegisterParkScreen(
                             )
                         }
                     },
-                    shape = roundedShape,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = verdeBoton,
-                        focusedLabelColor = verdeBoton,
-                        cursorColor = verdeBoton
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true, // Esto hace que el campo sea de solo lectura
+                    errorMessage = locationError
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Campo: Descripción
-                OutlinedTextField(
+                CustomOutlinedTextField(
                     value = description,
-                    onValueChange = { description = it },
-                    label = {
-                        Text(
-                            text = "Descripción",
-                            color = Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                    },
-                    shape = roundedShape,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = verdeBoton,
-                        focusedLabelColor = verdeBoton,
-                        cursorColor = verdeBoton
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = { description = it
+                        descriptionError = when {
+                            it.isEmpty() -> "La descripción no puede estar vacía"
+                            it.length > 500 -> "La descripción no puede exceder 500 caracteres"
+                            else -> null
+                        } },
+                    label = "Descripción",
+                    isError = descriptionError != null,
+                    errorMessage = descriptionError
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -380,13 +424,10 @@ fun RegisterParkScreen(
                             )
                         },
                         readOnly = true,
+                        isError = statusError != null,
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         shape = roundedShape,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = verdeBoton,
-                            focusedLabelColor = verdeBoton,
-                            cursorColor = verdeBoton
-                        ),
+                        colors = textFieldColors,
                         modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor()
@@ -404,6 +445,7 @@ fun RegisterParkScreen(
                             }, onClick = {
                                 selectedOptionText = option
                                 expanded = false
+                                statusError = null
                             }, colors = MenuDefaults.itemColors(
                                 textColor = Color.Black,
                                 leadingIconColor = verdeBoton,
@@ -418,20 +460,15 @@ fun RegisterParkScreen(
                         }
                     }
                 }
+                statusError?.let { ErrorText(it) }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Campo: Imágenes
-                OutlinedTextField(
+                CustomOutlinedTextField(
                     value = selectedImageUris.joinToString(", ") { it.lastPathSegment ?: "" },
                     onValueChange = { },
-                    label = {
-                        Text(
-                            text = "Imagenes",
-                            color = Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                    },
+                    label = "Imagenes",
+                    isError = imageError != null,
                     trailingIcon = {
                         IconButton(onClick = { checkAndRequestPermission() }) {
                             Image(
@@ -441,244 +478,56 @@ fun RegisterParkScreen(
                             )
                         }
                     },
-                    shape = roundedShape,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = verdeBoton,
-                        focusedLabelColor = verdeBoton,
-                        cursorColor = verdeBoton
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true
+                    errorMessage = imageError
                 )
-
-                // Mostrar las imágenes seleccionadas con scroll mejorado y indicadores visuales
-                if (selectedImageUris.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 110.dp, max = 110.dp) // Limita la altura del contenedor
-                            .background(Color(0xFFF8F8F8), RoundedCornerShape(8.dp))
-                            .padding(vertical = 4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()) // Scroll horizontal para las imágenes
-                                .nestedScroll(nestedScrollConnection) // Aplica nestedScroll
-                                .padding(horizontal = 4.dp)
-                        ) {
-                            selectedImageUris.forEachIndexed { index, uri ->
-                                Box(
-                                    modifier = Modifier
-                                        .size(100.dp)
-                                        .padding(4.dp)
-                                        .background(Color.White, RoundedCornerShape(8.dp))
-                                ) {
-                                    Image(
-                                        painter = rememberImagePainter(data = uri, builder = {
-                                            crossfade(true)
-                                            transformations(
-                                                coil.transform.RoundedCornersTransformation(8f)
-                                            )
-                                        }),
-                                        contentDescription = "Imagen ${index + 1}",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-
-                                    // Contador de imagen (1/5, 2/5, etc.)
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.BottomStart)
-                                            .padding(4.dp)
-                                            .background(
-                                                Color.Black.copy(alpha = 0.6f),
-                                                RoundedCornerShape(4.dp)
-                                            )
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                                    ) {
-                                        Text(
-                                            text = "${index + 1}/${selectedImageUris.size}",
-                                            color = Color.White,
-                                            fontSize = 10.sp,
-                                            fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
-                                        )
-                                    }
-
-                                    // Botón para eliminar la imagen
-                                    IconButton(
-                                        onClick = {
-                                            selectedImageUris =
-                                                selectedImageUris.toMutableList().apply {
-                                                    removeAt(index)
-                                                }
-                                        },
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .background(Color.White, CircleShape)
-                                            .size(24.dp)
-                                            .padding(1.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = "Eliminar imagen",
-                                            tint = verdeBoton,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                }
-
-                                // Espaciado entre imágenes, excepto después de la última
-                                if (index < selectedImageUris.size - 1) {
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                }
-                            }
-                        }
-
-                        // Indicadores de sombra para señalar scroll
-                        if (selectedImageUris.size > 3) {
-                            // Sombra izquierda (visible cuando no estás al inicio)
-                            if (scrollState.value > 10) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .width(24.dp)
-                                        .align(Alignment.CenterStart)
-                                        .background(
-                                            brush = Brush.horizontalGradient(
-                                                colors = listOf(
-                                                    Color.Black.copy(alpha = 0.1f),
-                                                    Color.Transparent
-                                                )
-                                            )
-                                        )
-                                )
-                            }
-
-                            // Sombra derecha (visible cuando no estás al final)
-                            if (scrollState.value < scrollState.maxValue - 10) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .width(24.dp)
-                                        .align(Alignment.CenterEnd)
-                                        .background(
-                                            brush = Brush.horizontalGradient(
-                                                colors = listOf(
-                                                    Color.Transparent,
-                                                    Color.Black.copy(alpha = 0.1f)
-                                                )
-                                            )
-                                        )
-                                )
-                            }
-                        }
+                fun removeImage(index: Int) {
+                    selectedImageUris = selectedImageUris.toMutableList().apply {
+                        removeAt(index)
                     }
                 }
+                // Mostrar las imágenes seleccionadas con scroll mejorado y indicadores visuales
+                ParkImageDisplay(imageUris = selectedImageUris, onImageRemove = { index -> removeImage(index) })
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Campo: Necesidades del Parque
-                OutlinedTextField(
+                CustomOutlinedTextField(
                     value = selectedNeeds.joinToString(", "),
                     onValueChange = { },
-                    label = {
-                        Text(
-                            text = "Necesidades del Parque",
-                            color = Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                        )
-                    },
-                    shape = roundedShape,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = verdeBoton,
-                        focusedLabelColor = verdeBoton,
-                        cursorColor = verdeBoton
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
+                    label = "Necesidades del Parque",
+                    isError = needsError != null,
                     trailingIcon = {
-                        IconButton(onClick = { showNeedsDialog = true }) {
+                        IconButton(onClick = { showNeedsDialog = true
+                            if (selectedNeeds.isEmpty()) {
+                                needsError = "Selecciona al menos una necesidad"
+                            } else {
+                                needsError = null
+                            }
+                        }) {
                             Icon(Icons.Default.Add, contentDescription = "Seleccionar necesidades")
                         }
-                    }
+                    },
+                    errorMessage = needsError
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Campo: Comentarios adicionales
-                OutlinedTextField(value = comments, onValueChange = { comments = it }, label = {
-                    Text(
-                        text = "Comentarios adicionales",
-                        color = Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                    )
-                }, shape = roundedShape, colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = verdeBoton,
-                    focusedLabelColor = verdeBoton,
-                    cursorColor = verdeBoton
-                ), modifier = Modifier.fillMaxWidth()
+                CustomOutlinedTextField(
+                    value = comments,
+                    onValueChange = { comments = it
+                        commentsError = when {
+                            it.length > 300 -> "Los comentarios no pueden exceder 300 caracteres"
+                            else -> null
+                        }},
+                    label = "Comentarios adicionales",
+                    isError = commentsError != null,
+                    errorMessage = commentsError
                 )
 
                 Spacer(modifier = Modifier.height(30.dp))
 
                 // Validar antes de guardar los datos del parque
                 Button(
-                    onClick = {
-                        if (selectedImageUris.isEmpty()) {
-                            imageError = "Debes seleccionar al menos una imagen."
-                        } else if (selectedImageUris.size > 5) {
-                            imageError = "Solo puedes subir un máximo de 5 imágenes."
-                        } else {
-                            // Indicar que estamos subiendo las imágenes
-                            isUploading = true
-
-                            // Proceso de subida de imágenes y guardado en Firestore
-                            coroutineScope.launch {
-                                try {
-                                    // Paso 1: Subir imágenes y obtener URLs
-                                    val imageUrls =
-                                        imageUploadManager.uploadImages(selectedImageUris)
-
-                                    // Paso 2: Guardar los datos del parque en Firestore con las URLs
-                                    saveParkToFirestore(
-                                        name = parkName,
-                                        location = location,
-                                        description = description,
-                                        status = selectedOptionText,
-                                        needs = selectedNeeds.toList(),
-                                        comments = comments,
-                                        imageUrls = imageUrls,  // Pasamos la lista de URLs
-                                        latitude = parkLatitude,
-                                        longitude = parkLongitude
-                                    )
-
-                                    // Paso 3: Resetear el formulario y mostrar éxito
-                                    withContext(Dispatchers.Main) {
-                                        isUploading = false
-                                        navController.navigate("registerParkSuccess")
-
-                                        // Puedes añadir aquí la navegación a otra pantalla si es necesario
-                                        // navController.navigate("ruta_destino")
-
-                                    }
-                                } catch (e: Exception) {
-                                    // Manejo de errores
-                                    withContext(Dispatchers.Main) {
-                                        isUploading = false
-                                        Toast.makeText(
-                                            context,
-                                            "Error: ${e.message ?: "No se pudo completar la operación"}",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        Log.e("RegisterPark", "Error: ${e.message}", e)
-                                    }
-                                }
-                            }
-                            imageError = null
-                        }
-                    },
+                    onClick = { validateAndSavePark() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
@@ -743,16 +592,12 @@ fun RegisterParkScreen(
 
                 // Diálogo: Seleccionar necesidades
                 if (showNeedsDialog) {
-                    Dialog(
-                        onDismissRequest = { showNeedsDialog = false }
-                    ) {
+                    Dialog(onDismissRequest = { showNeedsDialog = false }) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            )
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -767,15 +612,7 @@ fun RegisterParkScreen(
                                         .fillMaxWidth()
                                         .padding(bottom = 16.dp)
                                 )
-
-                                val needs = listOf(
-                                    "Mobiliario",
-                                    "Iluminación",
-                                    "Jardineria",
-                                    "Seguridad",
-                                    "Limpieza"
-                                )
-
+                                val needs = listOf("Mobiliario", "Iluminación", "Jardineria", "Seguridad", "Limpieza")
                                 needs.chunked(2).forEach { rowNeeds ->
                                     Row(
                                         modifier = Modifier
@@ -797,27 +634,27 @@ fun RegisterParkScreen(
                                                             selectedNeeds - need
                                                         }
                                                     },
-                                                    colors = CheckboxDefaults.colors(
-                                                        checkedColor = verdeBoton
-                                                    )
+                                                    colors = CheckboxDefaults.colors(checkedColor = verdeBoton)
                                                 )
-                                                Text(
-                                                    text = need,
-                                                    modifier = Modifier.padding(start = 8.dp)
-                                                )
+                                                Text(text = need, modifier = Modifier.padding(start = 8.dp))
                                             }
                                         }
                                     }
                                 }
 
                                 Button(
-                                    onClick = { showNeedsDialog = false },
+                                    onClick = {
+                                        showNeedsDialog = false
+                                        needsError = if (selectedNeeds.isEmpty()) {
+                                            "Selecciona al menos una necesidad"
+                                        } else {
+                                            null
+                                        }
+                                    },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(top = 14.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = verdeBoton
-                                    )
+                                    colors = ButtonDefaults.buttonColors(containerColor = verdeBoton)
                                 ) {
                                     Text("Aceptar")
                                 }
@@ -826,14 +663,5 @@ fun RegisterParkScreen(
                     }
                 }
             }
-
         }
-        // SnackbarHost para mostrar mensajes de error fugaces
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
-    }
 }

@@ -283,7 +283,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
                 name = name,
                 desc = desc,
                 status = status,
-                needs = needs.joinToString(","),
+                needs = needs,
                 comments = comments
             )
         }
