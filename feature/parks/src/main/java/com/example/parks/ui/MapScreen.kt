@@ -3,6 +3,7 @@ package com.example.parks.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Geocoder
+import android.net.Uri
 import android.os.Build
 import android.preference.PreferenceManager
 import android.util.Log
@@ -57,7 +58,8 @@ fun NavController.navigateToRegisterPark(
     desc: String?,
     status: String?,
     needs: List<String>?,
-    comments: String?
+    comments: String?,
+    imageUris: List<Uri>?
 ) {
     val encodedAddress = address?.let {
         try {
@@ -68,7 +70,10 @@ fun NavController.navigateToRegisterPark(
         }
     }
     val encodedNeeds = needs?.joinToString(",")
-    navigate("registerPark?lat=$latitude&lon=$longitude&address=$encodedAddress&name=$name&desc=$desc&status=$status&needs=$encodedNeeds&comments=$comments")
+    val encodedImageUris = imageUris?.joinToString(",") { it.toString() }
+    navigate(
+        "registerPark?lat=$latitude&lon=$longitude&address=$encodedAddress&name=$name&desc=$desc&status=$status&needs=$encodedNeeds&comments=$comments&imageUris=$encodedImageUris"
+    )
 }
 
 @Composable
@@ -81,6 +86,10 @@ fun MapScreen(
     needs: List<String>?,
     comments: String?
 ) {
+
+    // Obtener las imágenes seleccionadas desde el ViewModel
+    val selectedImageUris by sharedViewModel.selectedImageUris.collectAsState()
+
     val verdeBoton = Color(0xFF78B153)
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -494,7 +503,8 @@ fun MapScreen(
                                     desc = desc,
                                     status = status,
                                     needs = needs,
-                                    comments = comments
+                                    comments = comments,
+                                    imageUris = selectedImageUris
                                 )
                             }
                         },
