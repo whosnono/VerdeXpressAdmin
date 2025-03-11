@@ -1,7 +1,6 @@
 package com.example.parks.ui
 
 import android.Manifest
-import android.content.ContentValues.TAG
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -112,8 +111,10 @@ fun RegisterParkScreen(
     var needsError by remember { mutableStateOf<String?>(null) }
     // Estado para manejar el mensaje de error
     var imageError by remember { mutableStateOf<String?>(null) }
+    // Obtener las URIs desde el ViewModel
+    val imageUrisFromViewModel by sharedViewModel.selectedImageUris.collectAsState()
     // Estado para las URIs de las imágenes
-    var selectedImageUris by rememberSaveable { mutableStateOf(imageUrisArg ?: emptyList()) }
+    var selectedImageUris by rememberSaveable { mutableStateOf(imageUrisFromViewModel) }
     // Usar la lógica de subida de imágenes
     val context = LocalContext.current
     // Estado para controlar la visibilidad del diálogo de permisos
@@ -144,26 +145,13 @@ fun RegisterParkScreen(
         }
     }
 
-    // Obtener los argumentos de navegación
-    val arguments = navController.currentBackStackEntry?.arguments
-
-    // Decodificar las URIs desde los argumentos
-    val imageUrisFromArgs = remember {
-        arguments?.getString("imageUris")
-            ?.split(",")
-            ?.mapNotNull { uriString ->
-                try {
-                    Uri.parse(uriString) // Intenta parsear la URI
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error al parsear URI: $uriString")
-                    null // Si falla, ignora esta URI
-                }
-            } ?: emptyList()
-    }
-
-    // Sincronizar las imágenes seleccionadas con el ViewModel
+    // Almacenar las URIs en el ViewModel antes de navegar
     LaunchedEffect(selectedImageUris) {
         sharedViewModel.setImageUris(selectedImageUris)
+    }
+
+    LaunchedEffect(Unit) {
+        sharedViewModel.setImageUris(emptyList())
     }
 
     // Función para abrir el selector de imágenes
