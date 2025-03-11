@@ -111,10 +111,10 @@ fun RegisterParkScreen(
     var needsError by remember { mutableStateOf<String?>(null) }
     // Estado para manejar el mensaje de error
     var imageError by remember { mutableStateOf<String?>(null) }
-    // Obtener las URIs desde el ViewModel
-    val imageUrisFromViewModel by sharedViewModel.selectedImageUris.collectAsState()
-    // Estado para las URIs de las imágenes
-    var selectedImageUris by rememberSaveable { mutableStateOf(imageUrisFromViewModel) }
+    // Estado para almacenar las URIs de las imágenes seleccionadas
+    var selectedImageUris by rememberSaveable {
+        mutableStateOf(imageUrisArg ?: emptyList())
+    }
     // Usar la lógica de subida de imágenes
     val context = LocalContext.current
     // Estado para controlar la visibilidad del diálogo de permisos
@@ -145,13 +145,9 @@ fun RegisterParkScreen(
         }
     }
 
-    // Almacenar las URIs en el ViewModel antes de navegar
+    // Actualizar el ViewModel con las URIs de las imágenes seleccionadas
     LaunchedEffect(selectedImageUris) {
         sharedViewModel.setImageUris(selectedImageUris)
-    }
-
-    LaunchedEffect(Unit) {
-        sharedViewModel.setImageUris(emptyList())
     }
 
     // Función para abrir el selector de imágenes
@@ -272,6 +268,10 @@ fun RegisterParkScreen(
 
                     withContext(Dispatchers.Main) {
                         isUploading = false
+
+                        // Clear the image URIs in the ViewModel
+                        sharedViewModel.setImageUris(emptyList())
+
                         navController.navigate("registerParkSuccess")
                     }
                 } catch (e: Exception) {
