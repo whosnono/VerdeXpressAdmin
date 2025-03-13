@@ -71,8 +71,7 @@ fun RegisterParkSuccessScreen(navController: NavController) {
                 when (stage) {
                     AnimationStage.LOADING -> {
                         Box(
-                            modifier = Modifier .fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+                            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                         ) {
                             LottieAnimation(
                                 composition = loadingComposition,
@@ -89,7 +88,7 @@ fun RegisterParkSuccessScreen(navController: NavController) {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Box(
-                                modifier = Modifier .fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
                                 LottieAnimation(
@@ -109,15 +108,22 @@ fun RegisterParkSuccessScreen(navController: NavController) {
                                 fontSize = 25.sp,
                                 textAlign = TextAlign.Center,
                                 fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
-                                modifier = Modifier
-                                    .fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth()
 
                             )
 
                             Spacer(modifier = Modifier.height(32.dp))
 
                             Button(
-                                onClick = { navController.navigate("Parques") },
+                                onClick = {
+                                    navController.navigate("Parques") {
+                                        // Eliminar todas las instancias anteriores de RegisterParkSuccess y RegisterPark de la pila
+                                        popUpTo("registerPark") {
+                                            inclusive = true
+                                        }
+
+                                    }
+                                },
                                 modifier = Modifier
                                     .width(175.dp)
                                     .height(50.dp),

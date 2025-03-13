@@ -59,6 +59,7 @@ fun NavController.navigateToRegisterPark(
     needs: List<String>?,
     comments: String?
 ) {
+    // Codificar la dirección si existe
     val encodedAddress = address?.let {
         try {
             URLEncoder.encode(it, "UTF-8")
@@ -67,8 +68,39 @@ fun NavController.navigateToRegisterPark(
             it
         }
     }
-    val encodedNeeds = needs?.joinToString(",")
-    navigate("registerPark?lat=$latitude&lon=$longitude&address=$encodedAddress&name=$name&desc=$desc&status=$status&needs=$encodedNeeds&comments=$comments")
+
+    // Construir la URL de navegación dinámicamente
+    val baseRoute = "registerPark?"
+    val params = mutableListOf<String>()
+
+    // Añadir parámetros solo si no son nulos
+    latitude?.let { params.add("lat=$it") }
+    longitude?.let { params.add("lon=$it") }
+    encodedAddress?.let { params.add("address=$it") }
+    name?.let { params.add("name=$it") }
+    desc?.let { params.add("desc=$it") }
+    status?.let { params.add("status=$it") }
+
+    // Añadir needs solo si la lista no está vacía
+    if (!needs.isNullOrEmpty()) {
+        val filteredNeeds = needs.filter { it.isNotEmpty() }
+        if (filteredNeeds.isNotEmpty()) {
+            params.add("needs=${filteredNeeds.joinToString(",")}")
+        }
+    }
+
+    comments?.let { params.add("comments=$it") }
+
+    // Construir la ruta final
+    val route = baseRoute + params.joinToString("&")
+
+    // Navegar con la ruta construida
+    navigate(route) {
+        // Eliminar todas las instancias anteriores de MapScreen y RegisterPark de la pila
+        popUpTo("registerPark") {
+            inclusive = true
+        }
+    }
 }
 
 @Composable
