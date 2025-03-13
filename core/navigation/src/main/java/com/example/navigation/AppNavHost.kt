@@ -35,7 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.auth.data.SignUpValidator
 import com.google.firebase.auth.FirebaseAuth
 import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
-import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
+import com.example.donations.ui.donacionMonetaria.MonetariaFormScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
