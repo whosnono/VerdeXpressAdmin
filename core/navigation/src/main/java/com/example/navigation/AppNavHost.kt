@@ -34,7 +34,6 @@ import java.net.URLDecoder
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.auth.data.SignUpValidator
 import com.google.firebase.auth.FirebaseAuth
-import java.util.concurrent.CompletableFuture.anyOf
 import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
 import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
 
