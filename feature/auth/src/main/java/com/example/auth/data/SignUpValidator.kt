@@ -13,7 +13,7 @@ object SignUpValidator {
         "^(?=.*[a-z])" +  // al menos 1 minúscula
                 "(?=.*[A-Z])" +   // al menos 1 mayúscula
                 "(?=.*\\d)" +     // al menos 1 número
-                "[A-Za-z\\d@$!%*?&]{8,}$" // mínimo 8 caracteres
+                "\\S{8,}$\n" // mínimo 8 caracteres
     )
 
     // Función de validación con errores detallados
