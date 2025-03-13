@@ -44,6 +44,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -92,7 +93,7 @@ fun RegisterParkScreen(
 ) {
     val verdeBoton = Color(0xFF78B153)
     var showNeedsDialog by remember { mutableStateOf(false) }
-    var selectedNeeds by rememberSaveable { mutableStateOf(needsArg ?: emptyList()) }
+    var selectedNeeds by rememberSaveable { mutableStateOf(needsArg?.filter { it.isNotEmpty() } ?: emptyList()) }
     val roundedShape = RoundedCornerShape(12.dp)
     // Contenedor de imágenes con scroll
     val scrollState = rememberScrollState()
@@ -114,6 +115,25 @@ fun RegisterParkScreen(
     // Estado para almacenar las URIs de las imágenes seleccionadas
     var selectedImageUris by rememberSaveable {
         mutableStateOf(imageUrisArg ?: emptyList())
+    }
+    // Añadir este bloque para recuperar las imágenes del ViewModel cuando regreses del mapa
+    val viewModelUris by sharedViewModel.selectedImageUris.collectAsState()
+    LaunchedEffect(viewModelUris) {
+        if (viewModelUris.isNotEmpty() && selectedImageUris.isEmpty()) {
+            selectedImageUris = viewModelUris
+        }
+    }
+    // Add this DisposableEffect to clear images when navigating away
+    DisposableEffect(key1 = Unit) {
+        onDispose {
+            // This will run when the composable is removed from composition
+            // (i.e., when the user navigates away without submitting)
+            if (!navController.currentBackStackEntry?.destination?.route?.contains("registerParkSuccess")!! &&
+                !navController.currentBackStackEntry?.destination?.route?.contains("map")!!) {
+                // Only clear if not navigating to success screen
+                sharedViewModel.setImageUris(emptyList())
+            }
+        }
     }
     // Usar la lógica de subida de imágenes
     val context = LocalContext.current
@@ -359,26 +379,31 @@ fun RegisterParkScreen(
                     label = "Ubicación",
                     isError = locationError != null,
                     trailingIcon = { IconButton(onClick = {
-                            navController.navigate(
-                                "map?name=${
-                                    URLEncoder.encode(
-                                        parkName,
-                                        "UTF-8"
-                                    )
-                                }&desc=${
-                                    URLEncoder.encode(
-                                        description,
-                                        "UTF-8"
-                                    )
-                                }&status=${URLEncoder.encode(selectedOptionText, "UTF-8")}" +
-                                        "&needs=${
-                                            URLEncoder.encode(
-                                                selectedNeeds.joinToString(","),
-                                                "UTF-8"
-                                            )
-                                        }&comments=${URLEncoder.encode(comments, "UTF-8")}"
-                            )
-                        }) {
+                        // Guardar imágenes en el ViewModel antes de navegar
+                        sharedViewModel.setImageUris(selectedImageUris)
+
+
+                        val needsParam = if (selectedNeeds.isEmpty()) {
+                            ""
+                        } else {
+                            URLEncoder.encode(selectedNeeds.joinToString(","), "UTF-8")
+                        }
+
+                        navController.navigate(
+                            "map?name=${
+                                URLEncoder.encode(
+                                    parkName,
+                                    "UTF-8"
+                                )
+                            }&desc=${
+                                URLEncoder.encode(
+                                    description,
+                                    "UTF-8"
+                                )
+                            }&status=${URLEncoder.encode(selectedOptionText, "UTF-8")}" +
+                                    "&needs=${needsParam}&comments=${URLEncoder.encode(comments, "UTF-8")}"
+                        )
+                    }) {
                             Image(
                                 painter = painterResource(id = R.drawable.map_add),
                                 contentDescription = "Select location",
@@ -491,12 +516,13 @@ fun RegisterParkScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 CustomOutlinedTextField(
-                    value = selectedNeeds.joinToString(", "),
+                    value = selectedNeeds.joinToString(", ") { it },
                     onValueChange = { },
                     label = "Necesidades del Parque",
                     isError = needsError != null,
                     trailingIcon = {
-                        IconButton(onClick = { showNeedsDialog = true
+                        IconButton(onClick = {
+                            showNeedsDialog = true
                             if (selectedNeeds.isEmpty()) {
                                 needsError = "Selecciona al menos una necesidad"
                             } else {

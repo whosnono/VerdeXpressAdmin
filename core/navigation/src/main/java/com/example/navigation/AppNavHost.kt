@@ -42,33 +42,33 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
     val sharedViewModel: SharedViewModel = viewModel()
     val auth = FirebaseAuth.getInstance()
 
-    // Lista de rutas protegidas que requieren autenticación
-    val protectedRoutes = listOf(
-        NavigationItem.Home.route,
-        NavigationItem.Parks.route,
-        NavigationItem.Donations.route,
-        NavigationItem.Notifications.route,
-        NavigationItem.Profile.route,
-        "registerPark",
-        "map",
-        "donationsWithDialog",
-        "donacionEspecie",
-        "donacionMonetaria"
+    // Lista de rutas públicas que no requieren autenticación
+    val publicRoutes = listOf(
+        "signIn",
+        "signUp",
+        "resetPassword",
+        "resetPasswordEmailSent",
+        "signUpSuccess"
     )
 
     // Estado de autenticación mantenido en tiempo real
+    var isAuthListenerActive by remember { mutableStateOf(true) }
     var isAuthenticated by remember { mutableStateOf(auth.currentUser != null) }
 
     // Listener para cambios en el estado de autenticación
-    DisposableEffect(Unit) {
-        val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            isAuthenticated = firebaseAuth.currentUser != null
-        }
+    DisposableEffect(isAuthListenerActive) {
+        if (isAuthListenerActive) {
+            val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+                isAuthenticated = firebaseAuth.currentUser != null
+            }
 
-        auth.addAuthStateListener(authStateListener)
+            auth.addAuthStateListener(authStateListener)
 
-        onDispose {
-            auth.removeAuthStateListener(authStateListener)
+            onDispose {
+                auth.removeAuthStateListener(authStateListener)
+            }
+        } else {
+            onDispose { /* No hacer nada si el listener no está activo */ }
         }
     }
 
@@ -77,8 +77,15 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val currentRoute = destination.route ?: return@addOnDestinationChangedListener
 
-            // Verifica si la ruta actual está protegida y el usuario no está autenticado
-            val routeRequiresAuth = protectedRoutes.any { route ->
+            // Desactivar el listener en las rutas de registro y éxito de registro
+            if (currentRoute == "signUp" || currentRoute == "signUpSuccess") {
+                isAuthListenerActive = false
+            } else {
+                isAuthListenerActive = true
+            }
+
+            // Verifica si la ruta actual NO está en la lista de públicas
+            val routeRequiresAuth = !publicRoutes.any { route ->
                 if (route.contains("?")) {
                     // Para rutas con parámetros, verificar solo la parte base
                     val baseRoute = route.split("?")[0]
@@ -104,7 +111,8 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         val currentRoute = navController.currentDestination?.route
 
         if (!isAuthenticated && currentRoute != null) {
-            val routeRequiresAuth = protectedRoutes.any { route ->
+            // Verifica si la ruta actual NO está en la lista de públicas
+            val routeRequiresAuth = !publicRoutes.any { route ->
                 if (route.contains("?")) {
                     val baseRoute = route.split("?")[0]
                     currentRoute.startsWith(baseRoute)

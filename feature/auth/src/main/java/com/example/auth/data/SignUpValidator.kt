@@ -13,7 +13,6 @@ object SignUpValidator {
         "^(?=.*[a-z])" +  // al menos 1 minúscula
                 "(?=.*[A-Z])" +   // al menos 1 mayúscula
                 "(?=.*\\d)" +     // al menos 1 número
-                "(?=.*[@$!%*?&])" + // al menos 1 carácter especial
                 "[A-Za-z\\d@$!%*?&]{8,}$" // mínimo 8 caracteres
     )
 
@@ -91,14 +90,12 @@ object SignUpValidator {
 
         // Validación de contraseña
         val passwordValidations = mutableListOf<String>()
-        when {
-            (password.trim()
-                .isEmpty() || password.length < 8 || !password.any { it.isLowerCase() } || !password.any { it.isUpperCase() } || !password.any { it.isDigit() } || !passwordPattern.matcher(
-                password
-            )
-                .matches()) -> passwordValidations.add("La contraseña debe tener al menos 8 caracteres, una letra minúscula, una letra mayúscula y un número. ")
+        if (!passwordPattern.matcher(password).matches()) {
+            passwordValidations.add("La contraseña debe tener al menos 8 caracteres, una letra minúscula, una letra mayúscula y un número.")
         }
-        if (passwordValidations.isNotEmpty()) errors["password"] = passwordValidations
+        if (passwordValidations.isNotEmpty()) {
+            errors["password"] = passwordValidations
+        }
 
         // Validación de confirmación de contraseña
         val confirmPasswordValidations = mutableListOf<String>()

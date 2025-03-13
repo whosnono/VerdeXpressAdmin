@@ -1,6 +1,7 @@
 package com.example.auth.ui
 
 import SignUpViewModel
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,6 +24,7 @@ import com.example.auth.data.SignUpValidator
 import com.example.design.R
 import com.example.design.SecondaryAppBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
     navController: NavController,
@@ -67,13 +69,15 @@ fun SignUpScreen(
                 showIcon = true,
                 onIconClick = { navController.navigate("signIn") }
             )
-        }
+        },
+        containerColor = Color.White // Set the background color of the Scaffold
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
+                .background(Color.White),
         ) {
             Text(
                 text = "Regístrate",
