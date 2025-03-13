@@ -78,7 +78,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             val currentRoute = destination.route ?: return@addOnDestinationChangedListener
 
             // Desactivar el listener en las rutas de registro y éxito de registro
-            if (publicRoutes.contains(currentRoute)) {
+            if (currentRoute == "signUp" || currentRoute == "signUpSuccess") {
                 isAuthListenerActive = false
             } else {
                 isAuthListenerActive = true
