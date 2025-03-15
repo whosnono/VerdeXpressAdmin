@@ -10,6 +10,7 @@ class GetParks {
 
     fun getParks(onSuccess: (List<ParkData>) -> Unit, onFailure: (Exception) -> Unit) {
         listenerRegistration = firestore.collection("parques")
+            .whereEqualTo("registro_estado", "aprobado") // Filtra solo los documentos con registro_estado == "aprobado"
             .addSnapshotListener { result, exception ->
                 if (exception != null) {
                     onFailure(exception)
