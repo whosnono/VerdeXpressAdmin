@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.firebase.storage.ktx) // Firebase Storage con Kotlin
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.androidx.ui.graphics.android)
+    implementation(libs.firebase.auth.ktx)
 
     // Supabase
     implementation(libs.kotlinx.serialization.json)
