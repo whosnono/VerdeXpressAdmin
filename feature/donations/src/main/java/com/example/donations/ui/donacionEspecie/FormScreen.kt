@@ -30,6 +30,8 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.design.R
 import com.example.design.SecondaryAppBar
+import com.example.donations.data.GetParkNameAndLocation
+import com.example.donations.data.ParkData
 import com.example.donations.ui.donacionEspecie.reu.CustomDropdown
 import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField
 import com.example.parks.ui.ParkImageDisplay
@@ -61,7 +63,8 @@ fun FormScreen(navController: NavController) {
     var selectedResourceType by remember { mutableStateOf("") }
     var selectedResource by remember { mutableStateOf("") }
     var selectedCondition by remember { mutableStateOf("") }
-    val optionsPark = remember { listOf("Opción 1", "Opción 2", "Opción 3") }
+    var optionsPark by remember { mutableStateOf<List<String>>(emptyList()) }
+    var parksList by remember { mutableStateOf<List<ParkData>>(emptyList()) }
     val optionsType = remember { listOf("Mobiliario", "Jardinería") }
     val optionsResourceM = remember { listOf("Bancas", "Mesas", "Juegos Infantiles", "Cestos de basura", "Cercas o Delimitaciones") }
     val optionsResourceJ = remember { listOf("Árboles", "Arbustos", "Plantas Ornamentales", "Césped o Pasto en rollo", "Tierra para rehabilitación de suelos" ) }
@@ -76,6 +79,22 @@ fun FormScreen(navController: NavController) {
         }
     }
     val validator = rememberDonationFormValidator()
+
+    // Instancia del objeto para obtener los parques
+    val getParkNameAndLocation = GetParkNameAndLocation()
+
+    // Obtener los parques
+    LaunchedEffect(Unit) {
+        getParkNameAndLocation.getParkNameAndLocation(
+            onSuccess = { parks ->
+                parksList = parks
+                optionsPark = parks.map { it.nombre }
+            },
+            onFailure = { exception ->
+                println("Error al obtener parques")
+            }
+        )
+    }
 
     // Lanzador para seleccionar imágenes
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -230,6 +249,10 @@ fun FormScreen(navController: NavController) {
                     onOptionSelected = { option ->
                         selectedOption = option
                         statusErrorP = if (option.isEmpty()) "Debes seleccioanr un parque" else null
+
+                        // Buscar la ubicación correspondiente al parque seleccionado
+                        val selectedPark = parksList.find { it.nombre == option }
+                        location = selectedPark?.ubicacion ?: "Desconocido"
                     },
                     isError = statusErrorP != null,
                     errorMessage = statusErrorP,
@@ -240,17 +263,11 @@ fun FormScreen(navController: NavController) {
 
                 CustomOutlinedTextField(
                     value = location,
-                    onValueChange = {
-                        location = it
-                        locationError = when {
-                            it.isEmpty() -> "La ubicación no puede estar vacía"
-                            else -> null
-                        }
-                    },
+                    onValueChange = { },
                     label = "Ubicación",
                     isError = locationError != null,
                     errorMessage = locationError,
-                    readOnly = true //si se quiere probar los dialogos hay que comentar esta linea
+                    readOnly = true
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))

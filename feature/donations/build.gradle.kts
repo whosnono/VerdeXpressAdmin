@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":feature:parks"))
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.ui.tooling.preview.android)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
