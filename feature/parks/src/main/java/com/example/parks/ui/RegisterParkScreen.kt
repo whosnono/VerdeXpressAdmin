@@ -336,7 +336,6 @@ fun RegisterParkScreen(
             errorMessage?.let { ErrorText(it) }
         }
     }
-
         Column {
             SecondaryAppBar(showIcon = true, onIconClick = {
                 navController.navigate("Parques") // Navegar a la pantalla de "Parques"

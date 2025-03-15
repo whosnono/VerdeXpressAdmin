@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.runtime.android)
     implementation(project(":core:design"))
+    implementation(project(":feature:parks"))
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.ui.tooling.preview.android)
     testImplementation(libs.junit)
