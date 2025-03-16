@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
