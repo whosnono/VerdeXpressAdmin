@@ -7,6 +7,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -19,9 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -50,6 +49,40 @@ fun MonetariaFormScreen(navController: NavController) {
     var razon by remember { mutableStateOf("") }
     var domFiscal by remember { mutableStateOf("") }
 
+    var validationResult by remember { mutableStateOf<MonetariaValidationResult?>(null) }
+
+    val verdeBoton = Color(0xFF78B153)
+    val grisBoton = Color(0x4D000000)
+    val botonColor = Color(0x4D000000)
+
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = verdeBoton,
+        focusedLabelColor = verdeBoton,
+        cursorColor = verdeBoton,
+        errorBorderColor = Color.Red,
+        errorLabelColor = Color.Red,
+        errorCursorColor = Color.Red
+    )
+
+    val validator = rememberMonetariaFormValidator()
+
+    fun validateForm() {
+        val formState = MonetariaFormState(
+            nombre = nombre,
+            correo = correo,
+            numTel = numTel,
+            cantidad = cantidad,
+            metodoPago = metodoPago,
+            parqueSeleccionado = parqueSeleccionado,
+            ubicacionSeleccionado = ubicacionSeleccionado,
+            quiereRecibo = quiereRecibo,
+            rfc = rfc,
+            razon = razon,
+            domFiscal = domFiscal
+        )
+        validationResult = validator(formState)
+    }
+
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
         // AppBar
         SecondaryAppBar(showIcon = true, onIconClick = {
@@ -58,19 +91,6 @@ fun MonetariaFormScreen(navController: NavController) {
         })
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        val verdeBoton = Color(0xFF78B153)
-        val grisBoton = Color(0x4D000000)
-        val botonColor = Color(0x4D000000)
-
-        val textFieldColors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = verdeBoton,
-            focusedLabelColor = verdeBoton,
-            cursorColor = verdeBoton,
-            errorBorderColor = Color.Red,
-            errorLabelColor = Color.Red,
-            errorCursorColor = Color.Red
-        )
 
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -97,16 +117,21 @@ fun MonetariaFormScreen(navController: NavController) {
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre del Donante") },
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 shape = RoundedCornerShape(size = 10.dp),
                 minLines = 1,
-                singleLine = false // Permitir múltiples líneas
+                singleLine = false, // Permitir múltiples líneas
+                isError = validationResult?.nombreError != null,
+                supportingText = {
+                    validationResult?.nombreError?.let { error ->
+                        Text(text = error, color = Color.Red)
+                    }
+                }
             )
         }
 
-        // Campo de texto para correo electronico (auto-expandible)
+        // Campo de texto para correo electrónico (auto-expandible)
         Box(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -116,16 +141,21 @@ fun MonetariaFormScreen(navController: NavController) {
                 value = correo,
                 onValueChange = { correo = it },
                 label = { Text("Correo electrónico") },
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 shape = RoundedCornerShape(size = 10.dp),
                 minLines = 1,
-                singleLine = false // Permitir múltiples líneas
+                singleLine = false, // Permitir múltiples líneas
+                isError = validationResult?.correoError != null,
+                supportingText = {
+                    validationResult?.correoError?.let { error ->
+                        Text(text = error, color = Color.Red)
+                    }
+                }
             )
         }
 
-        // Campo de texto para numero de telefono (limitado a 10 dígitos)
+        // Campo de texto para número de teléfono (limitado a 10 dígitos)
         Box(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -140,12 +170,17 @@ fun MonetariaFormScreen(navController: NavController) {
                     }
                 },
                 label = { Text("Teléfono de contacto") },
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = textFieldColors,
                 shape = RoundedCornerShape(size = 10.dp),
-                singleLine = true
+                singleLine = true,
+                isError = validationResult?.numTelError != null,
+                supportingText = {
+                    validationResult?.numTelError?.let { error ->
+                        Text(text = error, color = Color.Red)
+                    }
+                }
             )
         }
 
@@ -176,7 +211,13 @@ fun MonetariaFormScreen(navController: NavController) {
                         .fillMaxWidth()
                         .menuAnchor(), // Añadido menuAnchor para vincular el campo con el menú
                     shape = RoundedCornerShape(size = 10.dp),
-                    singleLine = true
+                    singleLine = true,
+                    isError = validationResult?.parqueSeleccionadoError != null,
+                    supportingText = {
+                        validationResult?.parqueSeleccionadoError?.let { error ->
+                            Text(text = error, color = Color.Red)
+                        }
+                    }
                 )
 
                 ExposedDropdownMenu(
@@ -205,26 +246,26 @@ fun MonetariaFormScreen(navController: NavController) {
             }
         }
 
-        // Dropdown de ubicacion del parque a donar (inicialmente vacío)
+        // Dropdown de Método de pago
         Box(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxWidth()
         ) {
             ExposedDropdownMenuBox(
-                expanded = expandedUbicacion,
-                onExpandedChange = { expandedUbicacion = !expandedUbicacion }
+                expanded = expandedMetodo,
+                onExpandedChange = { expandedMetodo = !expandedMetodo }
             ) {
                 OutlinedTextField(
-                    value = ubicacionSeleccionado, // Corregido: ahora usa ubicacionSeleccionado
+                    value = metodoPago,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Ubicación del parque") },
+                    label = { Text("Método de pago") },
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = "Expand dropdown",
-                            tint = if (expandedUbicacion) verdeBoton else Color.Gray
+                            tint = if (expandedMetodo) verdeBoton else Color.Gray
                         )
                     },
                     colors = textFieldColors,
@@ -232,30 +273,27 @@ fun MonetariaFormScreen(navController: NavController) {
                         .fillMaxWidth()
                         .menuAnchor(), // Añadido menuAnchor para vincular el campo con el menú
                     shape = RoundedCornerShape(size = 10.dp),
-                    singleLine = true
+                    singleLine = true,
+                    isError = validationResult?.metodoPagoError != null,
+                    supportingText = {
+                        validationResult?.metodoPagoError?.let { error ->
+                            Text(text = error, color = Color.Red)
+                        }
+                    }
                 )
 
                 ExposedDropdownMenu(
-                    expanded = expandedUbicacion,
-                    onDismissRequest = { expandedUbicacion = false }
+                    expanded = expandedMetodo,
+                    onDismissRequest = { expandedMetodo = false }
                 ) {
-                    // Solo muestra las opciones si hay ubicaciones en la lista
-                    if (ubicaciones.isEmpty()) {
+                    metodosPago.forEach { metodo ->
                         DropdownMenuItem(
-                            text = { Text("No hay ubicaciones disponibles") },
-                            onClick = { expandedUbicacion = false },
-                            enabled = false
+                            text = { Text(metodo) },
+                            onClick = {
+                                metodoPago = metodo
+                                expandedMetodo = false
+                            }
                         )
-                    } else {
-                        ubicaciones.forEach { ubicacion ->
-                            DropdownMenuItem(
-                                text = { Text(ubicacion) },
-                                onClick = {
-                                    ubicacionSeleccionado = ubicacion
-                                    expandedUbicacion = false
-                                }
-                            )
-                        }
                     }
                 }
             }
@@ -301,12 +339,17 @@ fun MonetariaFormScreen(navController: NavController) {
                         }
                     },
                     label = { Text("Cantidad monetaria a donar") },
-                    modifier = Modifier
-                        .weight(1f),
+                    modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = textFieldColors,
                     shape = RoundedCornerShape(size = 10.dp),
-                    singleLine = true
+                    singleLine = true,
+                    isError = validationResult?.cantidadError != null,
+                    supportingText = {
+                        validationResult?.cantidadError?.let { error ->
+                            Text(text = error, color = Color.Red)
+                        }
+                    }
                 )
 
                 // Botón para disminuir
@@ -343,64 +386,6 @@ fun MonetariaFormScreen(navController: NavController) {
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
-                }
-            }
-        }
-
-        // Dropdown de Metodo de pago
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            ExposedDropdownMenuBox(
-                expanded = expandedMetodo,
-                onExpandedChange = { expandedMetodo = !expandedMetodo }
-            ) {
-                OutlinedTextField(
-                    value = metodoPago,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Método de pago") },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Expand dropdown",
-                            tint = if (expandedMetodo) verdeBoton else Color.Gray
-                        )
-                    },
-                    colors = textFieldColors,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(), // Añadido menuAnchor para vincular el campo con el menú
-                    shape = RoundedCornerShape(size = 10.dp),
-                    singleLine = true
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expandedMetodo,
-                    onDismissRequest = { expandedMetodo = false }
-                ) {
-                    metodosPago.forEach { metodo ->
-                        DropdownMenuItem(
-                            text = { Text(metodo) },
-                            onClick = {
-                                metodoPago = metodo
-                                expandedMetodo = false
-                            },
-                            colors = MenuDefaults.itemColors(
-                                textColor = Color.Black,
-                                leadingIconColor = verdeBoton,
-                                trailingIconColor = verdeBoton,
-                                disabledTextColor = Color.Gray,
-                                disabledLeadingIconColor = Color.Gray,
-                                disabledTrailingIconColor = Color.Gray
-                            ),
-                            modifier = Modifier.background(
-                                color = if (metodoPago == metodo) verdeBoton else Color.Transparent
-                            )
-                        )
-                    }
                 }
             }
         }
@@ -466,12 +451,17 @@ fun MonetariaFormScreen(navController: NavController) {
                             }
                         },
                         label = { Text("RFC") },
-                        modifier = Modifier
-                            .fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = textFieldColors,
                         shape = RoundedCornerShape(size = 10.dp),
                         minLines = 1,
-                        singleLine = false // Permitir múltiples líneas
+                        singleLine = false, // Permitir múltiples líneas
+                        isError = validationResult?.rfcError != null,
+                        supportingText = {
+                            validationResult?.rfcError?.let { error ->
+                                Text(text = error, color = Color.Red)
+                            }
+                        }
                     )
                 }
             }
@@ -487,12 +477,17 @@ fun MonetariaFormScreen(navController: NavController) {
                         value = razon,
                         onValueChange = { razon = it },
                         label = { Text("Razón social (para empresas)") },
-                        modifier = Modifier
-                            .fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = textFieldColors,
                         shape = RoundedCornerShape(size = 10.dp),
                         minLines = 1,
-                        singleLine = false // Permitir múltiples líneas
+                        singleLine = false, // Permitir múltiples líneas
+                        isError = validationResult?.razonError != null,
+                        supportingText = {
+                            validationResult?.razonError?.let { error ->
+                                Text(text = error, color = Color.Red)
+                            }
+                        }
                     )
                 }
             }
@@ -508,12 +503,17 @@ fun MonetariaFormScreen(navController: NavController) {
                         value = domFiscal,
                         onValueChange = { domFiscal = it },
                         label = { Text("Domicilio Fiscal") },
-                        modifier = Modifier
-                            .fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = textFieldColors,
                         shape = RoundedCornerShape(size = 10.dp),
                         minLines = 1,
-                        singleLine = false // Permitir múltiples líneas
+                        singleLine = false, // Permitir múltiples líneas
+                        isError = validationResult?.domFiscalError != null,
+                        supportingText = {
+                            validationResult?.domFiscalError?.let { error ->
+                                Text(text = error, color = Color.Red)
+                            }
+                        }
                     )
                 }
             }
@@ -521,7 +521,7 @@ fun MonetariaFormScreen(navController: NavController) {
 
         // Botón Validar
         Button(
-            onClick = {},
+            onClick = { validateForm() },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
