@@ -27,7 +27,8 @@ data class MonetariaValidationResult(
     val parqueSeleccionadoError: String? = null,
     val rfcError: String? = null,
     val razonError: String? = null,
-    val domFiscalError: String? = null
+    val domFiscalError: String? = null,
+    val quiereReciboError: String? = null
 )
 
 @Composable
@@ -78,6 +79,10 @@ fun rememberMonetariaFormValidator() = remember {
                 state.quiereRecibo == true && state.domFiscal.isEmpty() -> "El domicilio fiscal es obligatorio"
                 state.quiereRecibo == true && state.domFiscal.length > 200 -> "El domicilio fiscal debe tener máximo 200 caracteres"
                 else -> null
+            },
+            quiereReciboError = when {
+                state.quiereRecibo == null -> "Debes seleccionar si deseas recibo o no"
+                else -> null
             }
         )
     }
@@ -92,5 +97,6 @@ fun MonetariaValidationResult.isValid(): Boolean {
             parqueSeleccionadoError == null &&
             rfcError == null &&
             razonError == null &&
-            domFiscalError == null
+            domFiscalError == null &&
+            quiereReciboError == null
 }

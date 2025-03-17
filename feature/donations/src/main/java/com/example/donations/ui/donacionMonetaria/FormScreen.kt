@@ -229,7 +229,6 @@ fun FormScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            // TODO: ESTO DEBE SER UN CAMPO OBLIGATORIO
             // Sección: ¿Desea recibo de donación?
             Text(
                 text = "¿Desea recibo de donación?",
@@ -237,6 +236,14 @@ fun FormScreen(navController: NavController) {
                 fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
                 modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
             )
+            if (validationResult?.quiereReciboError != null) {
+                Text(
+                    text = validationResult!!.quiereReciboError!!,
+                    fontSize = 12.sp,
+                    color = Color.Red,
+                    modifier = Modifier.padding(top = 4.dp).align(Alignment.CenterHorizontally)
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
