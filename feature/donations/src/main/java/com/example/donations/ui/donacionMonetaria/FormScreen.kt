@@ -1,30 +1,31 @@
 package com.example.donations.ui.donacionMonetaria
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.navigation.NavController
-import com.example.design.SecondaryAppBar
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.design.R
+import com.example.design.SecondaryAppBar
+import com.example.donations.data.GetParkNameAndLocation
+import com.example.donations.data.ParkData
+import com.example.donations.ui.donacionEspecie.reu.CustomDropdown
+import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,15 +37,11 @@ fun MonetariaFormScreen(navController: NavController) {
     var metodoPago by remember { mutableStateOf("") }
     var parqueSeleccionado by remember { mutableStateOf("") }
     var ubicacionSeleccionado by remember { mutableStateOf("") }
-    var quiereRecibo by remember { mutableStateOf<Boolean?>(null) } // null=no seleccionado, true=sí, false=no
-    val metodosPago = listOf("Tarjeta", "PayPal", "Transferencia")
-    // Lista vacía para los parques y ubicaciones, que se llenará posteriormente con datos de la BD
-    val parques = remember { mutableStateListOf<String>() }
-    val ubicaciones = remember { mutableStateListOf<String>() }
+    var quiereRecibo by remember { mutableStateOf<Boolean?>(null) }
+    val metodosPago = listOf("Tarjeta de crédito/débito", "PayPal")
+    val parques = remember { mutableStateListOf<String>() } // Lista vacía inicialmente
+    val ubicaciones = remember { mutableStateListOf<String>() } // Lista vacía inicialmente
     val scrollState = rememberScrollState()
-    var expandedMetodo by remember { mutableStateOf(false) }
-    var expandedParque by remember { mutableStateOf(false) }
-    var expandedUbicacion by remember { mutableStateOf(false) }
     var rfc by remember { mutableStateOf("") }
     var razon by remember { mutableStateOf("") }
     var domFiscal by remember { mutableStateOf("") }
@@ -52,8 +49,31 @@ fun MonetariaFormScreen(navController: NavController) {
     var validationResult by remember { mutableStateOf<MonetariaValidationResult?>(null) }
 
     val verdeBoton = Color(0xFF78B153)
-    val grisBoton = Color(0x4D000000)
-    val botonColor = Color(0x4D000000)
+    val roundedShape = RoundedCornerShape(12.dp)
+
+    // Añade una función para obtener los datos de los parques
+    var parksList by remember { mutableStateOf<List<ParkData>>(emptyList()) }
+    val getParkNameAndLocation = GetParkNameAndLocation()
+
+    // Usa LaunchedEffect para cargar los datos al iniciar la pantalla
+    LaunchedEffect(Unit) {
+        getParkNameAndLocation.getParkNameAndLocation(
+            onSuccess = { parks ->
+                // Actualiza la lista de parques y ubicaciones
+                parksList = parks
+                parques.clear()
+                ubicaciones.clear()
+                parks.forEach { park ->
+                    parques.add(park.nombre)
+                    ubicaciones.add(park.ubicacion)
+                }
+            },
+            onFailure = { exception ->
+                // Maneja el error (puedes mostrar un Toast o un mensaje de error)
+                Log.e("MonetariaFormScreen", "Error al obtener parques: ${exception.message}")
+            }
+        )
+    }
 
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = verdeBoton,
@@ -83,330 +103,141 @@ fun MonetariaFormScreen(navController: NavController) {
         validationResult = validator(formState)
     }
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
         // AppBar
-        SecondaryAppBar(showIcon = true, onIconClick = {
-            navController.popBackStack("Donaciones", inclusive = false)
-            navController.navigate("Donaciones")
-        })
+        SecondaryAppBar(
+            showIcon = true,
+            onIconClick = {
+                navController.popBackStack("Donaciones", inclusive = false)
+                navController.navigate("Donaciones")
+            }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = "Donación monetaria",
                 fontSize = 25.sp,
-                lineHeight = 20.sp,
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight(700),
-                color = Color(0xFF000000),
-                letterSpacing = 0.25.sp,
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-        }
 
-        // Campo de texto para nombre del donante (auto-expandible)
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            OutlinedTextField(
+            // Campo de texto para nombre del donante
+            CustomOutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
-                label = { Text("Nombre del Donante") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = textFieldColors,
-                shape = RoundedCornerShape(size = 10.dp),
-                minLines = 1,
-                singleLine = false, // Permitir múltiples líneas
+                label = "Nombre del Donante",
                 isError = validationResult?.nombreError != null,
-                supportingText = {
-                    validationResult?.nombreError?.let { error ->
-                        Text(text = error, color = Color.Red)
-                    }
-                }
+                errorMessage = validationResult?.nombreError
             )
-        }
 
-        // Campo de texto para correo electrónico (auto-expandible)
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            OutlinedTextField(
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Campo de texto para correo electrónico
+            CustomOutlinedTextField(
                 value = correo,
                 onValueChange = { correo = it },
-                label = { Text("Correo electrónico") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = textFieldColors,
-                shape = RoundedCornerShape(size = 10.dp),
-                minLines = 1,
-                singleLine = false, // Permitir múltiples líneas
+                label = "Correo electrónico",
                 isError = validationResult?.correoError != null,
-                supportingText = {
-                    validationResult?.correoError?.let { error ->
-                        Text(text = error, color = Color.Red)
-                    }
-                }
+                errorMessage = validationResult?.correoError
             )
-        }
 
-        // Campo de texto para número de teléfono (limitado a 10 dígitos)
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            OutlinedTextField(
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Campo de texto para número de teléfono
+            CustomOutlinedTextField(
                 value = numTel,
                 onValueChange = {
-                    // Limitar a 10 dígitos y solo permitir números
                     if (it.length <= 10 && it.all { char -> char.isDigit() }) {
                         numTel = it
                     }
                 },
-                label = { Text("Teléfono de contacto") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                colors = textFieldColors,
-                shape = RoundedCornerShape(size = 10.dp),
-                singleLine = true,
+                label = "Teléfono de contacto",
                 isError = validationResult?.numTelError != null,
-                supportingText = {
-                    validationResult?.numTelError?.let { error ->
-                        Text(text = error, color = Color.Red)
-                    }
-                }
+                errorMessage = validationResult?.numTelError,
+                isNumberField = true
             )
-        }
 
-        // Dropdown de Parque a donar (inicialmente vacío)
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            ExposedDropdownMenuBox(
-                expanded = expandedParque,
-                onExpandedChange = { expandedParque = !expandedParque }
-            ) {
-                OutlinedTextField(
-                    value = parqueSeleccionado,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Parque a donar") },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Expand dropdown",
-                            tint = if (expandedParque) verdeBoton else Color.Gray
-                        )
-                    },
-                    colors = textFieldColors,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(), // Añadido menuAnchor para vincular el campo con el menú
-                    shape = RoundedCornerShape(size = 10.dp),
-                    singleLine = true,
-                    isError = validationResult?.parqueSeleccionadoError != null,
-                    supportingText = {
-                        validationResult?.parqueSeleccionadoError?.let { error ->
-                            Text(text = error, color = Color.Red)
-                        }
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Dropdown de Parque a donar
+            CustomDropdown(
+                fieldName = "Parque a donar",
+                options = parques,
+                selectedOption = parqueSeleccionado,
+                onOptionSelected = { option ->
+                    parqueSeleccionado = option
+                    // Actualiza la ubicación automáticamente
+                    val parqueSeleccionado = parksList.find { it.nombre == option }
+                    ubicacionSeleccionado = parqueSeleccionado?.ubicacion ?: "Desconocido"
+                },
+                isError = validationResult?.parqueSeleccionadoError != null,
+                errorMessage = validationResult?.parqueSeleccionadoError
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Campo de texto para la ubicación (solo lectura)
+            CustomOutlinedTextField(
+                value = ubicacionSeleccionado,
+                onValueChange = { },
+                label = "Ubicación",
+                readOnly = true,
+                isError = false,
+                errorMessage = null
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Dropdown de Método de pago
+            CustomDropdown(
+                fieldName = "Método de pago",
+                options = metodosPago,
+                selectedOption = metodoPago,
+                onOptionSelected = { option ->
+                    metodoPago = option
+                },
+                isError = validationResult?.metodoPagoError != null,
+                errorMessage = validationResult?.metodoPagoError
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Campo de texto para cantidad con botones + y -
+            CustomOutlinedTextField(
+                value = cantidad,
+                onValueChange = {
+                    if (it.isEmpty() || it.all { char -> char.isDigit() }) {
+                        cantidad = it
                     }
-                )
+                },
+                label = "Cantidad monetaria a donar",
+                isError = validationResult?.cantidadError != null,
+                errorMessage = validationResult?.cantidadError,
+                isNumberField = true,
+                showNumberControls = true
+            )
 
-                ExposedDropdownMenu(
-                    expanded = expandedParque,
-                    onDismissRequest = { expandedParque = false }
-                ) {
-                    // Solo muestra las opciones si hay parques en la lista
-                    if (parques.isEmpty()) {
-                        DropdownMenuItem(
-                            text = { Text("No hay parques disponibles") },
-                            onClick = { expandedParque = false },
-                            enabled = false
-                        )
-                    } else {
-                        parques.forEach { parque ->
-                            DropdownMenuItem(
-                                text = { Text(parque) },
-                                onClick = {
-                                    parqueSeleccionado = parque
-                                    expandedParque = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        }
+            Spacer(modifier = Modifier.height(32.dp))
 
-        // Dropdown de Método de pago
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            ExposedDropdownMenuBox(
-                expanded = expandedMetodo,
-                onExpandedChange = { expandedMetodo = !expandedMetodo }
-            ) {
-                OutlinedTextField(
-                    value = metodoPago,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Método de pago") },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Expand dropdown",
-                            tint = if (expandedMetodo) verdeBoton else Color.Gray
-                        )
-                    },
-                    colors = textFieldColors,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(), // Añadido menuAnchor para vincular el campo con el menú
-                    shape = RoundedCornerShape(size = 10.dp),
-                    singleLine = true,
-                    isError = validationResult?.metodoPagoError != null,
-                    supportingText = {
-                        validationResult?.metodoPagoError?.let { error ->
-                            Text(text = error, color = Color.Red)
-                        }
-                    }
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expandedMetodo,
-                    onDismissRequest = { expandedMetodo = false }
-                ) {
-                    metodosPago.forEach { metodo ->
-                        DropdownMenuItem(
-                            text = { Text(metodo) },
-                            onClick = {
-                                metodoPago = metodo
-                                expandedMetodo = false
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        // Campo de texto para cantidad con botones + y -
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            // Variable para manejar la cantidad como número
-            var cantidadNum by remember { mutableStateOf(0) }
-
-            // Actualizar el estado de texto cuando cambia el número
-            LaunchedEffect(cantidadNum) {
-                cantidad = cantidadNum.toString()
-            }
-
-            // Actualizar el número cuando cambia el texto manualmente
-            LaunchedEffect(cantidad) {
-                if (cantidad.isNotEmpty()) {
-                    try {
-                        cantidadNum = cantidad.toInt()
-                    } catch (e: NumberFormatException) {
-                        // Manejar el caso de texto no válido
-                    }
-                }
-            }
-
-            // Row contenedor para agrupar el campo y los botones
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // TextField para la cantidad
-                OutlinedTextField(
-                    value = cantidad,
-                    onValueChange = {
-                        // Validar que solo contenga números
-                        if (it.isEmpty() || it.all { char -> char.isDigit() }) {
-                            cantidad = it
-                        }
-                    },
-                    label = { Text("Cantidad monetaria a donar") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = textFieldColors,
-                    shape = RoundedCornerShape(size = 10.dp),
-                    singleLine = true,
-                    isError = validationResult?.cantidadError != null,
-                    supportingText = {
-                        validationResult?.cantidadError?.let { error ->
-                            Text(text = error, color = Color.Red)
-                        }
-                    }
-                )
-
-                // Botón para disminuir
-                IconButton(
-                    onClick = {
-                        if (cantidadNum > 0) cantidadNum--
-                    },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = botonColor,
-                            shape = RoundedCornerShape(size = 10.dp)
-                        )
-                ) {
-                    Text(
-                        text = "−",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                // Botón para aumentar
-                IconButton(
-                    onClick = { cantidadNum++ },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = botonColor,
-                            shape = RoundedCornerShape(size = 10.dp)
-                        )
-                ) {
-                    Text(
-                        text = "+",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-
-        // Sección de "¿Desea recibo de donación?"
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+            // Sección de "¿Desea recibo de donación?"
             Text(
                 text = "¿Desea recibo de donación?",
                 fontSize = 20.sp,
-                lineHeight = 20.sp,
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight(700),
-                color = Color(0xFF171D1B),
-                letterSpacing = 0.25.sp
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
             )
 
-            // Botones de opción
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -428,7 +259,7 @@ fun MonetariaFormScreen(navController: NavController) {
                         selected = quiereRecibo == false,
                         onClick = { quiereRecibo = false },
                         colors = RadioButtonDefaults.colors(
-                            selectedColor = grisBoton,
+                            selectedColor = verdeBoton,
                             unselectedColor = Color.Gray
                         )
                     )
@@ -436,98 +267,61 @@ fun MonetariaFormScreen(navController: NavController) {
                 }
             }
 
-            // Campo RFC (Aparece solo si selecciona "Sí")
+            // Campos adicionales para el recibo
             AnimatedVisibility(visible = quiereRecibo == true) {
-                Box(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    OutlinedTextField(
+                Column {
+                    CustomOutlinedTextField(
                         value = rfc,
                         onValueChange = {
                             if (it.length <= 13) {
                                 rfc = it
                             }
                         },
-                        label = { Text("RFC") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = textFieldColors,
-                        shape = RoundedCornerShape(size = 10.dp),
-                        minLines = 1,
-                        singleLine = false, // Permitir múltiples líneas
+                        label = "RFC",
                         isError = validationResult?.rfcError != null,
-                        supportingText = {
-                            validationResult?.rfcError?.let { error ->
-                                Text(text = error, color = Color.Red)
-                            }
-                        }
+                        errorMessage = validationResult?.rfcError
                     )
-                }
-            }
 
-            // Campo razón social (Aparece solo si selecciona "Sí")
-            AnimatedVisibility(visible = quiereRecibo == true) {
-                Box(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    OutlinedTextField(
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    CustomOutlinedTextField(
                         value = razon,
                         onValueChange = { razon = it },
-                        label = { Text("Razón social (para empresas)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = textFieldColors,
-                        shape = RoundedCornerShape(size = 10.dp),
-                        minLines = 1,
-                        singleLine = false, // Permitir múltiples líneas
+                        label = "Razón social (para empresas)",
                         isError = validationResult?.razonError != null,
-                        supportingText = {
-                            validationResult?.razonError?.let { error ->
-                                Text(text = error, color = Color.Red)
-                            }
-                        }
+                        errorMessage = validationResult?.razonError
                     )
-                }
-            }
 
-            // Campo domicilio fiscal (Aparece solo si selecciona "Sí")
-            AnimatedVisibility(visible = quiereRecibo == true) {
-                Box(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    OutlinedTextField(
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    CustomOutlinedTextField(
                         value = domFiscal,
                         onValueChange = { domFiscal = it },
-                        label = { Text("Domicilio Fiscal") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = textFieldColors,
-                        shape = RoundedCornerShape(size = 10.dp),
-                        minLines = 1,
-                        singleLine = false, // Permitir múltiples líneas
+                        label = "Domicilio Fiscal",
                         isError = validationResult?.domFiscalError != null,
-                        supportingText = {
-                            validationResult?.domFiscalError?.let { error ->
-                                Text(text = error, color = Color.Red)
-                            }
-                        }
+                        errorMessage = validationResult?.domFiscalError
                     )
                 }
             }
-        }
 
-        // Botón Validar
-        Button(
-            onClick = { validateForm() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = verdeBoton)
-        ) {
-            Text("Validar")
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Botón Validar
+            Button(
+                onClick = { validateForm() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 118.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
+                shape = roundedShape
+            ) {
+                Text(
+                    text = "Validar",
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+            }
         }
     }
 }
