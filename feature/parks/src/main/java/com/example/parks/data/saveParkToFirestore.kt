@@ -38,8 +38,7 @@ fun saveParkToFirestore(
         "necesidades" to needs,
         "comentarios" to comments,
         "registro_usuario" to auth.currentUser?.uid,
-        //TODO: CAMBIAR  "REGISTRO_ESTADO" A "pendiente", UNA VEZ QUE SE IMPLEMENTE EL FLUJO DE APROBACIÓN
-        "registro_estado" to "aprobado",
+        "registro_estado" to "pendiente",
         "created_at" to Timestamp(createdAt) // Timestamp ajustado a Hermosillo
     )
 
