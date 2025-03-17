@@ -5,16 +5,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -30,6 +26,7 @@ import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonetariaFormScreen(navController: NavController) {
+    // Estados del formulario
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var numTel by remember { mutableStateOf("") }
@@ -38,28 +35,38 @@ fun MonetariaFormScreen(navController: NavController) {
     var parqueSeleccionado by remember { mutableStateOf("") }
     var ubicacionSeleccionado by remember { mutableStateOf("") }
     var quiereRecibo by remember { mutableStateOf<Boolean?>(null) }
-    val metodosPago = listOf("Tarjeta de crédito/débito", "PayPal")
-    val parques = remember { mutableStateListOf<String>() } // Lista vacía inicialmente
-    val ubicaciones = remember { mutableStateListOf<String>() } // Lista vacía inicialmente
-    val scrollState = rememberScrollState()
     var rfc by remember { mutableStateOf("") }
     var razon by remember { mutableStateOf("") }
     var domFiscal by remember { mutableStateOf("") }
 
+    // Validación del formulario
     var validationResult by remember { mutableStateOf<MonetariaValidationResult?>(null) }
 
-    val verdeBoton = Color(0xFF78B153)
-    val roundedShape = RoundedCornerShape(12.dp)
+    // Listas de opciones
+    val metodosPago = listOf("Tarjeta de crédito/débito", "PayPal")
+    val parques = remember { mutableStateListOf<String>() }
+    val ubicaciones = remember { mutableStateListOf<String>() }
 
-    // Añade una función para obtener los datos de los parques
+    // Datos de los parques
     var parksList by remember { mutableStateOf<List<ParkData>>(emptyList()) }
     val getParkNameAndLocation = GetParkNameAndLocation()
 
-    // Usa LaunchedEffect para cargar los datos al iniciar la pantalla
+    // Colores y estilos
+    val verdeBoton = Color(0xFF78B153)
+    val roundedShape = RoundedCornerShape(12.dp)
+    OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = verdeBoton,
+        focusedLabelColor = verdeBoton,
+        cursorColor = verdeBoton,
+        errorBorderColor = Color.Red,
+        errorLabelColor = Color.Red,
+        errorCursorColor = Color.Red
+    )
+
+    // Cargar datos de los parques al iniciar la pantalla
     LaunchedEffect(Unit) {
         getParkNameAndLocation.getParkNameAndLocation(
             onSuccess = { parks ->
-                // Actualiza la lista de parques y ubicaciones
                 parksList = parks
                 parques.clear()
                 ubicaciones.clear()
@@ -69,23 +76,13 @@ fun MonetariaFormScreen(navController: NavController) {
                 }
             },
             onFailure = { exception ->
-                // Maneja el error (puedes mostrar un Toast o un mensaje de error)
                 Log.e("MonetariaFormScreen", "Error al obtener parques: ${exception.message}")
             }
         )
     }
 
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = verdeBoton,
-        focusedLabelColor = verdeBoton,
-        cursorColor = verdeBoton,
-        errorBorderColor = Color.Red,
-        errorLabelColor = Color.Red,
-        errorCursorColor = Color.Red
-    )
-
+    // Validar el formulario
     val validator = rememberMonetariaFormValidator()
-
     fun validateForm() {
         val formState = MonetariaFormState(
             nombre = nombre,
@@ -103,10 +100,11 @@ fun MonetariaFormScreen(navController: NavController) {
         validationResult = validator(formState)
     }
 
+    // Estructura de la pantalla
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
+            .verticalScroll(rememberScrollState())
     ) {
         // AppBar
         SecondaryAppBar(
@@ -119,12 +117,14 @@ fun MonetariaFormScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Contenido del formulario
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.Center,
         ) {
+            // Título del formulario
             Text(
                 text = "Donación monetaria",
                 fontSize = 25.sp,
@@ -132,7 +132,7 @@ fun MonetariaFormScreen(navController: NavController) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Campo de texto para nombre del donante
+            // Campo: Nombre del donante
             CustomOutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
@@ -140,10 +140,9 @@ fun MonetariaFormScreen(navController: NavController) {
                 isError = validationResult?.nombreError != null,
                 errorMessage = validationResult?.nombreError
             )
-
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Campo de texto para correo electrónico
+            // Campo: Correo electrónico
             CustomOutlinedTextField(
                 value = correo,
                 onValueChange = { correo = it },
@@ -151,10 +150,9 @@ fun MonetariaFormScreen(navController: NavController) {
                 isError = validationResult?.correoError != null,
                 errorMessage = validationResult?.correoError
             )
-
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Campo de texto para número de teléfono
+            // Campo: Teléfono de contacto
             CustomOutlinedTextField(
                 value = numTel,
                 onValueChange = {
@@ -167,27 +165,23 @@ fun MonetariaFormScreen(navController: NavController) {
                 errorMessage = validationResult?.numTelError,
                 isNumberField = true
             )
-
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Dropdown de Parque a donar
+            // Dropdown: Parque a donar
             CustomDropdown(
                 fieldName = "Parque a donar",
                 options = parques,
                 selectedOption = parqueSeleccionado,
                 onOptionSelected = { option ->
                     parqueSeleccionado = option
-                    // Actualiza la ubicación automáticamente
-                    val parqueSeleccionado = parksList.find { it.nombre == option }
-                    ubicacionSeleccionado = parqueSeleccionado?.ubicacion ?: "Desconocido"
+                    ubicacionSeleccionado = parksList.find { it.nombre == option }?.ubicacion ?: "Desconocido"
                 },
                 isError = validationResult?.parqueSeleccionadoError != null,
                 errorMessage = validationResult?.parqueSeleccionadoError
             )
-
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Campo de texto para la ubicación (solo lectura)
+            // Campo: Ubicación (solo lectura)
             CustomOutlinedTextField(
                 value = ubicacionSeleccionado,
                 onValueChange = { },
@@ -196,24 +190,20 @@ fun MonetariaFormScreen(navController: NavController) {
                 isError = false,
                 errorMessage = null
             )
-
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Dropdown de Método de pago
+            // Dropdown: Método de pago
             CustomDropdown(
                 fieldName = "Método de pago",
                 options = metodosPago,
                 selectedOption = metodoPago,
-                onOptionSelected = { option ->
-                    metodoPago = option
-                },
+                onOptionSelected = { metodoPago = it },
                 isError = validationResult?.metodoPagoError != null,
                 errorMessage = validationResult?.metodoPagoError
             )
-
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Campo de texto para cantidad con botones + y -
+            // Campo: Cantidad monetaria a donar
             CustomOutlinedTextField(
                 value = cantidad,
                 onValueChange = {
@@ -227,17 +217,15 @@ fun MonetariaFormScreen(navController: NavController) {
                 isNumberField = true,
                 showNumberControls = true
             )
-
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sección de "¿Desea recibo de donación?"
+            // Sección: ¿Desea recibo de donación?
             Text(
                 text = "¿Desea recibo de donación?",
                 fontSize = 20.sp,
                 fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
                 modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
             )
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -253,7 +241,6 @@ fun MonetariaFormScreen(navController: NavController) {
                     )
                     Text(text = "Sí", color = Color.Black)
                 }
-
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     RadioButton(
                         selected = quiereRecibo == false,
@@ -266,8 +253,9 @@ fun MonetariaFormScreen(navController: NavController) {
                     Text(text = "No", color = Color.Black)
                 }
             }
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Campos adicionales para el recibo
+            // Campos adicionales para el recibo (visible si quiereRecibo == true)
             AnimatedVisibility(visible = quiereRecibo == true) {
                 Column {
                     CustomOutlinedTextField(
@@ -281,7 +269,6 @@ fun MonetariaFormScreen(navController: NavController) {
                         isError = validationResult?.rfcError != null,
                         errorMessage = validationResult?.rfcError
                     )
-
                     Spacer(modifier = Modifier.height(10.dp))
 
                     CustomOutlinedTextField(
@@ -291,7 +278,6 @@ fun MonetariaFormScreen(navController: NavController) {
                         isError = validationResult?.razonError != null,
                         errorMessage = validationResult?.razonError
                     )
-
                     Spacer(modifier = Modifier.height(10.dp))
 
                     CustomOutlinedTextField(
@@ -303,10 +289,9 @@ fun MonetariaFormScreen(navController: NavController) {
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Botón Validar
+            // Botón: Validar
             Button(
                 onClick = { validateForm() },
                 modifier = Modifier
