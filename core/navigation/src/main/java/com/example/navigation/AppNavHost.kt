@@ -35,70 +35,57 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.auth.data.SignUpValidator
 import com.google.firebase.auth.FirebaseAuth
 import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
-import com.example.donations.ui.donacionMonetaria.MonetariaFormScreen
+import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
+import com.example.donations.ui.donacionMonetaria.MetodoPagoTarjetaScreen
+import com.example.donations.ui.donacionMonetaria.MetodoPagoPaypalScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+    // Initialize the shared view model
     val sharedViewModel: SharedViewModel = viewModel()
+
+    // Get an instance of FirebaseAuth
     val auth = FirebaseAuth.getInstance()
 
-    // Lista de rutas públicas que no requieren autenticación
-    val publicRoutes = listOf(
-        "signIn",
-        "signUp",
-        "resetPassword",
-        "resetPasswordEmailSent",
-        "signUpSuccess"
-    )
+    // List of routes that do not require authentication
+    val publicRoutes = listOf("signIn", "signUp", "resetPassword", "resetPasswordEmailSent", "signUpSuccess")
 
-    // Estado de autenticación mantenido en tiempo real
+    // State to track if the authentication listener is active
     var isAuthListenerActive by remember { mutableStateOf(true) }
+
+    // State to track if the user is authenticated
     var isAuthenticated by remember { mutableStateOf(auth.currentUser != null) }
 
-    // Listener para cambios en el estado de autenticación
+    // Effect to manage the authentication state listener
     DisposableEffect(isAuthListenerActive) {
         if (isAuthListenerActive) {
+            // Create and add the authentication state listener
             val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
                 isAuthenticated = firebaseAuth.currentUser != null
             }
-
             auth.addAuthStateListener(authStateListener)
-
-            onDispose {
-                auth.removeAuthStateListener(authStateListener)
-            }
+            // Remove the listener when the effect is disposed
+            onDispose { auth.removeAuthStateListener(authStateListener) }
         } else {
-            onDispose { /* No hacer nada si el listener no está activo */ }
+            onDispose { }
         }
     }
 
-    // Monitoreamos cambios en la navegación para verificar la autenticación
+    // Effect to handle navigation changes
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val currentRoute = destination.route ?: return@addOnDestinationChangedListener
+            // Update the authentication listener state based on the current route
+            isAuthListenerActive = currentRoute !in listOf("signUp", "signUpSuccess")
 
-            // Desactivar el listener en las rutas de registro y éxito de registro
-            if (currentRoute == "signUp" || currentRoute == "signUpSuccess") {
-                isAuthListenerActive = false
-            } else {
-                isAuthListenerActive = true
-            }
-
-            // Verifica si la ruta actual NO está en la lista de públicas
+            // Check if the current route requires authentication
             val routeRequiresAuth = !publicRoutes.any { route ->
-                if (route.contains("?")) {
-                    // Para rutas con parámetros, verificar solo la parte base
-                    val baseRoute = route.split("?")[0]
-                    currentRoute.startsWith(baseRoute)
-                } else {
-                    currentRoute == route
-                }
+                if (route.contains("?")) currentRoute.startsWith(route.split("?")[0]) else currentRoute == route
             }
 
+            // Navigate to the sign-in screen if the route requires authentication and the user is not authenticated
             if (routeRequiresAuth && !isAuthenticated) {
-                // Redirigir a signIn si intenta acceder a una ruta protegida sin autenticación
                 navController.navigate("signIn") {
-                    // Limpiar el stack de navegación
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
                 }
@@ -106,23 +93,17 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         }
     }
 
-    // Efecto para manejar cambios en el estado de autenticación
+    // Effect to handle changes in authentication state
     LaunchedEffect(isAuthenticated) {
         val currentRoute = navController.currentDestination?.route
-
         if (!isAuthenticated && currentRoute != null) {
-            // Verifica si la ruta actual NO está en la lista de públicas
+            // Check if the current route requires authentication
             val routeRequiresAuth = !publicRoutes.any { route ->
-                if (route.contains("?")) {
-                    val baseRoute = route.split("?")[0]
-                    currentRoute.startsWith(baseRoute)
-                } else {
-                    currentRoute == route
-                }
+                if (route.contains("?")) currentRoute.startsWith(route.split("?")[0]) else currentRoute == route
             }
 
+            // Navigate to the sign-in screen if the route requires authentication and the user is not authenticated
             if (routeRequiresAuth) {
-                // Si el usuario cierra sesión mientras está en una ruta protegida
                 navController.navigate("signIn") {
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
@@ -134,6 +115,8 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
     // Decidir destino inicial basado en el estado de autenticación
     val startDestination = if (isAuthenticated) NavigationItem.Home.route else "signIn"
 
+    // AQUÍ SE DEFINEN LAS RUTAS DE LA APLICACIÓN ⬇️
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -143,17 +126,30 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         popEnterTransition = { EnterTransition.None },
         popExitTransition = { ExitTransition.None }
     ) {
+
+        // ----------------------------------------------------------------
+
+        // RUTAS PRINCIPALES
+
         composable(NavigationItem.Home.route) { HomeScreen() }
         composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) }
         composable(NavigationItem.Donations.route) { DonationsScreen(navController) }
         composable(NavigationItem.Notifications.route) { NotificationsScreen() }
         composable(NavigationItem.Profile.route) { ProfileScreen(navController) }
+
+        // ----------------------------------------------------------------
+
+        // RUTAS DEL MÓDULO "AUTH"
+
         composable("signIn") { SignInScreen(navController) }
         composable("signUp") { SignUpScreen(navController, SignUpValidator) }
         composable("resetPassword") { ResetPasswordScreen(navController) }
         composable("resetPasswordEmailSent") { ResetPasswordEmailSentScreen(navController) }
         composable("signUpSuccess") { SignUpSuccessScreen(navController) }
-        composable("registerParkSuccess") { RegisterParkSuccessScreen(navController = navController) }
+
+        // ----------------------------------------------------------------
+
+        // RUTAS DEL MÓDULO "PARKS"
 
         // Ruta sin parámetros para RegisterPark
         composable("registerPark") {
@@ -245,6 +241,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             )
         }
 
+        // Ruta con parámetros para MapScreen y decodificación automática
         composable("map?name={name}&desc={desc}&status={status}&needs={needs}&comments={comments}",
             arguments = listOf(
                 navArgument("name") {
@@ -296,9 +293,37 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             )
         }
 
-        composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true) }
+        // Ruta de pantalla de éxito de registro de parque
+        composable("registerParkSuccess") { RegisterParkSuccessScreen(navController = navController) }
 
+        // ----------------------------------------------------------------
+
+        // RUTAS DEL MÓDULO "DONATIONS"
+
+        composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true) }
         composable("donacionEspecie") { EspecieFormScreen(navController) }
         composable("donacionMonetaria") { MonetariaFormScreen(navController) }
+        composable("metodoPagoTarjeta") { MetodoPagoTarjetaScreen() }
+        composable("metodoPagoPaypal") { MetodoPagoPaypalScreen() }
+
+        // ----------------------------------------------------------------
+
+        // RUTAS DEL MÓDULO "HOME"
+
+        // ...
+
+        // ----------------------------------------------------------------
+
+        // RUTAS DEL MÓDULO "NOTIFICATIONS"
+
+        // ...
+
+        // ----------------------------------------------------------------
+
+        // RUTAS DEL MÓDULO "PROFILE"
+
+        // ...
+
+        // ----------------------------------------------------------------
     }
 }

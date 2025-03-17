@@ -25,7 +25,7 @@ import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonetariaFormScreen(navController: NavController) {
+fun FormScreen(navController: NavController) {
     // Estados del formulario
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
