@@ -303,8 +303,8 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true) }
         composable("donacionEspecie") { EspecieFormScreen(navController) }
         composable("donacionMonetaria") { MonetariaFormScreen(navController) }
-        composable("metodoPagoTarjeta") { MetodoPagoTarjetaScreen() }
-        composable("metodoPagoPaypal") { MetodoPagoPaypalScreen() }
+        composable("metodoPagoTarjeta") { MetodoPagoTarjetaScreen(navController) }
+        composable("metodoPagoPaypal") { MetodoPagoPaypalScreen(navController) }
 
         // ----------------------------------------------------------------
 

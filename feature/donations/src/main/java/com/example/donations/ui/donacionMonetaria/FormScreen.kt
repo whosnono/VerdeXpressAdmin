@@ -23,7 +23,6 @@ import com.example.donations.data.ParkData
 import com.example.donations.ui.donacionEspecie.reu.CustomDropdown
 import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormScreen(navController: NavController) {
     // Estados del formulario
@@ -98,8 +97,19 @@ fun FormScreen(navController: NavController) {
             domFiscal = domFiscal
         )
         validationResult = validator(formState)
-    }
 
+        // Si no hay errores, navegar a la pantalla de pago correspondiente
+        if (validationResult!!.isValid()) {
+            when (metodoPago) {
+                "Tarjeta de crédito/débito" -> navController.navigate("metodoPagoTarjeta")
+                "PayPal" -> navController.navigate("metodoPagoPaypal")
+                else -> {
+                    // Manejar caso en el que no se seleccione un método de pago válido
+                    Log.e("FormScreen", "Método de pago no válido")
+                }
+            }
+        }
+    }
     // Estructura de la pantalla
     Column(
         modifier = Modifier
@@ -219,6 +229,7 @@ fun FormScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(32.dp))
 
+            // TODO: ESTO DEBE SER UN CAMPO OBLIGATORIO
             // Sección: ¿Desea recibo de donación?
             Text(
                 text = "¿Desea recibo de donación?",
