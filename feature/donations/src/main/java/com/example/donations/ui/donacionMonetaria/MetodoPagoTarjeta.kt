@@ -43,8 +43,7 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
             .verticalScroll(rememberScrollState())
     ) {
         SecondaryAppBar(showIcon = true, onIconClick = {
-            navController.popBackStack("donacionMonetaria", inclusive = false)
-            navController.navigate("donacionMonetaria")
+            navController.popBackStack()
         })
 
         Spacer(modifier = Modifier.height(16.dp))
