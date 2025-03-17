@@ -33,6 +33,7 @@ import com.example.parks.ui.SharedViewModel
 import java.net.URLDecoder
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.auth.data.SignUpValidator
+import com.example.donations.data.donacionMonetaria.DonacionMonetariaViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
 import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
@@ -41,8 +42,9 @@ import com.example.donations.ui.donacionMonetaria.MetodoPagoPaypalScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
-    // Initialize the shared view model
-    val sharedViewModel: SharedViewModel = viewModel()
+    // Initialize the shared view models
+    val sharedViewModel: SharedViewModel = viewModel() // Este es de Parks, debería tener un nombre más descriptivo...
+    val donacionMonetariaViewModel: DonacionMonetariaViewModel = viewModel()
 
     // Get an instance of FirebaseAuth
     val auth = FirebaseAuth.getInstance()
@@ -302,9 +304,9 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
         composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true) }
         composable("donacionEspecie") { EspecieFormScreen(navController) }
-        composable("donacionMonetaria") { MonetariaFormScreen(navController) }
-        composable("metodoPagoTarjeta") { MetodoPagoTarjetaScreen(navController) }
-        composable("metodoPagoPaypal") { MetodoPagoPaypalScreen(navController) }
+        composable("donacionMonetaria") { MonetariaFormScreen(navController, donacionMonetariaViewModel) }
+        composable("metodoPagoTarjeta") { MetodoPagoTarjetaScreen(navController, donacionMonetariaViewModel) }
+        composable("metodoPagoPaypal") { MetodoPagoPaypalScreen(navController, donacionMonetariaViewModel) }
 
         // ----------------------------------------------------------------
 

@@ -20,23 +20,41 @@ import com.example.design.R
 import com.example.design.SecondaryAppBar
 import com.example.donations.data.GetParkNameAndLocation
 import com.example.donations.data.ParkData
+import com.example.donations.data.donacionMonetaria.DonacionMonetariaViewModel
+import com.example.donations.data.donacionMonetaria.MonetariaFormState
+import com.example.donations.data.donacionMonetaria.MonetariaValidationResult
+import com.example.donations.data.donacionMonetaria.isValid
+import com.example.donations.data.donacionMonetaria.rememberMonetariaFormValidator
 import com.example.donations.ui.donacionEspecie.reu.CustomDropdown
 import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField
 
 @Composable
-fun FormScreen(navController: NavController) {
-    // Estados del formulario
-    var nombre by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var numTel by remember { mutableStateOf("") }
-    var cantidad by remember { mutableStateOf("") }
-    var metodoPago by remember { mutableStateOf("") }
-    var parqueSeleccionado by remember { mutableStateOf("") }
-    var ubicacionSeleccionado by remember { mutableStateOf("") }
-    var quiereRecibo by remember { mutableStateOf<Boolean?>(null) }
-    var rfc by remember { mutableStateOf("") }
-    var razon by remember { mutableStateOf("") }
-    var domFiscal by remember { mutableStateOf("") }
+fun FormScreen(navController: NavController, viewModel: DonacionMonetariaViewModel) {
+    // Estados del formulario vinculados al ViewModel
+    var nombre by remember { mutableStateOf(viewModel.nombre) }
+    var correo by remember { mutableStateOf(viewModel.correo) }
+    var numTel by remember { mutableStateOf(viewModel.numTel) }
+    var cantidad by remember { mutableStateOf(viewModel.cantidad) }
+    var metodoPago by remember { mutableStateOf(viewModel.metodoPago) }
+    var parqueSeleccionado by remember { mutableStateOf(viewModel.parqueSeleccionado) }
+    var ubicacionSeleccionado by remember { mutableStateOf(viewModel.ubicacionSeleccionado) }
+    var quiereRecibo by remember { mutableStateOf(viewModel.quiereRecibo) }
+    var rfc by remember { mutableStateOf(viewModel.rfc) }
+    var razon by remember { mutableStateOf(viewModel.razon) }
+    var domFiscal by remember { mutableStateOf(viewModel.domFiscal) }
+
+    // Actualizar el ViewModel cuando los valores cambien
+    LaunchedEffect(nombre) { viewModel.nombre = nombre }
+    LaunchedEffect(correo) { viewModel.correo = correo }
+    LaunchedEffect(numTel) { viewModel.numTel = numTel }
+    LaunchedEffect(cantidad) { viewModel.cantidad = cantidad }
+    LaunchedEffect(metodoPago) { viewModel.metodoPago = metodoPago }
+    LaunchedEffect(parqueSeleccionado) { viewModel.parqueSeleccionado = parqueSeleccionado }
+    LaunchedEffect(ubicacionSeleccionado) { viewModel.ubicacionSeleccionado = ubicacionSeleccionado }
+    LaunchedEffect(quiereRecibo) { viewModel.quiereRecibo = quiereRecibo }
+    LaunchedEffect(rfc) { viewModel.rfc = rfc }
+    LaunchedEffect(razon) { viewModel.razon = razon }
+    LaunchedEffect(domFiscal) { viewModel.domFiscal = domFiscal }
 
     // Validación del formulario
     var validationResult by remember { mutableStateOf<MonetariaValidationResult?>(null) }

@@ -1,4 +1,4 @@
-package com.example.donations.ui.donacionEspecie
+package com.example.donations.data.donacionEspecie
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

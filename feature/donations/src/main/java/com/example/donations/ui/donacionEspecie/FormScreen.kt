@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,6 +47,9 @@ import com.example.design.R
 import com.example.design.SecondaryAppBar
 import com.example.donations.data.GetParkNameAndLocation
 import com.example.donations.data.ParkData
+import com.example.donations.data.donacionEspecie.DonationFormState
+import com.example.donations.data.donacionEspecie.isValid
+import com.example.donations.data.donacionEspecie.rememberDonationFormValidator
 import com.example.donations.data.donacionEspecie.saveDonationToFirestore
 import com.example.donations.ui.donacionEspecie.reu.CustomDropdown
 import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField

@@ -18,9 +18,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.R
 import com.example.design.SecondaryAppBar
+import com.example.donations.data.donacionMonetaria.DonacionMonetariaViewModel
 
 @Composable
-fun MetodoPagoPaypalScreen(navController: NavController) {
+fun MetodoPagoPaypalScreen(navController: NavController, viewModel: DonacionMonetariaViewModel) {
 
     // Estructura de la pantalla
     Column(
