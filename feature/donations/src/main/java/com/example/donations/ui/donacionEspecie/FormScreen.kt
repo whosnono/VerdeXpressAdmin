@@ -53,6 +53,7 @@ import com.example.donations.data.donacionEspecie.rememberDonationFormValidator
 import com.example.donations.data.donacionEspecie.saveDonationToFirestore
 import com.example.donations.ui.donacionEspecie.reu.CustomDropdown
 import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField
+import com.example.donations.ui.donacionEspecie.reu.DatePickerWithDialog
 import com.example.parks.data.ImageUploadManager
 import com.example.parks.ui.ParkImageDisplay
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +67,7 @@ fun FormScreen(navController: NavController) {
     val roundedShape = RoundedCornerShape(12.dp)
     var showSuccessDialog by remember { mutableStateOf(false) } //dialogo de exito
     var showFailedDialog by remember { mutableStateOf(false) } //dialogo de error
+    var showDatePicker by remember { mutableStateOf(false) }
 
     var name by rememberSaveable { mutableStateOf("") }
     var contactNumber by remember { mutableStateOf("") }
@@ -73,6 +75,7 @@ fun FormScreen(navController: NavController) {
     var numeroValue by remember { mutableStateOf("") }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var selectedOption by remember { mutableStateOf("") }
+    var estimatedDonationDate by remember { mutableStateOf("") }
     var imageError by remember { mutableStateOf<String?>(null) }
     var nameError by remember { mutableStateOf<String?>(null) }
     var contactNumberError by remember { mutableStateOf<String?>(null) }
@@ -82,6 +85,7 @@ fun FormScreen(navController: NavController) {
     var statusErrorR by remember { mutableStateOf<String?>(null) }
     var statusErrorC by remember { mutableStateOf<String?>(null) }
     var statusErrorN by remember { mutableStateOf<String?>(null) }
+    var estimatedDonationDateError by remember { mutableStateOf<String?>(null) }
     var selectedResourceType by remember { mutableStateOf("") }
     var selectedResource by remember { mutableStateOf("") }
     var selectedCondition by remember { mutableStateOf("") }
@@ -190,7 +194,8 @@ fun FormScreen(navController: NavController) {
             resource = selectedResource,
             quantity = numeroValue,
             condition = selectedCondition,
-            selectedImageUris = selectedImageUris
+            selectedImageUris = selectedImageUris,
+            estimatedDonationDate = estimatedDonationDate
         )
         val validationResult = validator(formState)
 
@@ -203,6 +208,7 @@ fun FormScreen(navController: NavController) {
         statusErrorC = validationResult.conditionError
         statusErrorN = validationResult.quantityError
         imageError = validationResult.imageError
+        estimatedDonationDateError = validationResult.estimatedDonationDateError
 
         if (validationResult.isValid()) {
             isUploading = true // Activar el estado de subida
@@ -219,7 +225,8 @@ fun FormScreen(navController: NavController) {
                         resource = selectedResource,
                         quantity = numeroValue,
                         condition = selectedCondition,
-                        imageUrls = imageUrls
+                        imageUrls = imageUrls,
+                        estimatedDonationDate = estimatedDonationDate
                     )
 
                     withContext(Dispatchers.Main) {
@@ -422,6 +429,26 @@ fun FormScreen(navController: NavController) {
                 ParkImageDisplay(imageUris = selectedImageUris,
                     onImageRemove = { index -> removeImage(index) })
 
+                Spacer(modifier = Modifier.height(10.dp))
+
+                CustomOutlinedTextField(
+                    value = estimatedDonationDate,
+                    onValueChange = {  },
+                    label = "Fecha estimada de donación",
+                    isError = estimatedDonationDateError != null,
+                    errorMessage = estimatedDonationDateError,
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { showDatePicker = true }){
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_calendar),
+                                contentDescription = "Select location",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                )
+
                 Spacer(modifier = Modifier.height(30.dp))
 
                 Button(
@@ -447,6 +474,17 @@ fun FormScreen(navController: NavController) {
                     }
                 }
             }
+        }
+
+        if (showDatePicker) {
+            DatePickerWithDialog(
+                selectedDate = estimatedDonationDate,
+                onDateSelected = {
+                    estimatedDonationDate = it
+                    estimatedDonationDateError = null
+                },
+                onDismiss = { showDatePicker = false }
+            )
         }
 
         // Fondo oscuro semitransparente cuando se muestra un diálogo

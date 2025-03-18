@@ -2,6 +2,10 @@ package com.example.donations.data.donacionEspecie
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Locale
 
 data class DonationFormState(
     val donorName: String = "",
@@ -12,7 +16,8 @@ data class DonationFormState(
     val resource: String = "",
     val quantity: String = "",
     val condition: String = "",
-    val selectedImageUris: List<android.net.Uri> = emptyList()
+    val selectedImageUris: List<android.net.Uri> = emptyList(),
+    val estimatedDonationDate: String = ""
 )
 
 data class DonationValidationResult(
@@ -24,7 +29,8 @@ data class DonationValidationResult(
     val resourceError: String? = null,
     val quantityError: String? = null,
     val conditionError: String? = null,
-    val imageError: String? = null
+    val imageError: String? = null,
+    val estimatedDonationDateError: String? = null
 )
 
 @Composable
@@ -73,6 +79,12 @@ fun rememberDonationFormValidator() = remember {
                 state.selectedImageUris.isEmpty() -> "Debes seleccionar al menos una imagen."
                 state.selectedImageUris.size > 3 -> "Solo puedes subir un máximo de 3 imágenes."
                 else -> null
+            },
+            estimatedDonationDateError = when {
+                state.estimatedDonationDate.isEmpty() -> "Debes seleccionar una fecha estimada de donación"
+                !isValidDateFormat(state.estimatedDonationDate) -> "Formato de fecha inválido"
+                !isFutureOrTodayDate(state.estimatedDonationDate) -> "La fecha debe ser hoy o en el futuro"
+                else -> null
             }
         )
     }
@@ -88,4 +100,26 @@ fun DonationValidationResult.isValid(): Boolean {
             quantityError == null &&
             conditionError == null &&
             imageError == null
+}
+
+private fun isValidDateFormat(dateString: String): Boolean {
+    return try {
+        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale("es", "MX"))
+        formatter.isLenient = false
+        formatter.parse(dateString)
+        true
+    } catch (e: Exception) {
+        false
+    }
+}
+
+private fun isFutureOrTodayDate(dateString: String): Boolean {
+    return try {
+        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale("es", "MX"))
+        val selectedDate = formatter.parse(dateString)?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
+        val today = LocalDate.now()
+        selectedDate?.isEqual(today) ?: false || selectedDate?.isAfter(today) ?: false
+    } catch (e: Exception) {
+        false
+    }
 }
