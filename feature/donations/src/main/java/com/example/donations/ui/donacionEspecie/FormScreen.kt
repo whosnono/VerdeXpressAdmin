@@ -232,7 +232,6 @@ fun FormScreen(navController: NavController) {
                     withContext(Dispatchers.Main) {
                         isUploading = false // Desactivar el estado de subida
                         showSuccessDialog = true // Mostrar diálogo de éxito
-                        navController.navigate("donationSuccess") // Navegar a la pantalla de éxito
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
@@ -308,7 +307,7 @@ fun FormScreen(navController: NavController) {
                     selectedOption = selectedOption,
                     onOptionSelected = { option ->
                         selectedOption = option
-                        statusErrorP = if (option.isEmpty()) "Debes seleccioanr un parque" else null
+                        statusErrorP = if (option.isEmpty()) "Debes seleccionar un parque" else null
 
                         val selectedPark = parksList.find { it.nombre == option }
                         location = selectedPark?.ubicacion ?: "Desconocido"
