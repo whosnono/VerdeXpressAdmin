@@ -80,6 +80,23 @@ fun FormScreen(navController: NavController, viewModel: DonacionMonetariaViewMod
         errorCursorColor = Color.Red
     )
 
+    // DisposableEffect para preservar el estado del formulario durante la navegación
+    DisposableEffect(key1 = Unit) {
+        onDispose {
+            // Esto se ejecutará cuando se navegue fuera de FormScreen
+            val currentRoute = navController.currentBackStackEntry?.destination?.route
+
+            // Comprueba si estamos navegando a una pantalla de método de pago
+            val navigatingToPaymentScreen = currentRoute?.contains("metodoPago") == true
+
+            // Limpia el formulario si NO estamos navegando a pantallas de pago
+            if (!navigatingToPaymentScreen) {
+                viewModel.clear() // La próxima vez que se inicie el formulario estará vacío :)
+            }
+            // Cuando navegamos a pantallas de pago, mantiene los datos
+        }
+    }
+
     // Cargar datos de los parques al iniciar la pantalla
     LaunchedEffect(Unit) {
         getParkNameAndLocation.getParkNameAndLocation(
@@ -138,6 +155,7 @@ fun FormScreen(navController: NavController, viewModel: DonacionMonetariaViewMod
         SecondaryAppBar(
             showIcon = true,
             onIconClick = {
+                viewModel.clear()
                 navController.popBackStack("Donaciones", inclusive = false)
                 navController.navigate("Donaciones")
             }
