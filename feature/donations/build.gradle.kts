@@ -42,8 +42,12 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.material3.android)
+    implementation(libs.material) {
+        exclude(group = "androidx.compose.material3", module = "material3")
+    }
+    implementation("androidx.compose.material3:material3:1.3.1") {
+        exclude(group = "androidx.compose.material", module = "material")
+    }
     implementation(libs.androidx.runtime.android)
     implementation(project(":core:design"))
     implementation(project(":feature:parks"))
