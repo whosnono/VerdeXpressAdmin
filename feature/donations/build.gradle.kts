@@ -39,25 +39,78 @@ android {
 }
 
 dependencies {
+    // Compose dependencies (forzadas solo en este módulo)
+    implementation("androidx.compose.ui:ui:1.7.0") {
+        // Forzar la versión
+        exclude(group = "androidx.compose.material3", module = "material3")
+    }
+    implementation("androidx.compose.material:material:1.7.0") {
+        // Forzar la versión
+        exclude(group = "androidx.compose.material3", module = "material3")
+    }
+    implementation("androidx.compose.material3:material3:1.2.1") {
+        // Forzar la versión
+        exclude(group = "androidx.compose.material", module = "material")
+    }
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.0") {
+        // Forzar la versión
+    }
+    implementation("androidx.activity:activity-compose:1.8.0") {
+        // Forzar la versión
+    }
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2") {
+        // Forzar la versión
+    }
 
+    // Stripe Android SDK (forzada solo en este módulo)
+    implementation("com.stripe:stripe-android:21.5.1") {
+        // Forzar la versión
+    }
+
+    // Kotlin Coroutines (forzada solo en este módulo)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") {
+        // Forzar la versión
+    }
+
+    // Otras dependencias (sin forzar, a menos que sea necesario)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material) {
         exclude(group = "androidx.compose.material3", module = "material3")
     }
-    implementation("androidx.compose.material3:material3:1.3.1") {
-        exclude(group = "androidx.compose.material", module = "material")
-    }
     implementation(libs.androidx.runtime.android)
-    implementation(project(":core:design"))
-    implementation(project(":feature:parks"))
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.ui.tooling.preview.android)
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+
+    // Firebase
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.auth.ktx)
+
+    // CameraX
+    implementation(libs.androidx.camera.core)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation(libs.androidx.navigation.runtime.ktx)
-    implementation(libs.androidx.navigation.compose)
+
+    // Módulos locales
+    implementation(project(":core:design"))
+    implementation(project(":feature:parks"))
+}
+
+// Forzar versiones específicas de las dependencias
+configurations.all {
+    resolutionStrategy {
+        force(
+            "androidx.compose.ui:ui:1.7.0",
+            "androidx.compose.material:material:1.7.0",
+            "androidx.compose.material3:material3:1.2.1",
+            "androidx.compose.ui:ui-tooling-preview:1.7.0",
+            "androidx.activity:activity-compose:1.8.0",
+            "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2",
+            "com.stripe:stripe-android:21.5.1",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+        )
+    }
 }
