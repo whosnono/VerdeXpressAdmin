@@ -21,31 +21,6 @@ fun MainScreen() {
     val navController = rememberNavController()
     val showBottomBar = remember { mutableStateOf(true) }
 
-    // Observar la ruta actual para determinar cuándo mostrar el FAB
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    // Crear configuración del FAB basada en la ruta actual
-    val fabConfig by remember(currentRoute) {
-        derivedStateOf {
-            when (currentRoute) {
-                "Parques" -> FabConfig(
-                    visible = true,
-                    route = "registerPark",
-                    icon = Icons.Default.Add,
-                    contentDescription = "Add Park"
-                )
-                "Donaciones" -> FabConfig(
-                    visible = true,
-                    route = "donations",
-                    icon = Icons.Default.Add,
-                    contentDescription = "Add Donation"
-                )
-                else -> null
-            }
-        }
-    }
-
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             showBottomBar.value = when (destination.route) {
@@ -71,8 +46,7 @@ fun MainScreen() {
                         NavigationItem.Donations,
                         NavigationItem.Notifications,
                         NavigationItem.Profile
-                    ),
-                    fabConfig = fabConfig
+                    )
                 )
             }
         }
