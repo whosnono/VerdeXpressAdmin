@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.10.0"
-agp = "8.8.1"
+agp = "8.9.0"
 coilCompose = "2.4.0"
 firebaseCore = "21.1.1"
 firebase-storage = "20.2.1"
@@ -57,6 +57,7 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleViewmodelCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 google-firebase-core = { module = "com.google.firebase:firebase-core", version.ref = "firebaseCore" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -102,6 +103,7 @@ google-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", 
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 google-firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

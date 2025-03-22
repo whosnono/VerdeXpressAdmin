@@ -88,6 +88,7 @@ dependencies {
 
     // CameraX
     implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.media3.common.ktx)
 
     // Testing
     testImplementation(libs.junit)
