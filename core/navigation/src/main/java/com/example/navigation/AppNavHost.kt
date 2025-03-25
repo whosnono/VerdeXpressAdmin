@@ -11,19 +11,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.auth.ui.ResetPasswordEmailSentScreen
 import com.example.auth.ui.ResetPasswordScreen
 import com.example.auth.ui.SignInScreen
 import com.example.auth.ui.SignUpScreen
 import com.example.auth.ui.SignUpSuccessScreen
 import com.example.home.HomeScreen
-import com.example.parks.ParksScreen
+import com.example.parks.ui.ParksScreen
 import com.example.notifications.NotificationsScreen
 import com.example.profile.ProfileScreen
 import com.example.auth.data.SignUpValidator
 import com.example.donations.DonationsScreen
+import com.example.parks.ui.ParkDetailScreenA
+import com.example.parks.ui.ParkDetailScreenN
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -117,7 +121,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         // RUTAS PRINCIPALES
 
         composable(NavigationItem.Home.route) { HomeScreen() }
-        composable(NavigationItem.Parks.route) { ParksScreen() }
+        composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) }
         composable(NavigationItem.Donations.route) { DonationsScreen() }
         composable(NavigationItem.Notifications.route) { NotificationsScreen() }
         composable(NavigationItem.Profile.route) { ProfileScreen(navController) }
@@ -135,6 +139,37 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         // ----------------------------------------------------------------
 
         // RUTAS DEL MÓDULO "PARKS"
+        composable(
+            route = "parkDetailA/{parkName}?latitud={latitud}&longitud={longitud}",
+            arguments = listOf(
+                navArgument("parkName") { type = NavType.StringType },
+                navArgument("latitud") { type = NavType.StringType },
+                navArgument("longitud") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            ParkDetailScreenA(
+                parkName = backStackEntry.arguments?.getString("parkName"),
+                latitud = backStackEntry.arguments?.getString("latitud"),
+                longitud = backStackEntry.arguments?.getString("longitud"),
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "parkDetailN/{parkName}?latitud={latitud}&longitud={longitud}",
+            arguments = listOf(
+                navArgument("parkName") { type = NavType.StringType },
+                navArgument("latitud") { type = NavType.StringType },
+                navArgument("longitud") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            ParkDetailScreenN(
+                parkName = backStackEntry.arguments?.getString("parkName"),
+                latitud = backStackEntry.arguments?.getString("latitud"),
+                longitud = backStackEntry.arguments?.getString("longitud"),
+                navController = navController
+            )
+        }
 
 
         // ----------------------------------------------------------------
