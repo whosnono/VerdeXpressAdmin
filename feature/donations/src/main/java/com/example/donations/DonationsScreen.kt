@@ -138,7 +138,7 @@ fun DonationSection(title: String, donations: List<DonationItem>) {
 }
 
 @Composable
-fun DonationItemRow(donation: DonationItem) {
+fun DonationItemRow(donation: DonationItem) { //Estilos
     val verde = Color(0xFF78B153)
     val parts = donation.description.split(" ")
     val amountIndex = parts.indexOfLast { it.contains(Regex("\\d+")) } // Encuentra el índice de la parte que contiene el número (para que se vea como en el prototipo c:)
