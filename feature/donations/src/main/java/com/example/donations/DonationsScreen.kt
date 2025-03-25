@@ -67,7 +67,6 @@ fun DonationsScreen() {
                     letterSpacing = 0.25.sp,
                 )
             )
-
             Spacer(modifier = Modifier.height(14.dp))
 
             DonationSection(
