@@ -24,17 +24,18 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun DonationsScreen() {
-    // Variable para poder almacenar las donaciones en especie obtenidas desde Firebase
     var especieDonations by remember { mutableStateOf<List<DonationItem>>(emptyList()) }
+    var monetariaDonations by remember { mutableStateOf<List<DonationItem>>(emptyList()) }
 
-    // Obtener las donaciones de Firebase al inicio
     LaunchedEffect(Unit) {
         getEspecieDonationsFromFirebase { donations ->
             especieDonations = donations
         }
+        getMonetariaDonationsFromFirebase { donations ->
+            monetariaDonations = donations
+        }
     }
 
-    // Manejar el error y mostrar datos predeterminados si la lista está vacía
     LaunchedEffect(especieDonations) {
         if (especieDonations.isEmpty()) {
             getEspecieDonationsFromFirebase { donations ->
@@ -47,13 +48,25 @@ fun DonationsScreen() {
         }
     }
 
+    LaunchedEffect(monetariaDonations) {
+        if (monetariaDonations.isEmpty()) {
+            getMonetariaDonationsFromFirebase { donations ->
+                if (donations.isEmpty()) {
+                    monetariaDonations = listOf(
+                        DonationItem("Error al cargar datos", "Intente de nuevo más tarde")
+                    )
+                }
+            }
+        }
+    }
+
     Scaffold(
-        topBar = { MainAppBar() } // Colocamos MainAppBar en la topBar del Scaffold
+        topBar = { MainAppBar() }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // Usamos paddingValues para evitar que el contenido se superponga con la topBar
+                .padding(paddingValues)
                 .padding(16.dp)
         ) {
             Text(
@@ -67,48 +80,59 @@ fun DonationsScreen() {
                     letterSpacing = 0.25.sp,
                 )
             )
+
             Spacer(modifier = Modifier.height(14.dp))
 
             DonationSection(
                 title = "Últimas donaciones monetarias",
-                donations = listOf(
-                    DonationItem("El parque \"nombre\" recibió 50 mxn", "12:20 am"),
-                    DonationItem("El parque \"nombre\" recibió 50 mxn", "14/03/2025"),
-                    DonationItem("El parque \"nombre\" recibió 50 mxn", "12/03/2025"),
-                    DonationItem("El parque \"nombre\" recibió 50 mxn", "12/03/2025")
-                )
+                donations = monetariaDonations
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            DonationSection( // Sección de donaciones en especie (datos de Firebase)
+            DonationSection(
                 title = "Últimas donaciones en especie",
-                donations = especieDonations // Usamos los datos obtenidos de Firebase aquí
+                donations = especieDonations
             )
         }
     }
 }
 
-// Función para obtener las donaciones de Firebase
 fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
     val db = FirebaseFirestore.getInstance()
-    db.collection("donaciones_especie").get() // Obtener documentos de la colección "donaciones_especie"
+    db.collection("donaciones_especie").get()
         .addOnSuccessListener { result ->
-            // Mapear los documentos a objetos DonationItem
             val donationsList = result.map { document ->
                 DonationItem(
-                    description = "El parque \"${document.getString("parque_donado")}\" recibió ${document.getString("cantidad")} ${document.getString("recurso")}",
+                    description = "El parque \"${document.getString("parque_donado")}\" recibió ${document.getString("cantidad")} ${document.getString("tipo_recurso")}",
                     details = document.getString("condicion")
-                        ?: ("Pendiente" + " - " + (document.getString("estimatedDonationDate")
+                        ?: ("registro_estado" + " - " + (document.getString("created_at")
                             ?: "Sin fecha"))
                 )
             }
-            onSuccess(donationsList) // Llamar a onSuccess con la lista de donaciones
+            onSuccess(donationsList)
         }
         .addOnFailureListener { exception ->
-            // Registrar el error
             Log.e("DonationsScreen", "Error al obtener donaciones de Firebase", exception)
-            onSuccess(emptyList()) // Se devuelve una lista vacía para indicar que se hallo un error
+            onSuccess(emptyList())
+        }
+}
+
+fun getMonetariaDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("donaciones_monetaria").get()
+        .addOnSuccessListener { result ->
+            val donationsList = result.map { document ->
+                DonationItem(
+                    description = "El parque \"${document.getString("parque_seleccionado")}\" recibió ${document.getString("cantidad")} mxn",
+                    details = document.getString("created_at") ?: "Sin fecha"
+                )
+            }
+            onSuccess(donationsList)
+        }
+        .addOnFailureListener { exception ->
+            Log.e("DonationsScreen", "Error al obtener donaciones monetarias de Firebase", exception)
+            onSuccess(emptyList())
         }
 }
 
@@ -137,10 +161,10 @@ fun DonationSection(title: String, donations: List<DonationItem>) {
 }
 
 @Composable
-fun DonationItemRow(donation: DonationItem) { //Estilos
+fun DonationItemRow(donation: DonationItem) {
     val verde = Color(0xFF78B153)
     val parts = donation.description.split(" ")
-    val amountIndex = parts.indexOfLast { it.contains(Regex("\\d+")) } // Encuentra el índice de la parte que contiene el número (para que se vea como en el prototipo c:)
+    val amountIndex = parts.indexOfLast { it.contains(Regex("\\d+")) }
     val amount = if (amountIndex >= 0) {
         parts.subList(amountIndex, parts.size).joinToString(" ")
     } else {
