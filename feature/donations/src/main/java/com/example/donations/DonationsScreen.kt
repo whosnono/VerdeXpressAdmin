@@ -20,7 +20,10 @@ import android.util.Log
 import androidx.compose.material.Scaffold
 import com.example.design.MainAppBar
 import com.example.design.R.font
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun DonationsScreen() {
@@ -106,7 +109,7 @@ fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
                 DonationItem(
                     description = "El parque \"${document.getString("parque_donado")}\" recibió ${document.getString("cantidad")} ${document.getString("tipo_recurso")}",
                     details = document.getString("condicion")
-                        ?: ("registro_estado" + " - " + (document.getString("created_at")
+                        ?: ("registro_estado" + " - " + (document.getString("fecha_estimada_donacion")
                             ?: "Sin fecha"))
                 )
             }
@@ -118,14 +121,17 @@ fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
         }
 }
 
+
 fun getMonetariaDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
     val db = FirebaseFirestore.getInstance()
     db.collection("donaciones_monetaria").get()
         .addOnSuccessListener { result ->
             val donationsList = result.map { document ->
+                val timestamp = document.getTimestamp("created_at")
+                val formattedDate = timestamp?.let { formatTimestamp(it) } ?: "Sin fecha"
                 DonationItem(
                     description = "El parque \"${document.getString("parque_seleccionado")}\" recibió ${document.getString("cantidad")} mxn",
-                    details = document.getString("created_at") ?: "Sin fecha"
+                    details = formattedDate
                 )
             }
             onSuccess(donationsList)
@@ -217,3 +223,9 @@ fun DonationItemRow(donation: DonationItem) {
 }
 
 data class DonationItem(val description: String, val details: String)
+
+// Función auxiliar para formatear el timestamp
+fun formatTimestamp(timestamp: Timestamp): String {
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    return dateFormat.format(timestamp.toDate())
+}
