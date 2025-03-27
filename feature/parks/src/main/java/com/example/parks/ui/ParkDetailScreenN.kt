@@ -47,7 +47,6 @@ fun ParkDetailScreenN(parkName: String?, latitud: String? = null, longitud: Stri
                         latitud = latitud ?: park.latitud,  // Usa la latitud de navegación o la de Firestore
                         longitud = longitud ?: park.longitud  // Usa la longitud de navegación o la de Firestore
                     )
-                    println("Coordenadas finales: Latitud=${parkState.value?.latitud}, Longitud=${parkState.value?.longitud}")
                 },
                 onFailure = { exception ->
                     errorState.value = "Error: ${exception.message}"
@@ -418,9 +417,15 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                     onClick = {
                         showSuccessDialog = false
                         navController.popBackStack()
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = verde,
+                        contentColor = Color.White
+                    )
                 ) {
-                    Text("Aceptar")
+                    Text(
+                        text = "Aceptar"
+                    )
                 }
             }
         )

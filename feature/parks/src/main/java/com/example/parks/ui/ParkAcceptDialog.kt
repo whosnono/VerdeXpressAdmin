@@ -2,6 +2,7 @@ package com.example.parks.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -43,6 +44,7 @@ fun ParkAcceptDialog(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var passwordVisibleC by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -98,41 +100,49 @@ fun ParkAcceptDialog(
                             .padding(bottom = 10.dp)
                     )
                     // Password Input
-                    Box(modifier = Modifier.fillMaxWidth()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                    ) {
                         BasicTextField(
                             value = password,
                             onValueChange = { password = it },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(
-                                    width = 1.dp,
-                                    color = Color.Gray.copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
+                                .padding(end = 48.dp)
                                 .padding(12.dp),
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             decorationBox = { innerTextField ->
-                                if (password.isEmpty()) {
-                                    Text(
-                                        text = "Ingrese su contraseña",
-                                        color = Color.Gray
-                                    )
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    if (password.isEmpty()) {
+                                        Text(
+                                            text = "Ingrese su contraseña",
+                                            color = Color.Gray
+                                        )
+                                    }
+                                    innerTextField()
                                 }
-                                innerTextField()
                             },
                             singleLine = true
                         )
-                        IconButton(
-                            onClick = { passwordVisible = !passwordVisible },
+
+                        Icon(
+                            painter = painterResource(id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility_on),
+                            contentDescription = "Toggle password visibility",
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
-                                .padding(end = 8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility_on),
-                                contentDescription = "Toggle password visibility"
-                            )
-                        }
+                                .padding(end = 12.dp)
+                                .clickable { passwordVisible = !passwordVisible },
+                            tint = Color.Gray
+                        )
                     }
 
                     // Confirm Password Input
@@ -148,41 +158,49 @@ fun ParkAcceptDialog(
                             .padding(bottom = 10.dp)
                     )
 
-                    Box(modifier = Modifier.fillMaxWidth()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                    ) {
                         BasicTextField(
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(
-                                    width = 1.dp,
-                                    color = Color.Gray.copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
+                                .padding(end = 48.dp)
                                 .padding(12.dp),
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            visualTransformation = if (passwordVisibleC) VisualTransformation.None else PasswordVisualTransformation(),
                             decorationBox = { innerTextField ->
-                                if (confirmPassword.isEmpty()) {
-                                    Text(
-                                        text = "Ingrese su contraseña",
-                                        color = Color.Gray
-                                    )
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    if (confirmPassword.isEmpty()) {
+                                        Text(
+                                            text = "Ingrese su contraseña",
+                                            color = Color.Gray
+                                        )
+                                    }
+                                    innerTextField()
                                 }
-                                innerTextField()
                             },
                             singleLine = true
                         )
-                        IconButton(
-                            onClick = { passwordVisible = !passwordVisible },
+
+                        Icon(
+                            painter = painterResource(id = if (passwordVisibleC) R.drawable.ic_visibility_off else R.drawable.ic_visibility_on),
+                            contentDescription = "Toggle password visibility",
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
-                                .padding(end = 8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility_on),
-                                contentDescription = "Toggle password visibility"
-                            )
-                        }
+                                .padding(end = 12.dp)
+                                .clickable { passwordVisibleC = !passwordVisibleC },
+                            tint = Color.Gray
+                        )
                     }
 
                     // Error Message

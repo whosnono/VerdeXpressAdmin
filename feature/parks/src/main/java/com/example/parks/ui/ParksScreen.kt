@@ -111,7 +111,7 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
 
                 // Sección Administración de Parques
                 item {
-                    Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(50.dp))
                     Text(
                         text = "Administración de Parques",
                         fontFamily = SFProDisplayBold,

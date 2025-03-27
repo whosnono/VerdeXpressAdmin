@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,6 +76,8 @@ fun ParkDetailScreenA(parkName: String?, latitud: String? = null, longitud: Stri
 
 @Composable
 fun ParkDetailContent(park: ParkDataA, navController: NavController) {
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
     // Estados para controlar la expansión de los dropdowns
     var situacionExpanded by remember { mutableStateOf(false) }
     var estadoActualExpanded by remember { mutableStateOf(false) }
@@ -129,7 +132,6 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     .whereEqualTo("nombre", parkName)
                     .get()
                     .await()
-
                 if (parkQuery.isEmpty) {
                     onComplete(false)
                     return@launch
@@ -512,7 +514,6 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 )
 
                 if (situacionesEditables.contains(selectedSituacion)) {
-                    // Mostrar dropdown editable
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -649,16 +650,15 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                                     selectedEstadoActual = selectedEstadoActual,
                                     currentParkSituacion = park.situacion,
                                     currentParkEstado = park.estado,
-                                    comNeed = comNeedState, // Añade este parámetro
+                                    comNeed = comNeedState,
                                     comAd = comAdState,
                                     razonCierre = razonCierreState,
                                     onComplete = { success ->
                                         isSaving = false
                                         if (success) {
                                             selectedImageUris = emptyList()
-                                            navController.navigate("Parques") {
-                                                popUpTo("Parques") { inclusive = true }
-                                            }
+                                            showSuccessDialog = true
+                                            successMessage = "Los cambios se han guardado correctamente"
                                         }
                                     }
                                 )
@@ -695,5 +695,33 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSuccessDialog = false
+                navController.popBackStack()
+            },
+            containerColor = Color.White,
+            title = { Text("Éxito") },
+            text = { Text(successMessage) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSuccessDialog = false
+                        navController.popBackStack()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = verde,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Aceptar"
+                    )
+                }
+            }
+        )
     }
 }
