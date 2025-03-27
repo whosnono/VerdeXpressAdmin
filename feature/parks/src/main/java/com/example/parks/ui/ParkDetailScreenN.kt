@@ -19,17 +19,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.design.MainAppBar
 import com.example.parks.data.MapView
+import com.example.parks.data.ParkDataA
 import com.example.parks.data.acceptPark
-import com.example.parks.data.getAddressFromCoordinates
+import com.example.parks.data.formatShortFirestoreDate
+import com.example.parks.data.getParkDetails
 import com.example.parks.data.rejectPark
-import com.example.parks.data.updateParkField
+import com.example.parks.data.rememberUserFullName
 
 @Composable
 fun ParkDetailScreenN(parkName: String?, latitud: String? = null, longitud: String? = null, navController: NavController) {
@@ -168,11 +169,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                         )
 
                         Text(
-                            text = getAddressFromCoordinates(
-                                context,
-                                park.latitud.toDouble(),
-                                park.longitud.toDouble()
-                            ),
+                            text = park.ubi,
                             fontSize = 14.sp,
                             color = Color.DarkGray,
                             modifier = Modifier.padding(bottom = 16.dp)
@@ -313,7 +310,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Por \"${rememberUserFullName(park.usuarioId)}\"",
+                                text = "Por ${rememberUserFullName(park.usuarioId)}",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
                             )

@@ -34,7 +34,6 @@ class GetParksNew {
                 onSuccess(parks)
             }
     }
-
     fun removeListener() {
         listenerRegistration?.remove()
     }
