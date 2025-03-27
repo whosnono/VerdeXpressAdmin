@@ -1,4 +1,4 @@
-package com.example.donations
+package com.example.donations.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,7 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.util.Log
 //noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.Icon
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.Alignment
 import com.example.design.MainAppBar
 import com.example.design.R.font
 import com.google.firebase.Timestamp
@@ -86,10 +91,17 @@ fun DonationsScreen() {
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            DonationSection(
-                title = "Últimas donaciones monetarias",
-                donations = monetariaDonations
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                DonationSection(
+                    title = "Últimas donaciones monetarias",
+                    donations = monetariaDonations
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Ir a las donaciones en especie" // Add a valid content description
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -106,11 +118,23 @@ fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
     db.collection("donaciones_especie").get()
         .addOnSuccessListener { result ->
             val donationsList = result.map { document ->
+                val registroEstado = document.getString("registro_estado")
+                var fechaEstimada = document.getString("fecha_estimada_donacion")
+
+                // Verificar si el campo "estimatedDonationDate" existe y usarlo si es necesario
+                if (fechaEstimada == null) {
+                    fechaEstimada = document.getString("estimatedDonationDate")
+                }
+
+                val detalles = if (registroEstado != null && fechaEstimada != null) {
+                    "$registroEstado - $fechaEstimada"
+                } else {
+                    "Información de estado o fecha no disponible"
+                }
+
                 DonationItem(
-                    description = "El parque \"${document.getString("parque_donado")}\" recibió ${document.getString("cantidad")} ${document.getString("tipo_recurso")}",
-                    details = document.getString("condicion")
-                        ?: ("registro_estado" + " - " + (document.getString("fecha_estimada_donacion")
-                            ?: "Sin fecha"))
+                    description = "El parque \"${document.getString("parque_donado")}\" recibió ${document.getString("cantidad")} ${document.getString("recurso")}",
+                    details = detalles
                 )
             }
             onSuccess(donationsList)

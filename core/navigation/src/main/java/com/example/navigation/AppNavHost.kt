@@ -25,7 +25,7 @@ import com.example.parks.ui.ParksScreen
 import com.example.notifications.NotificationsScreen
 import com.example.profile.ProfileScreen
 import com.example.auth.data.SignUpValidator
-import com.example.donations.DonationsScreen
+import com.example.donations.ui.DonationsScreen
 import com.example.parks.ui.ParkDetailScreenA
 import com.example.parks.ui.ParkDetailScreenN
 import com.google.firebase.auth.FirebaseAuth
