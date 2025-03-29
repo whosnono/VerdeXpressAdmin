@@ -9,8 +9,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.example.verdexpress" />
-                  <option name="mobileSdkAppId" value="1:184952834303:android:b81836b8b5fd55a63164ca" />
+                  <option name="appId" value="com.example.verdexpressadmin" />
+                  <option name="mobileSdkAppId" value="1:184952834303:android:9dcccd0c42292a0e3164ca" />
                   <option name="projectId" value="verdexpress-ffba8" />
                   <option name="projectNumber" value="184952834303" />
                 </ConnectionSetting>
