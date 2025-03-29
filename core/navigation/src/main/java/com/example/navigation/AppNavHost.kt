@@ -26,6 +26,9 @@ import com.example.notifications.NotificationsScreen
 import com.example.profile.ProfileScreen
 import com.example.auth.data.SignUpValidator
 import com.example.donations.ui.DonationsScreen
+import com.example.donations.ui.especie.DonacionesEspecie
+import com.example.donations.ui.especie.DonationsDetails
+import com.example.donations.ui.monetaria.DonacionesMonetarias
 import com.example.parks.ui.ParkDetailScreenA
 import com.example.parks.ui.ParkDetailScreenN
 import com.google.firebase.auth.FirebaseAuth
@@ -122,7 +125,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
         composable(NavigationItem.Home.route) { HomeScreen() }
         composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) }
-        composable(NavigationItem.Donations.route) { DonationsScreen() }
+        composable(NavigationItem.Donations.route) { DonationsScreen(navController = navController) }
         composable(NavigationItem.Notifications.route) { NotificationsScreen() }
         composable(NavigationItem.Profile.route) { ProfileScreen(navController) }
 
@@ -175,6 +178,36 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         // ----------------------------------------------------------------
 
         // RUTAS DEL MÓDULO "DONATIONS"
+
+        composable("DonacionesEspecie") {
+            DonacionesEspecie(navController = navController)
+        }
+
+        composable("DonacionesMonetarias") {
+            DonacionesMonetarias(navController = navController)
+        }
+
+        composable(
+            "DonationsDetails/{parque}/{fecha}/{ubicacion}/{donante}/{telefono}/{estado}",
+            arguments = listOf(
+                navArgument("parque") { type = NavType.StringType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("ubicacion") { type = NavType.StringType },
+                navArgument("donante") { type = NavType.StringType },
+                navArgument("telefono") { type = NavType.StringType },
+                navArgument("estado") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            DonationsDetails(
+                navController = navController,
+                parque = backStackEntry.arguments?.getString("parque") ?: "",
+                fecha = backStackEntry.arguments?.getString("fecha") ?: "",
+                ubicacion = backStackEntry.arguments?.getString("ubicacion") ?: "",
+                donante = backStackEntry.arguments?.getString("donante") ?: "",
+                telefono = backStackEntry.arguments?.getString("telefono") ?: "",
+                estado = backStackEntry.arguments?.getString("estado") ?: ""
+            )
+        }
 
 
         // ----------------------------------------------------------------

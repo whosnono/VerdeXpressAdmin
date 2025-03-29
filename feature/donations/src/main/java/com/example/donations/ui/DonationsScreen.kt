@@ -16,13 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.util.Log
+import androidx.compose.foundation.clickable
 //noinspection UsingMaterialAndMaterial3Libraries
-import androidx.compose.material.Icon
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Scaffold
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.design.R.font
 import com.google.firebase.Timestamp
@@ -30,8 +31,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+
 @Composable
-fun DonationsScreen() {
+fun DonationsScreen(navController: NavController) {
     var especieDonations by remember { mutableStateOf<List<DonationItem>>(emptyList()) }
     var monetariaDonations by remember { mutableStateOf<List<DonationItem>>(emptyList()) }
 
@@ -91,24 +93,33 @@ fun DonationsScreen() {
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    navController.navigate("DonacionesMonetarias")
+                }
+            ) {
                 DonationSection(
                     title = "Últimas donaciones monetarias",
                     donations = monetariaDonations
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Ir a las donaciones en especie" // Add a valid content description
+
                 )
             }
 
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            DonationSection(
-                title = "Últimas donaciones en especie",
-                donations = especieDonations
-            )
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    navController.navigate("DonacionesEspecie")
+                }
+            ) {
+                DonationSection(
+                    title = "Últimas donaciones en especie",
+                    donations = especieDonations
+                )
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
     }
 }
@@ -132,10 +143,14 @@ fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
                     "Información de estado o fecha no disponible"
                 }
 
+                val recursoCompleto = document.getString("recurso") ?: ""
+                val primerRecurso = recursoCompleto.split(" ").firstOrNull() ?: ""
+
                 DonationItem(
-                    description = "El parque \"${document.getString("parque_donado")}\" recibió ${document.getString("cantidad")} ${document.getString("recurso")}",
+                    description = "El parque \"${document.getString("parque_donado")}\" recibió ${document.getString("cantidad")} $primerRecurso",
                     details = detalles
                 )
+
             }
             onSuccess(donationsList)
         }
@@ -217,7 +232,7 @@ fun DonationItemRow(donation: DonationItem) {
                     fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
                     fontWeight = FontWeight(500),
                     color = Color(0xFF000000),
-                    letterSpacing = 0.25.sp,
+                    letterSpacing = 0.15.sp,
                 )
             )
             Text(
@@ -228,19 +243,19 @@ fun DonationItemRow(donation: DonationItem) {
                     fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
                     fontWeight = FontWeight(500),
                     color = verde,
-                    letterSpacing = 0.25.sp,
+                    letterSpacing = 0.15.sp,
                 )
             )
         }
         Text(
             text = donation.details,
             style = TextStyle(
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 lineHeight = 20.sp,
                 fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
                 fontWeight = FontWeight(400),
                 color = Color(0xFF484C52),
-                letterSpacing = 0.25.sp,
+                letterSpacing = 0.15.sp,
             )
         )
     }
