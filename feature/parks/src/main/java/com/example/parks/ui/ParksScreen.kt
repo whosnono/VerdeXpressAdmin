@@ -16,14 +16,21 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -34,7 +41,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.design.MainAppBar
 import com.example.design.R
-import com.example.parks.data.ParkData
 
 val SFProDisplayBold = FontFamily(Font(R.font.sf_pro_display_bold))
 val SFProDisplayM = FontFamily(Font(R.font.sf_pro_display_medium))
@@ -42,11 +48,22 @@ val RobotoBold = FontFamily(Font(R.font.roboto_bold))
 val verde = Color(0xFF78B153)
 
 @Composable
-fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavController) {
+fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavController, showContent: Boolean = true) {
+
+    var showFilterDialog by remember { mutableStateOf(false) }
+
+    val filters by navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<Map<String, String>?>("filters", null)
+        ?.collectAsState() ?: remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchApprovedParks()
         viewModel.fetchNewParks()
+    }
+
+    LaunchedEffect(filters) {
+        filters?.let { viewModel.applyFilters(it) }
     }
 
     val parksApproved = viewModel.parksList.value
@@ -62,12 +79,26 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
             ) {
                 // Título principal
                 item {
-                    Text(
-                        text = "Parques",
-                        fontFamily = SFProDisplayBold,
-                        fontSize = 25.sp,
-                        modifier = Modifier.padding(horizontal = 24.dp)
-                    )
+                    Box(modifier = Modifier.fillMaxWidth()){
+                        Text(
+                            text = "Parques",
+                            fontFamily = SFProDisplayBold,
+                            fontSize = 25.sp,
+                            modifier = Modifier.padding(horizontal = 24.dp)
+                        )
+                        if (showContent) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_filter),
+                                contentDescription = "Filter",
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(end = 16.dp)
+                                    .clickable {
+                                        showFilterDialog = true
+                                    }
+                            )
+                        }
+                    }
                 }
 
                 // Sección Parques Activos
@@ -165,6 +196,25 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
                 }
             }
         }
+    }
+    if (!showContent) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Transparent)
+        )
+    }
+
+    if (showFilterDialog) {
+        SlideInFilterPanel(
+            isVisible = showFilterDialog,
+            onDismiss = { showFilterDialog = false },
+            onApply = { filters ->
+                navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.set("filters", filters)
+            }
+        )
     }
 }
 

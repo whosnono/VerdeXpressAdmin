@@ -2,6 +2,8 @@ package com.example.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +33,7 @@ import com.example.donations.ui.especie.DonationsDetails
 import com.example.donations.ui.monetaria.DonacionesMonetarias
 import com.example.parks.ui.ParkDetailScreenA
 import com.example.parks.ui.ParkDetailScreenN
+import com.example.parks.ui.SlideInFilterPanel
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -172,6 +175,26 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
                 longitud = backStackEntry.arguments?.getString("longitud"),
                 navController = navController
             )
+        }
+
+        composable("FiltrosParques") {
+            // Esta es la clave: renderiza ParksScreen debajo y luego el panel encima
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Primero renderizamos la pantalla de parques como fondo
+                ParksScreen(navController = navController, showContent = false)
+
+                // Luego añadimos el panel de filtros superpuesto
+                SlideInFilterPanel(
+                    isVisible = true,
+                    onDismiss = { navController.navigate("Parques") },
+                    onApply = { filters ->
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("filters", filters)
+                        navController.navigate("Parques")
+                    }
+                )
+            }
         }
 
 

@@ -28,7 +28,9 @@ class GetParksNew {
                         val necesidades = document.get("necesidades") as? List<String> ?: emptyList()
                         val estado = document.getString("estado_actual") ?: "Desconocido"
                         val comentarios = document.get("comentarios") as? List<String> ?: emptyList()
-                        parks.add(ParkData(nombre, primeraImagen, latitud, longitud, necesidades, estado, comentarios))
+                        val situacion = document.getString("situacion_actual") ?: "Desconocido"
+
+                        parks.add(ParkData(nombre, primeraImagen, latitud, longitud, necesidades, estado, comentarios, situacion))
                     }
                 }
                 onSuccess(parks)

@@ -28,8 +28,9 @@ class GetParksApproved {
                         val necesidades = document.get("necesidades") as? List<String> ?: emptyList()
                         val estado = document.getString("estado_actual") ?: "Desconocido"
                         val comentarios = document.get("comentarios") as? List<String> ?: emptyList()
+                        val situacion = document.getString("situacion_actual") ?: "Desconocido"
 
-                        parks.add(ParkData(nombre, primeraImagen, latitud, longitud, necesidades, estado, comentarios))
+                        parks.add(ParkData(nombre, primeraImagen, latitud, longitud, necesidades, estado, comentarios, situacion))
                     }
                 }
                 onSuccess(parks)
@@ -41,4 +42,4 @@ class GetParksApproved {
     }
 }
 
-data class ParkData(val nombre: String, val primeraImagen: String, val latitud: String, val longitud: String, val necesidades: List<String>, val estado: String, val comentarios: List<String>)
+data class ParkData(val nombre: String, val primeraImagen: String, val latitud: String, val longitud: String, val necesidades: List<String>, val estado: String, val comentarios: List<String>, val situacion: String)
