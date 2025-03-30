@@ -1,5 +1,7 @@
 package com.example.donations.ui.especie
 
+import com.example.parks.ui.SFProDisplayBold
+import com.example.parks.ui.verde
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,28 +30,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.design.R
-import com.example.design.R.font
 
 @Composable
-fun donationAcceptDialog(
+fun donationRejectDialog(
     parque: String,
-    recurso: String,
-    onAccept: (String) -> Unit,
+    onReject: (String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val verde = Color(0xFF78B153)
+    var rejectionReason by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var passwordVisibleC by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -71,14 +67,13 @@ fun donationAcceptDialog(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Aceptar donación",
+                            text = "Rechazar donación",
                             style = TextStyle(
                                 fontSize = 20.sp,
-                                fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                                fontFamily = SFProDisplayBold,
                                 color = Color.White
                             )
                         )
-
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
@@ -87,7 +82,7 @@ fun donationAcceptDialog(
                         .padding(24.dp)
                 ) {
                     Text(
-                        text = "¿Desea aceptar la donación de \"$recurso\" para el parque \"$parque\" ?",
+                        text = "¿Desea rechazar la donación al parque \"$parque\"?",
                         style = TextStyle(
                             fontSize = 16.sp,
                             color = Color.Black
@@ -96,15 +91,54 @@ fun donationAcceptDialog(
                     )
 
                     Text(
-                        text = "Ingrese su contraseña para continuar",
+                        text = "Razon",
                         color = Color.Black,
-                        fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                        fontFamily = SFProDisplayBold,
                         fontSize = 15.sp,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 10.dp)
                     )
+
+                    // Rejection Reason Input
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        BasicTextField(
+                            value = rejectionReason,
+                            onValueChange = { rejectionReason = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = Color.Gray.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(12.dp),
+                            decorationBox = { innerTextField ->
+                                if (rejectionReason.isEmpty()) {
+                                    Text(
+                                        text = "Razón del rechazo",
+                                        color = Color.Gray
+                                    )
+                                }
+                                innerTextField()
+                            },
+                            maxLines = 4
+                        )
+                    }
+
                     // Password Input
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Ingrese su contraseña",
+                        color = Color.Black,
+                        fontFamily = SFProDisplayBold,
+                        fontSize = 15.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp)
+                    )
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -150,64 +184,6 @@ fun donationAcceptDialog(
                         )
                     }
 
-                    // Confirm Password Input
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Confirme su contraseña",
-                        color = Color.Black,
-                        fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
-                        fontSize = 15.sp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 10.dp)
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(
-                                width = 1.dp,
-                                color = Color.Gray.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                    ) {
-                        BasicTextField(
-                            value = confirmPassword,
-                            onValueChange = { confirmPassword = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(end = 48.dp)
-                                .padding(12.dp),
-                            visualTransformation = if (passwordVisibleC) VisualTransformation.None else PasswordVisualTransformation(),
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.CenterStart
-                                ) {
-                                    if (confirmPassword.isEmpty()) {
-                                        Text(
-                                            text = "Ingrese su contraseña",
-                                            color = Color.Gray
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            },
-                            singleLine = true
-                        )
-
-                        Icon(
-                            painter = painterResource(id = if (passwordVisibleC) R.drawable.ic_visibility_off else R.drawable.ic_visibility_on),
-                            contentDescription = "Toggle password visibility",
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 12.dp)
-                                .clickable { passwordVisibleC = !passwordVisibleC },
-                            tint = Color.Gray
-                        )
-                    }
-
                     // Error Message
                     errorMessage?.let {
                         Text(
@@ -217,19 +193,19 @@ fun donationAcceptDialog(
                         )
                     }
 
-                    // Accept Button
+                    // Reject Button
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = {
                             when {
-                                password.isEmpty() || confirmPassword.isEmpty() -> {
-                                    errorMessage = "Por favor complete ambos campos"
+                                rejectionReason.isEmpty() -> {
+                                    errorMessage = "Por favor ingrese una razón"
                                 }
-                                password != confirmPassword -> {
-                                    errorMessage = "Las contraseñas no coinciden"
+                                password.isEmpty() -> {
+                                    errorMessage = "Por favor ingrese su contraseña"
                                 }
                                 else -> {
-                                    onAccept(password)
+                                    onReject(rejectionReason, password)
                                 }
                             }
                         },
@@ -246,11 +222,10 @@ fun donationAcceptDialog(
                             text = "Aceptar",
                             color = Color.White,
                             fontSize = 20.sp,
-                            fontFamily = FontFamily(Font(font.sf_pro_display_bold))
+                            fontFamily = SFProDisplayBold
                         )
                     }
                 }
-
             }
         }
     }

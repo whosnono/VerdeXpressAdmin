@@ -26,7 +26,6 @@ import com.example.design.R.font
 import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun DonacionesEspecie(navController: NavController) {
@@ -125,9 +124,12 @@ fun DonacionesEspecie(navController: NavController) {
                     person = donacion.donanteNombre,
                     telefono = donacion.donanteContacto,
                     status = donacion.registroEstado,
+                    amount = donacion.cantidad,
+                    resource = donacion.recurso,
+                    condition = donacion.condicion,
                     onClick = {
                         navController.navigate(
-                            "DonationsDetails/${donacion.parqueDonado}/${donacion.fecha}/${donacion.ubicacion}/${donacion.donanteNombre}/${donacion.donanteContacto}/${donacion.registroEstado}"
+                            "DonationsDetails/${donacion.parqueDonado}/${donacion.fecha.replace("/", "-")}/${donacion.ubicacion}/${donacion.donanteNombre}/${donacion.donanteContacto}/${donacion.cantidad}/${donacion.recurso}/${donacion.condicion}"
                         )
                     }
                 )
@@ -145,49 +147,56 @@ fun DonacionesCuadro(
     person: String,
     telefono: String,
     status: String,
+    amount: String,
+    resource: String,
+    condition: String,
     onClick: () -> Unit
 ) {
     val isPendiente = status.equals("Pendiente", ignoreCase = true)
-
     val statusColor = if (isPendiente) Color(0xFF78B153) else Color.DarkGray
     val borderColor = if (isPendiente) Color(0xFF78B153) else Color.DarkGray
     val statusText = if (isPendiente) "En revisión" else status
 
-    Row(
-        Modifier
+    Box(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .height(140.dp)
-            .background(color = Color.White, shape = RoundedCornerShape(10.dp))
-            .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(10.dp))
-            .padding(15.dp)
-            .clickable { onClick() } // Detecta clics
+            .background(color = Color.White, shape = RoundedCornerShape(8.dp))
+            .border(1.dp, borderColor, shape = RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(12.dp)
     ) {
-        Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.weight(1f)) {
-            Row(horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    text = "Parque \"$title\"",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
+                Text(text = address, fontSize = 14.sp)
+                Text(text = person, fontSize = 14.sp)
+                Text(text = telefono, fontSize = 14.sp)
+            }
+
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
                 Text(
                     text = date,
-                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 13.sp,
                     color = Color(0xFF4D4447),
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.padding(horizontal = 10.dp)
+                    modifier = Modifier.padding(bottom = 24.dp)
                 )
-            }
-            Text(text = address, style = MaterialTheme.typography.bodyMedium)
-            Text(text = person, style = MaterialTheme.typography.bodyMedium)
-            Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = telefono, style = MaterialTheme.typography.bodyMedium)
                 Text(
                     text = statusText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = statusColor,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.End
+                    fontSize = 14.sp,
+                    color = statusColor
                 )
             }
         }
@@ -201,7 +210,10 @@ data class DonacionItem(
     val ubicacion: String,
     val donanteNombre: String,
     val donanteContacto: String,
-    val registroEstado: String
+    val registroEstado: String,
+    val cantidad: String,
+    val recurso: String,
+    val condicion: String
 )
 
 fun getDonacionesEspecieFromFirebase(onSuccess: (List<DonacionItem>) -> Unit) {
@@ -212,21 +224,38 @@ fun getDonacionesEspecieFromFirebase(onSuccess: (List<DonacionItem>) -> Unit) {
 
                 var fechaEstimada = document.getString("fecha_estimada_donacion")
 
-                // Verificar si el campo "estimatedDonationDate" existe y usarlo si es necesario
+// Verificar si el campo "estimatedDonationDate" existe y usarlo si es necesario
                 if (fechaEstimada == null) {
                     fechaEstimada = document.getString("estimatedDonationDate")
                 }
 
-                val fechaE = fechaEstimada.toString()
+
+                val fechaConvertida = fechaEstimada?.let { fechaStr ->
+                    try {
+                        val partes = fechaStr.split("/")
+                        if (partes.size == 3) {
+                            "${partes[2]}-${partes[1]}-${partes[0]}" // Convertir a formato "yyyy-MM-dd"
+                        } else {
+                            fechaStr // Mantener el original si el formato no es válido
+                        }
+                    } catch (e: Exception) {
+                        Log.e("FechaParse", "Error al convertir la fecha: $fechaStr", e)
+                        fechaStr // Mantener el original en caso de error
+                    }
+                }
 
                 DonacionItem(
                     parqueDonado = document.getString("parque_donado") ?: "",
-                    fecha = fechaE,
+                    fecha = fechaConvertida ?: "",
                     ubicacion = document.getString("ubicacion") ?: "",
                     donanteNombre = document.getString("donante_nombre") ?: "",
                     donanteContacto = document.getString("donante_contacto") ?: "",
-                    registroEstado = document.getString("registro_estado") ?: ""
+                    registroEstado = document.getString("registro_estado") ?: "",
+                    cantidad = document.getString("cantidad") ?: "",
+                    recurso = document.getString("recurso") ?: "",
+                    condicion = document.getString("condicion") ?: ""
                 )
+
             }
             onSuccess(donacionesList)
         }

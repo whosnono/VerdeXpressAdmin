@@ -26,15 +26,21 @@ import com.example.design.MainAppBar
 import com.example.design.R.font
 
 @Composable
-fun DonationsDetails(navController: NavController,
-                     parque: String,
-                     fecha: String,
-                     ubicacion: String,
-                     donante: String,
-                     telefono: String,
-                     estado: String) {
-    Column(modifier = Modifier.fillMaxSize()) {
+fun DonationsDetails(
+    navController: NavController,
+    parque: String,
+    fecha: String,
+    ubicacion: String,
+    donante: String,
+    telefono: String,
+    cantidad: String,
+    recurso: String,
+    condicion: String
+) {
+    val fechaFormateada = fecha.replace("-", "/") // Convierte "dd-MM-yyyy" a "dd/MM/yyyy"
+    val cantidadFormateado = if (cantidad == "1") "1 pieza" else "$cantidad piezas"
 
+    Column(modifier = Modifier.fillMaxSize()) {
         MainAppBar()
 
         // Barra inferior "Donaciones en Especie"
@@ -65,18 +71,50 @@ fun DonationsDetails(navController: NavController,
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        donacion(
+        titulos(
             titulo = "Donado por"
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(text = "Donante: $donante")
-        Text(text = "Teléfono: $telefono")
-        Text(text = "Parque: $parque")
-        Text(text = "Fecha: $fecha")
-        Text(text = "Ubicación: $ubicacion")
-        Text(text = "Estado: $estado")
+        detallesDonante(nombre = donante, numero = telefono)
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        parqueTitulo(Parque = parque)
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        textos(texto = ubicacion)
+        Spacer(modifier = Modifier.height(11.dp))
+
+        titulos(titulo = "Recurso a donar")
+        Spacer(modifier = Modifier.height(7.dp))
+
+        textos(texto = recurso)
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        titulos(titulo = "Cantidad")
+        Spacer(modifier = Modifier.height(7.dp))
+
+        textos(texto = cantidadFormateado)
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        titulos(titulo = "Condicion del recurso")
+        Spacer(modifier = Modifier.height(7.dp))
+
+        textos(texto = if (condicion.isNullOrEmpty()) "Desconocida" else condicion)
+
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        titulos(titulo = "Fecha estimada de de entrega")
+        Spacer(modifier = Modifier.height(7.dp))
+
+        textos(texto = fechaFormateada)
+
 
 
         Spacer(modifier = Modifier.weight(1f))
@@ -85,7 +123,6 @@ fun DonationsDetails(navController: NavController,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             BotonRechazar()
-
             BotonAceptar()
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -93,8 +130,25 @@ fun DonationsDetails(navController: NavController,
 }
 
 
+
 @Composable
-fun donacion(titulo: String) {
+fun parqueTitulo(Parque: String) {
+    Text(
+        text = Parque,
+        modifier = Modifier.padding(horizontal = 16.dp),
+        style = TextStyle(
+            fontSize = 22.sp,
+            lineHeight = 20.sp,
+            fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+            fontWeight = FontWeight(700),
+            color = Color(0xFF000000),
+            letterSpacing = 0.25.sp,
+        )
+    )
+}
+
+@Composable
+fun titulos(titulo: String) {
     Text(
         text = titulo,
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -110,7 +164,23 @@ fun donacion(titulo: String) {
 }
 
 @Composable
-fun detalles(nombre: String, numero: String) {
+fun textos(texto: String) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = texto,
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                fontWeight = FontWeight(500),
+                color = Color(0xFF000000),
+                letterSpacing = 0.25.sp,
+            )
+        )
+    }
+}
+
+@Composable
+fun detallesDonante(nombre: String, numero: String) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = nombre,
