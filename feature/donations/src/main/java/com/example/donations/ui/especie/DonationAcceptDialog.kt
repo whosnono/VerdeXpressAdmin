@@ -39,7 +39,7 @@ import com.example.design.R
 import com.example.design.R.font
 
 @Composable
-fun donationAcceptDialog(
+fun DonationAcceptDialog(
     parque: String,
     recurso: String,
     onAccept: (String) -> Unit,
@@ -255,3 +255,5 @@ fun donationAcceptDialog(
         }
     }
 }
+
+

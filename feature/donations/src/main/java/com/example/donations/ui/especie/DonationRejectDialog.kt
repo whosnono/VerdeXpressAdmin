@@ -38,8 +38,9 @@ import androidx.compose.ui.window.Dialog
 import com.example.design.R
 
 @Composable
-fun donationRejectDialog(
+fun DonationRejectDialog(
     parque: String,
+    recurso: String,
     onReject: (String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -82,7 +83,7 @@ fun donationRejectDialog(
                         .padding(24.dp)
                 ) {
                     Text(
-                        text = "¿Desea rechazar la donación al parque \"$parque\"?",
+                        text = "¿Desea rechazar la donación del \"$recurso\" al parque \"$parque\"?",
                         style = TextStyle(
                             fontSize = 16.sp,
                             color = Color.Black

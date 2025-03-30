@@ -6,12 +6,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,9 +29,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.design.R.font
+import com.example.donations.data.DonationsEData
+import com.example.donations.data.acceptDonation
+import com.example.donations.data.rejectDonation
+import com.example.parks.ui.verde
 
 @Composable
 fun DonationsDetails(
+    donationsEData: DonationsEData,
     navController: NavController,
     parque: String,
     fecha: String,
@@ -39,6 +49,27 @@ fun DonationsDetails(
 ) {
     val fechaFormateada = fecha.replace("-", "/") // Convierte "dd-MM-yyyy" a "dd/MM/yyyy"
     val cantidadFormateado = if (cantidad == "1") "1 pieza" else "$cantidad piezas"
+
+    var showAcceptDialog by remember { mutableStateOf(false) }
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
+
+    // Estados para los campos de formulario
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var rejectionReason by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Estados para almacenar las selecciones
+    var selectedEstadoActual by remember { mutableStateOf(donationsEData.registroEstado) }
+
+    fun resetDialogStates() {
+        password = ""
+        confirmPassword = ""
+        rejectionReason = ""
+        errorMessage = null
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         MainAppBar()
@@ -122,10 +153,102 @@ fun DonationsDetails(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            BotonRechazar()
-            BotonAceptar()
+            Button(
+                onClick = { showRejectDialog = true },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = verde
+                ),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, verde)
+            ) {
+                Text("Rechazar parque")
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Botón Aceptar
+            Button(
+                onClick = { showAcceptDialog = true },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = verde,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Aceptar parque")
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
+
+    }
+
+    if (showAcceptDialog) {
+        DonationAcceptDialog(
+            parque = donationsEData.parqueDonado,
+            recurso = donationsEData.recurso,
+            onAccept = { password ->
+                acceptDonation(donationId = donationsEData.id, password) { success, message ->
+                    if (success) {
+                        successMessage = "Donación aprobada exitosamente"
+                        showSuccessDialog = true
+                        showAcceptDialog = false
+                    } else {
+                        errorMessage = message
+                    }
+                }
+            },
+            onDismiss = { showAcceptDialog = false }
+        )
+    }
+
+    if (showRejectDialog) {
+        DonationRejectDialog(
+            parque = donationsEData.parqueDonado,
+            recurso = donationsEData.recurso,
+            onReject = { reason, password ->
+                rejectDonation(donationId = donationsEData.id, password) { success, message ->
+                    if (success) {
+                        successMessage = "Donación rechazado exitosamente"
+                        showSuccessDialog = true
+                        showRejectDialog = false
+                    } else {
+                        errorMessage = message
+                    }
+                }
+            },
+            onDismiss = { showRejectDialog = false }
+        )
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSuccessDialog = false
+                navController.popBackStack()
+            },
+            containerColor = Color.White,
+            title = { Text("Éxito") },
+            text = { Text(successMessage) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSuccessDialog = false
+                        navController.popBackStack()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = verde,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Aceptar"
+                    )
+                }
+            }
+        )
     }
 }
 
@@ -208,43 +331,14 @@ fun detallesDonante(nombre: String, numero: String) {
 }
 
 @Composable
-fun BotonRechazar() {
+fun BotonAceptar(onClick: () -> Unit) {
     Button(
-        onClick = { /* Lógica para rechazar */ },
-        modifier = Modifier
-            .width(177.dp)
-            .height(45.dp),
-        border = BorderStroke(2.dp, Color(0xFF78B153)), // Agrega el borde
-        shape = RoundedCornerShape(5.dp), // Agrega la forma
+        onClick = { onClick() },
+        modifier = Modifier.width(177.dp).height(45.dp),
+        shape = RoundedCornerShape(5.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White, // Color de fondo del botón
-            contentColor = Color(0xFF78B153) // Color del texto del botón
-        )
-    ) {
-        Text(
-            text = "Rechazar Donación",
-            style = TextStyle(
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontFamily = FontFamily(Font(font.sf_pro_display_semibold)),
-                fontWeight = FontWeight(700),
-                letterSpacing = 0.25.sp,
-            )
-        )
-    }
-}
-
-
-@Composable
-fun BotonAceptar() {
-    Button(onClick = { /* Lógica para aceptar */ },
-        modifier = Modifier
-            .width(177.dp)
-            .height(45.dp),
-        shape = RoundedCornerShape(5.dp), // Agrega la forma
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF78B153), // Color de fondo del botón
-            contentColor = Color.White // Color del texto del botón
+            containerColor = Color(0xFF78B153),
+            contentColor = Color.White
         )
     ) {
         Text(
@@ -260,3 +354,27 @@ fun BotonAceptar() {
     }
 }
 
+@Composable
+fun BotonRechazar(onClick: () -> Unit) {
+    Button(
+        onClick = { onClick() },
+        modifier = Modifier.width(177.dp).height(45.dp),
+        border = BorderStroke(2.dp, Color(0xFF78B153)),
+        shape = RoundedCornerShape(5.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White,
+            contentColor = Color(0xFF78B153)
+        )
+    ) {
+        Text(
+            text = "Rechazar Donación",
+            style = TextStyle(
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                fontFamily = FontFamily(Font(font.sf_pro_display_semibold)),
+                fontWeight = FontWeight(700),
+                letterSpacing = 0.25.sp,
+            )
+        )
+    }
+}

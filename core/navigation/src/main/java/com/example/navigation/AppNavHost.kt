@@ -188,7 +188,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         }
 
         composable(
-            "DonationsDetails/{parque}/{fecha}/{ubicacion}/{donante}/{telefono}/{cantidad}/{recurso}/{condicion}",
+            "DonationsDetails/{parque}/{fecha}/{ubicacion}/{donante}/{telefono}/{cantidad}/{recurso}/{condicion}/{estado}",
             arguments = listOf(
                 navArgument("parque") { type = NavType.StringType },
                 navArgument("fecha") { type = NavType.StringType },
@@ -209,7 +209,8 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
                 telefono = backStackEntry.arguments?.getString("telefono") ?: "",
                 cantidad = backStackEntry.arguments?.getString("cantidad") ?: "",
                 recurso = backStackEntry.arguments?.getString("recurso") ?: "",
-                condicion = backStackEntry.arguments?.getString("condicion") ?: ""
+                condicion = backStackEntry.arguments?.getString("condicion") ?: "",
+                donationsEData = TODO()
             )
         }
 

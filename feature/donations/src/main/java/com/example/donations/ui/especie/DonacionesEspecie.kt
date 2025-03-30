@@ -2,6 +2,7 @@ package com.example.donations.ui.especie
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,14 +24,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.design.R.font
-import com.google.firebase.firestore.FirebaseFirestore
-import android.util.Log
-import androidx.compose.foundation.clickable
+import com.example.donations.data.DonationsEData
+import com.example.donations.data.getDonacionesEspecieFromFirebase
 
 @Composable
 fun DonacionesEspecie(navController: NavController) {
-    var donaciones by remember { mutableStateOf<List<DonacionItem>>(emptyList()) }
-
+    var donaciones by remember { mutableStateOf<List<DonationsEData>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         getDonacionesEspecieFromFirebase { items ->
@@ -41,7 +40,6 @@ fun DonacionesEspecie(navController: NavController) {
     Column(modifier = Modifier.fillMaxSize()) {
         MainAppBar()
 
-        // Barra inferior "Donaciones en Especie"
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -114,10 +112,8 @@ fun DonacionesEspecie(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-
             donaciones.forEach { donacion ->
                 DonacionesCuadro(
-
                     title = donacion.parqueDonado,
                     date = donacion.fecha,
                     address = donacion.ubicacion,
@@ -167,8 +163,7 @@ fun DonacionesCuadro(
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Column(
-                modifier = Modifier
-                    .weight(1f),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
@@ -201,66 +196,4 @@ fun DonacionesCuadro(
             }
         }
     }
-}
-
-
-data class DonacionItem(
-    val parqueDonado: String,
-    val fecha: String,
-    val ubicacion: String,
-    val donanteNombre: String,
-    val donanteContacto: String,
-    val registroEstado: String,
-    val cantidad: String,
-    val recurso: String,
-    val condicion: String
-)
-
-fun getDonacionesEspecieFromFirebase(onSuccess: (List<DonacionItem>) -> Unit) {
-    val db = FirebaseFirestore.getInstance()
-    db.collection("donaciones_especie").get()
-        .addOnSuccessListener { result ->
-            val donacionesList = result.map { document ->
-
-                var fechaEstimada = document.getString("fecha_estimada_donacion")
-
-// Verificar si el campo "estimatedDonationDate" existe y usarlo si es necesario
-                if (fechaEstimada == null) {
-                    fechaEstimada = document.getString("estimatedDonationDate")
-                }
-
-
-                val fechaConvertida = fechaEstimada?.let { fechaStr ->
-                    try {
-                        val partes = fechaStr.split("/")
-                        if (partes.size == 3) {
-                            "${partes[2]}-${partes[1]}-${partes[0]}" // Convertir a formato "yyyy-MM-dd"
-                        } else {
-                            fechaStr // Mantener el original si el formato no es válido
-                        }
-                    } catch (e: Exception) {
-                        Log.e("FechaParse", "Error al convertir la fecha: $fechaStr", e)
-                        fechaStr // Mantener el original en caso de error
-                    }
-                }
-
-                DonacionItem(
-                    parqueDonado = document.getString("parque_donado") ?: "",
-                    fecha = fechaConvertida ?: "",
-                    ubicacion = document.getString("ubicacion") ?: "",
-                    donanteNombre = document.getString("donante_nombre") ?: "",
-                    donanteContacto = document.getString("donante_contacto") ?: "",
-                    registroEstado = document.getString("registro_estado") ?: "",
-                    cantidad = document.getString("cantidad") ?: "",
-                    recurso = document.getString("recurso") ?: "",
-                    condicion = document.getString("condicion") ?: ""
-                )
-
-            }
-            onSuccess(donacionesList)
-        }
-        .addOnFailureListener { exception ->
-            Log.e("DonacionesEspecie", "Error al obtener donaciones de Firebase", exception)
-            onSuccess(emptyList())
-        }
 }
