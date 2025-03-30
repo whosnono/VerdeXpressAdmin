@@ -18,7 +18,7 @@ fun acceptDonation(
 
         val db = FirebaseFirestore.getInstance()
         val updates = hashMapOf<String, Any>(
-            "registro_estado" to "aprobada"
+            "registro_estado" to "Aprobada"
         )
 
         db.collection("donaciones_especie")
@@ -47,7 +47,7 @@ fun rejectDonation(
 
         val db = FirebaseFirestore.getInstance()
         val updates = hashMapOf<String, Any>(
-            "registro_estado" to "rechazada" // Puede ser "Aprobada" o "Rechazada"
+            "registro_estado" to "Rechazada" // Puede ser "Aprobada" o "Rechazada"
         )
 
         db.collection("donaciones_especie")

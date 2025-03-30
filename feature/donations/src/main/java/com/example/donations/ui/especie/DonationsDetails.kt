@@ -190,36 +190,42 @@ fun DonationsDetails(
             textos(texto = fechaFormateada)
 
             Spacer(modifier = Modifier.weight(1f))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp) // Agregar padding horizontal
             ) {
-                Button(
-                    onClick = { showRejectDialog = true },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = verde
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, verde)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text("Rechazar parque")
-                }
+                    Button(
+                        onClick = { showRejectDialog = true },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = verde
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, verde)
+                    ) {
+                        Text("Rechazar donación")
+                    }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(16.dp))
 
-                // Botón Aceptar
-                Button(
-                    onClick = { showAcceptDialog = true },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = verde,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Aceptar parque")
+                    // Botón Aceptar
+                    Button(
+                        onClick = { showAcceptDialog = true },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = verde,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Aceptar donación")
+                    }
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -251,7 +257,7 @@ fun DonationsDetails(
                 onReject = { reason, password ->
                     rejectDonation(donationId = donationsEData!!.id, password) { success, message ->
                         if (success) {
-                            successMessage = "Donación rechazado exitosamente"
+                            successMessage = "Donación rechazada exitosamente"
                             showSuccessDialog = true
                             showRejectDialog = false
                         } else {
@@ -368,54 +374,5 @@ fun detallesDonante(nombre: String, numero: String) {
             )
         )
         Spacer(modifier = Modifier.height(5.dp))
-    }
-}
-
-@Composable
-fun BotonAceptar(onClick: () -> Unit) {
-    Button(
-        onClick = { onClick() },
-        modifier = Modifier.width(177.dp).height(45.dp),
-        shape = RoundedCornerShape(5.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF78B153),
-            contentColor = Color.White
-        )
-    ) {
-        Text(
-            text = "Aceptar Donación",
-            style = TextStyle(
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontFamily = FontFamily(Font(font.sf_pro_display_semibold)),
-                fontWeight = FontWeight(700),
-                letterSpacing = 0.25.sp,
-            )
-        )
-    }
-}
-
-@Composable
-fun BotonRechazar(onClick: () -> Unit) {
-    Button(
-        onClick = { onClick() },
-        modifier = Modifier.width(177.dp).height(45.dp),
-        border = BorderStroke(2.dp, Color(0xFF78B153)),
-        shape = RoundedCornerShape(5.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,
-            contentColor = Color(0xFF78B153)
-        )
-    ) {
-        Text(
-            text = "Rechazar Donación",
-            style = TextStyle(
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontFamily = FontFamily(Font(font.sf_pro_display_semibold)),
-                fontWeight = FontWeight(700),
-                letterSpacing = 0.25.sp,
-            )
-        )
     }
 }

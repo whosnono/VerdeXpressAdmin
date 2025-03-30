@@ -124,9 +124,7 @@ fun DonacionesEspecie(navController: NavController) {
                     resource = donacion.recurso,
                     condition = donacion.condicion,
                     onClick = {
-                        navController.navigate(
-                            "DonationsDetails/${donacion.parqueDonado}/${donacion.fecha.replace("/", "-")}/${donacion.ubicacion}/${donacion.donanteNombre}/${donacion.donanteContacto}/${donacion.cantidad}/${donacion.recurso}/${donacion.condicion}"
-                        )
+                        navController.navigate("DonationsDetails/${donacion.id}")
                     }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
