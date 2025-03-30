@@ -188,29 +188,14 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         }
 
         composable(
-            "DonationsDetails/{parque}/{fecha}/{ubicacion}/{donante}/{telefono}/{cantidad}/{recurso}/{condicion}/{estado}",
+            "DonationsDetails/{donationId}",
             arguments = listOf(
-                navArgument("parque") { type = NavType.StringType },
-                navArgument("fecha") { type = NavType.StringType },
-                navArgument("ubicacion") { type = NavType.StringType },
-                navArgument("donante") { type = NavType.StringType },
-                navArgument("telefono") { type = NavType.StringType },
-                navArgument("cantidad") { type = NavType.StringType },
-                navArgument("recurso") { type = NavType.StringType },
-                navArgument("condicion") { type = NavType.StringType }
+                navArgument("donationId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             DonationsDetails(
                 navController = navController,
-                parque = backStackEntry.arguments?.getString("parque") ?: "",
-                fecha = backStackEntry.arguments?.getString("fecha") ?: "",
-                ubicacion = backStackEntry.arguments?.getString("ubicacion") ?: "",
-                donante = backStackEntry.arguments?.getString("donante") ?: "",
-                telefono = backStackEntry.arguments?.getString("telefono") ?: "",
-                cantidad = backStackEntry.arguments?.getString("cantidad") ?: "",
-                recurso = backStackEntry.arguments?.getString("recurso") ?: "",
-                condicion = backStackEntry.arguments?.getString("condicion") ?: "",
-                donationsEData = TODO()
+                donationId = backStackEntry.arguments?.getString("donationId") ?: ""
             )
         }
 

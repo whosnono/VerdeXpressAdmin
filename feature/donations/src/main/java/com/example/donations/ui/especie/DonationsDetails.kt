@@ -1,5 +1,6 @@
 package com.example.donations.ui.especie
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,226 +35,265 @@ import com.example.donations.data.DonationsEData
 import com.example.donations.data.acceptDonation
 import com.example.donations.data.rejectDonation
 import com.example.parks.ui.verde
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun DonationsDetails(
-    donationsEData: DonationsEData,
     navController: NavController,
-    parque: String,
-    fecha: String,
-    ubicacion: String,
-    donante: String,
-    telefono: String,
-    cantidad: String,
-    recurso: String,
-    condicion: String
+    donationId: String // Recibir solo el ID
 ) {
-    val fechaFormateada = fecha.replace("-", "/") // Convierte "dd-MM-yyyy" a "dd/MM/yyyy"
-    val cantidadFormateado = if (cantidad == "1") "1 pieza" else "$cantidad piezas"
+    var donationsEData by remember { mutableStateOf<DonationsEData?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
 
-    var showAcceptDialog by remember { mutableStateOf(false) }
-    var showRejectDialog by remember { mutableStateOf(false) }
-    var showSuccessDialog by remember { mutableStateOf(false) }
-    var successMessage by remember { mutableStateOf("") }
+    LaunchedEffect(donationId) {
+        FirebaseFirestore.getInstance()
+            .collection("donaciones_especie")
+            .document(donationId)
+            .get()
+            .addOnSuccessListener { document ->
+                val fechaEstimada = document.getString("fecha_estimada_donacion")
+                    ?: document.getString("estimatedDonationDate")
 
-    // Estados para los campos de formulario
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var rejectionReason by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+                val fechaConvertida = fechaEstimada?.let { fechaStr ->
+                    try {
+                        val partes = fechaStr.split("/")
+                        if (partes.size == 3) {
+                            "${partes[2]}-${partes[1]}-${partes[0]}" // Formato "yyyy-MM-dd"
+                        } else {
+                            fechaStr // Mantener el original si el formato no es válido
+                        }
+                    } catch (e: Exception) {
+                        Log.e("FechaParse", "Error al convertir la fecha: $fechaStr", e)
+                        fechaStr // Mantener el original en caso de error
+                    }
+                }
 
-    // Estados para almacenar las selecciones
-    var selectedEstadoActual by remember { mutableStateOf(donationsEData.registroEstado) }
-
-    fun resetDialogStates() {
-        password = ""
-        confirmPassword = ""
-        rejectionReason = ""
-        errorMessage = null
+                donationsEData = DonationsEData(
+                    id = document.id,
+                    parqueDonado = document.getString("parque_donado") ?: "",
+                    fecha = fechaConvertida ?: "",
+                    ubicacion = document.getString("ubicacion") ?: "",
+                    imagenes = document.get("imagenes") as? List<String> ?: emptyList(),
+                    donanteNombre = document.getString("donante_nombre") ?: "",
+                    donanteContacto = document.getString("donante_contacto") ?: "",
+                    registroEstado = document.getString("registro_estado") ?: "",
+                    cantidad = document.getString("cantidad") ?: "",
+                    recurso = document.getString("recurso") ?: "",
+                    condicion = document.getString("condicion") ?: ""
+                )
+                isLoading = false
+            }
+            .addOnFailureListener {
+                isLoading = false
+            }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        MainAppBar()
+    if (isLoading) {
+        Text("Cargando...") // Mostrar un indicador de carga mientras se obtienen los datos
+    } else if (donationsEData != null) {
+        val fechaFormateada = donationsEData!!.fecha.replace("-", "/")
+        val cantidadFormateado = if (donationsEData!!.cantidad == "1") "1 pieza" else "${donationsEData!!.cantidad} piezas"
 
-        // Barra inferior "Donaciones en Especie"
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Atrás"
+        var showAcceptDialog by remember { mutableStateOf(false) }
+        var showRejectDialog by remember { mutableStateOf(false) }
+        var showSuccessDialog by remember { mutableStateOf(false) }
+        var successMessage by remember { mutableStateOf("") }
+
+        // Estados para los campos de formulario
+        var password by remember { mutableStateOf("") }
+        var confirmPassword by remember { mutableStateOf("") }
+        var rejectionReason by remember { mutableStateOf("") }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
+
+        // Estados para almacenar las selecciones
+        var selectedEstadoActual by remember { mutableStateOf(donationsEData!!.registroEstado) }
+
+        fun resetDialogStates() {
+            password = ""
+            confirmPassword = ""
+            rejectionReason = ""
+            errorMessage = null
+        }
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            MainAppBar()
+
+            // Barra inferior "Donaciones en Especie"
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Atrás"
+                    )
+                }
+                Spacer(modifier = Modifier.padding(10.dp))
+                Text(
+                    text = "Donaciones en Especie",
+                    style = TextStyle(
+                        fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF78B153)
+                    )
                 )
+                Spacer(modifier = Modifier.weight(1f))
             }
-            Spacer(modifier = Modifier.padding(10.dp))
-            Text(
-                text = "Donaciones en Especie",
-                style = TextStyle(
-                    fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF78B153)
-                )
+
+            titulos(
+                titulo = "Donado por"
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            detallesDonante(nombre = donationsEData!!.donanteNombre, numero = donationsEData!!.donanteContacto)
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            parqueTitulo(Parque = donationsEData!!.parqueDonado)
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            textos(texto = donationsEData!!.ubicacion)
+            Spacer(modifier = Modifier.height(11.dp))
+
+            titulos(titulo = "Recurso a donar")
+            Spacer(modifier = Modifier.height(7.dp))
+
+            textos(texto = donationsEData!!.recurso)
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            titulos(titulo = "Cantidad")
+            Spacer(modifier = Modifier.height(7.dp))
+
+            textos(texto = cantidadFormateado)
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            titulos(titulo = "Condicion del recurso")
+            Spacer(modifier = Modifier.height(7.dp))
+
+            textos(texto = if (donationsEData!!.condicion.isNullOrEmpty()) "Desconocida" else donationsEData!!.condicion)
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            titulos(titulo = "Fecha estimada de de entrega")
+            Spacer(modifier = Modifier.height(7.dp))
+
+            textos(texto = fechaFormateada)
+
             Spacer(modifier = Modifier.weight(1f))
-        }
-
-        titulos(
-            titulo = "Donado por"
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        detallesDonante(nombre = donante, numero = telefono)
-
-        Spacer(modifier = Modifier.height(7.dp))
-
-        parqueTitulo(Parque = parque)
-
-        Spacer(modifier = Modifier.height(7.dp))
-
-        textos(texto = ubicacion)
-        Spacer(modifier = Modifier.height(11.dp))
-
-        titulos(titulo = "Recurso a donar")
-        Spacer(modifier = Modifier.height(7.dp))
-
-        textos(texto = recurso)
-
-        Spacer(modifier = Modifier.height(7.dp))
-
-        titulos(titulo = "Cantidad")
-        Spacer(modifier = Modifier.height(7.dp))
-
-        textos(texto = cantidadFormateado)
-
-        Spacer(modifier = Modifier.height(7.dp))
-
-        titulos(titulo = "Condicion del recurso")
-        Spacer(modifier = Modifier.height(7.dp))
-
-        textos(texto = if (condicion.isNullOrEmpty()) "Desconocida" else condicion)
-
-
-        Spacer(modifier = Modifier.height(7.dp))
-
-        titulos(titulo = "Fecha estimada de de entrega")
-        Spacer(modifier = Modifier.height(7.dp))
-
-        textos(texto = fechaFormateada)
-
-
-
-        Spacer(modifier = Modifier.weight(1f))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(
-                onClick = { showRejectDialog = true },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = verde
-                ),
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, verde)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text("Rechazar parque")
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Botón Aceptar
-            Button(
-                onClick = { showAcceptDialog = true },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = verde,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Aceptar parque")
-            }
-        }
-        Spacer(modifier = Modifier.weight(1f))
-
-    }
-
-    if (showAcceptDialog) {
-        DonationAcceptDialog(
-            parque = donationsEData.parqueDonado,
-            recurso = donationsEData.recurso,
-            onAccept = { password ->
-                acceptDonation(donationId = donationsEData.id, password) { success, message ->
-                    if (success) {
-                        successMessage = "Donación aprobada exitosamente"
-                        showSuccessDialog = true
-                        showAcceptDialog = false
-                    } else {
-                        errorMessage = message
-                    }
-                }
-            },
-            onDismiss = { showAcceptDialog = false }
-        )
-    }
-
-    if (showRejectDialog) {
-        DonationRejectDialog(
-            parque = donationsEData.parqueDonado,
-            recurso = donationsEData.recurso,
-            onReject = { reason, password ->
-                rejectDonation(donationId = donationsEData.id, password) { success, message ->
-                    if (success) {
-                        successMessage = "Donación rechazado exitosamente"
-                        showSuccessDialog = true
-                        showRejectDialog = false
-                    } else {
-                        errorMessage = message
-                    }
-                }
-            },
-            onDismiss = { showRejectDialog = false }
-        )
-    }
-
-    if (showSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                showSuccessDialog = false
-                navController.popBackStack()
-            },
-            containerColor = Color.White,
-            title = { Text("Éxito") },
-            text = { Text(successMessage) },
-            confirmButton = {
                 Button(
-                    onClick = {
-                        showSuccessDialog = false
-                        navController.popBackStack()
-                    },
+                    onClick = { showRejectDialog = true },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = verde
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, verde)
+                ) {
+                    Text("Rechazar parque")
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Botón Aceptar
+                Button(
+                    onClick = { showAcceptDialog = true },
+                    modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = verde,
                         contentColor = Color.White
-                    )
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(
-                        text = "Aceptar"
-                    )
+                    Text("Aceptar parque")
                 }
             }
-        )
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        if (showAcceptDialog) {
+            DonationAcceptDialog(
+                parque = donationsEData!!.parqueDonado,
+                recurso = donationsEData!!.recurso,
+                onAccept = { password ->
+                    acceptDonation(donationId = donationsEData!!.id, password) { success, message ->
+                        if (success) {
+                            successMessage = "Donación aprobada exitosamente"
+                            showSuccessDialog = true
+                            showAcceptDialog = false
+                        } else {
+                            errorMessage = message
+                        }
+                    }
+                },
+                onDismiss = { showAcceptDialog = false }
+            )
+        }
+
+        if (showRejectDialog) {
+            DonationRejectDialog(
+                parque = donationsEData!!.parqueDonado,
+                recurso = donationsEData!!.recurso,
+                onReject = { reason, password ->
+                    rejectDonation(donationId = donationsEData!!.id, password) { success, message ->
+                        if (success) {
+                            successMessage = "Donación rechazado exitosamente"
+                            showSuccessDialog = true
+                            showRejectDialog = false
+                        } else {
+                            errorMessage = message
+                        }
+                    }
+                },
+                onDismiss = { showRejectDialog = false }
+            )
+        }
+
+        if (showSuccessDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showSuccessDialog = false
+                    navController.popBackStack()
+                },
+                containerColor = Color.White,
+                title = { Text("Éxito") },
+                text = { Text(successMessage) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showSuccessDialog = false
+                            navController.popBackStack()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = verde,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            text = "Aceptar"
+                        )
+                    }
+                }
+            )
+        }
+    } else {
+        Text("Error al cargar los datos de la donación.")
     }
 }
-
-
 
 @Composable
 fun parqueTitulo(Parque: String) {
