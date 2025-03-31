@@ -45,13 +45,14 @@ fun SlideInFilterPanel(
     isVisible: Boolean,
     onDismiss: () -> Unit,
     onApply: (Map<String, String>) -> Unit,
+    initialSort: String = "",
+    initialStatus: String = "",
     modifier: Modifier = Modifier
 ) {
-    var selectedSort by remember { mutableStateOf("A-Z") }
-    var selectedStatus by remember { mutableStateOf("") }
+    var selectedSort by remember { mutableStateOf(initialSort) }
+    var selectedStatus by remember { mutableStateOf(initialStatus) }
 
     // Definir colores
-    val verde = Color(0xFF79B45D)
     val gris = Color(0xFFEAEAEA)
 
     // Estado para la animación
@@ -60,6 +61,11 @@ fun SlideInFilterPanel(
     // Actualizar el estado visible basado en el prop isVisible
     LaunchedEffect(isVisible) {
         visibleState.targetState = isVisible
+    }
+
+    LaunchedEffect(initialSort, initialStatus) {
+        selectedSort = initialSort
+        selectedStatus = initialStatus
     }
 
     // Un Box para cubrir toda la pantalla cuando el panel está abierto
@@ -75,13 +81,7 @@ fun SlideInFilterPanel(
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.4f))
                     .zIndex(10f)
-                    .run {
-                        if (visibleState.targetState) {
-                            this.clickable(onClick = onDismiss)
-                        } else {
-                            this
-                        }
-                    }
+                    .clickable(onClick = onDismiss)
             )
 
             // Panel deslizante de filtros
@@ -234,7 +234,7 @@ fun SlideInFilterPanel(
                             ) {
                                 OutlinedButton(
                                     onClick = {
-                                        selectedSort = "A-Z"
+                                        selectedSort = ""
                                         selectedStatus = ""
                                     },
                                     modifier = Modifier.weight(1f),

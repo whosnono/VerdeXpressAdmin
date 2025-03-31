@@ -2,6 +2,7 @@ package com.example.parks.data
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -102,3 +103,5 @@ data class ParkDataA(
     var comAd: String,
     var razonCierre: String
 )
+
+val LocalBottomBarState = compositionLocalOf { mutableStateOf(true) }

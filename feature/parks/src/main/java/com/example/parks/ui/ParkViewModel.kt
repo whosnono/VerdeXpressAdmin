@@ -1,10 +1,13 @@
 package com.example.parks.ui
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
 import com.example.parks.data.GetParksApproved
 import com.example.parks.data.GetParksNew
 import com.example.parks.data.ParkData
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 class ParkViewModel : ViewModel() {
 
@@ -21,11 +24,22 @@ class ParkViewModel : ViewModel() {
         fetchNewParks()
     }
 
+    // En ParkViewModel.kt
+    private val _currentFilters = mutableStateOf(emptyMap<String, String>())
+    val currentFilters: State<Map<String, String>> = _currentFilters
+
+    // Función para establecer nuevos filtros
+    fun setFilters(filters: Map<String, String>) {
+        _currentFilters.value = filters
+        applyFilters(filters)
+    }
+
     fun fetchApprovedParks() {
         getParksApproved.getParks(
             onSuccess = { parks ->
                 originalApprovedParks = parks
                 parksList.value = parks
+                applyFilters(_currentFilters.value)
             },
             onFailure = { exception ->
                 println("Error getting approved parks: $exception")
@@ -38,6 +52,7 @@ class ParkViewModel : ViewModel() {
             onSuccess = { parks ->
                 originalNewParks = parks
                 newParksList.value = parks
+                applyFilters(_currentFilters.value)
             },
             onFailure = { exception ->
                 println("Error getting new parks: $exception")

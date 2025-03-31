@@ -20,7 +20,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +43,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.design.MainAppBar
 import com.example.design.R
+import com.example.parks.data.LocalBottomBarState
 
 val SFProDisplayBold = FontFamily(Font(R.font.sf_pro_display_bold))
 val SFProDisplayM = FontFamily(Font(R.font.sf_pro_display_medium))
@@ -48,22 +51,28 @@ val RobotoBold = FontFamily(Font(R.font.roboto_bold))
 val verde = Color(0xFF78B153)
 
 @Composable
-fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavController, showContent: Boolean = true) {
+fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavController) {
 
     var showFilterDialog by remember { mutableStateOf(false) }
+    val showBottomBar = LocalBottomBarState.current
 
-    val filters by navController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getStateFlow<Map<String, String>?>("filters", null)
-        ?.collectAsState() ?: remember { mutableStateOf(null) }
+    val currentFilters by viewModel.currentFilters
 
     LaunchedEffect(Unit) {
         viewModel.fetchApprovedParks()
         viewModel.fetchNewParks()
+        if (currentFilters.isNotEmpty()) {
+            viewModel.applyFilters(currentFilters)
+        }
     }
 
-    LaunchedEffect(filters) {
-        filters?.let { viewModel.applyFilters(it) }
+    LaunchedEffect(currentFilters) {
+        currentFilters?.let { viewModel.applyFilters(it) }
+    }
+
+    LaunchedEffect(showFilterDialog) {
+        // Es importante usar el backStackEntry correcto
+        showBottomBar.value = !showFilterDialog
     }
 
     val parksApproved = viewModel.parksList.value
@@ -86,18 +95,16 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
                             fontSize = 25.sp,
                             modifier = Modifier.padding(horizontal = 24.dp)
                         )
-                        if (showContent) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_filter),
-                                contentDescription = "Filter",
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .padding(end = 16.dp)
-                                    .clickable {
-                                        showFilterDialog = true
-                                    }
-                            )
-                        }
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_filter),
+                            contentDescription = "Filter",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 16.dp)
+                                .clickable {
+                                    showFilterDialog = true
+                                }
+                        )
                     }
                 }
 
@@ -197,23 +204,17 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
             }
         }
     }
-    if (!showContent) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Transparent)
-        )
-    }
 
     if (showFilterDialog) {
         SlideInFilterPanel(
-            isVisible = showFilterDialog,
+            isVisible = true,
             onDismiss = { showFilterDialog = false },
             onApply = { filters ->
-                navController.currentBackStackEntry
-                    ?.savedStateHandle
-                    ?.set("filters", filters)
-            }
+                viewModel.setFilters(filters)
+                showFilterDialog = false
+            },
+            initialSort = currentFilters["sort"] ?: "",
+            initialStatus = currentFilters["status"] ?: ""
         )
     }
 }
