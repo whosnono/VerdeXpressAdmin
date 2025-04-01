@@ -95,6 +95,5 @@ data class DonationsEData(
     val donanteNombre: String,
     val donanteContacto: String,
     val registroEstado: String,
-    val recurso: String,
-
+    val recurso: String
 )

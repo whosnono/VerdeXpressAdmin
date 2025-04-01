@@ -47,7 +47,7 @@ fun rejectDonation(
 
         val db = FirebaseFirestore.getInstance()
         val updates = hashMapOf<String, Any>(
-            "registro_estado" to "Rechazada" // Puede ser "Aprobada" o "Rechazada"
+            "registro_estado" to "Rechazada"
         )
 
         db.collection("donaciones_especie")
@@ -77,5 +77,3 @@ private fun verifyAdminPassword(
         onResult(task.isSuccessful)
     }
 }
-
-
