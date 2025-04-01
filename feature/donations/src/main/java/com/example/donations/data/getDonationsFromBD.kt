@@ -83,7 +83,6 @@ fun getDonacionesEspecieFromFirebase(onSuccess: (List<DonationsEData>) -> Unit) 
         }
 }
 
-
 data class DonationsEData(
     val id: String,
     val cantidad: String,

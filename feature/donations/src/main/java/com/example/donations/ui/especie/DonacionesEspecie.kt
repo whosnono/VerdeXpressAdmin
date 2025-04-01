@@ -156,6 +156,7 @@ fun DonacionesCuadro(
     val borderColor = if (isPendiente) Color(0xFF78B153) else Color.DarkGray
     val statusText = if (isPendiente) "En revisión" else status
 
+
     Box(
         modifier = Modifier
             .fillMaxWidth()

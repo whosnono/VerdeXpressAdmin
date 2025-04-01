@@ -72,6 +72,7 @@ fun DonationsScreen(navController: NavController) {
         }
     }
 
+
     Scaffold(
         topBar = { MainAppBar() }
     ) { paddingValues ->
