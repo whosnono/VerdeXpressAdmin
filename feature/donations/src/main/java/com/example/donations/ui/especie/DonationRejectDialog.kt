@@ -5,8 +5,10 @@ import com.example.parks.ui.verde
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -48,6 +51,7 @@ fun DonationRejectDialog(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showAlertDialog by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -185,49 +189,80 @@ fun DonationRejectDialog(
                         )
                     }
 
-                    // Error Message
-                    errorMessage?.let {
-                        Text(
-                            text = it,
-                            color = Color.Red,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-
                     // Reject Button
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            when {
-                                rejectionReason.isEmpty() -> {
-                                    errorMessage = "Por favor ingrese una razón"
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.fillMaxWidth()
+                    ){
+                        Button(
+                            onClick = { onDismiss() },
+                            modifier = Modifier
+                                .width(130.dp)
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Gray
+                            ),
+                            shape = RoundedCornerShape(5.dp)
+                        ) {
+                            Text(
+                                text = "Cancelar",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontFamily = SFProDisplayBold
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                when {
+                                    rejectionReason.isEmpty() -> {
+                                        errorMessage = "Por favor ingrese una razón"
+                                        showAlertDialog = true
+                                    }
+                                    password.isEmpty() -> {
+                                        errorMessage = "Por favor ingrese su contraseña"
+                                        showAlertDialog = true
+                                    }
+                                    else -> {
+                                        onReject(rejectionReason, password)
+                                        rejectionReason = ""
+                                        password = ""
+                                        errorMessage = null
+                                        onDismiss()
+                                    }
                                 }
-                                password.isEmpty() -> {
-                                    errorMessage = "Por favor ingrese su contraseña"
-                                }
-                                else -> {
-                                    onReject(rejectionReason, password)
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .width(175.dp)
-                            .height(50.dp)
-                            .align(Alignment.CenterHorizontally),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = verde
-                        ),
-                        shape = RoundedCornerShape(5.dp)
-                    ) {
-                        Text(
-                            text = "Aceptar",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontFamily = SFProDisplayBold
-                        )
+                            },
+                            modifier = Modifier
+                                .width(130.dp)
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = verde
+                            ),
+                            shape = RoundedCornerShape(5.dp)
+                        ) {
+                            Text(
+                                text = "Aceptar",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontFamily = SFProDisplayBold
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+    if (showAlertDialog){
+        AlertDialog(
+            onDismissRequest = { showAlertDialog = false },
+            title = { Text("Error") },
+            text = { Text(errorMessage ?: "Error desconocido") },
+            confirmButton = {
+                Button(onClick = { showAlertDialog = false }) {
+                    Text("Aceptar")
+                }
+            }
+        )
     }
 }

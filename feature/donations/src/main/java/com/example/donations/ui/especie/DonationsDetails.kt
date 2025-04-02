@@ -93,7 +93,8 @@ fun DonationsDetails(
                     registroEstado = document.getString("registro_estado") ?: "",
                     cantidad = document.getString("cantidad") ?: "",
                     recurso = document.getString("recurso") ?: "",
-                    condicion = document.getString("condicion") ?: ""
+                    condicion = document.getString("condicion") ?: "",
+                    razonRechazo = document.getString("razon_rechazo")
                 )
                 isLoading = false
             }
@@ -105,7 +106,7 @@ fun DonationsDetails(
     if (isLoading) {
         Text("Cargando...")
     } else if (donationsEData != null) {
-        val fechaFormateada = donationsEData!!.fecha.replace("-", "/")
+        val fechaConvertida = donationsEData!!.fecha.replace("-", "/")
         val cantidadFormateado = if (donationsEData!!.cantidad == "1") "1 pieza" else "${donationsEData!!.cantidad} piezas"
 
         var showAcceptDialog by remember { mutableStateOf(false) }
@@ -178,11 +179,11 @@ fun DonationsDetails(
             Spacer(modifier = Modifier.height(7.dp))
             titulos(titulo = "Condicion del recurso")
             Spacer(modifier = Modifier.height(7.dp))
-            textos(texto = if (donationsEData!!.condicion.isNullOrEmpty()) "Desconocida" else donationsEData!!.condicion)
+            condicion(condition = if (donationsEData!!.condicion.isNullOrEmpty()) "Desconocida" else donationsEData!!.condicion)
             Spacer(modifier = Modifier.height(7.dp))
             titulos(titulo = "Fecha estimada de de entrega")
             Spacer(modifier = Modifier.height(7.dp))
-            textos(texto = fechaFormateada)
+            textos(texto = fechaConvertida)
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -235,15 +236,23 @@ fun DonationsDetails(
                     textoEstado(
                         EstadoDonacion = "Donación rechazada"
                     )
-                    Spacer(modifier = Modifier.width(2.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     textRazones(
                         tr = "Razón"
                     )
-                    Spacer(modifier = Modifier.width(15.dp))
-                    razonCuadro(
-                        reason = ""
-                    )
+                    Spacer(modifier = Modifier.height(10.dp))
 
+                    if (!donationsEData!!.razonRechazo.isNullOrEmpty()) {
+                        razonCuadro(
+                            reason = donationsEData!!.razonRechazo!!
+                        )
+                    } else {
+                        Text(
+                            text = "Razón no especificada",
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = Color.Gray
+                        )
+                    }
 
                 }
                 else -> {
@@ -262,31 +271,14 @@ fun DonationsDetails(
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        if (showAcceptDialog) {
-            DonationAcceptDialog(
-                parque = donationsEData!!.parqueDonado,
-                recurso = donationsEData!!.recurso,
-                onAccept = { password ->
-                    acceptDonation(donationId = donationsEData!!.id, password) { success, message ->
-                        if (success) {
-                            successMessage = "Donación aprobada exitosamente"
-                            showSuccessDialog = true
-                            showAcceptDialog = false
-                        } else {
-                            errorMessage = message
-                        }
-                    }
-                },
-                onDismiss = { showAcceptDialog = false }
-            )
-        }
-
         if (showRejectDialog) {
             DonationRejectDialog(
                 parque = donationsEData!!.parqueDonado,
                 recurso = donationsEData!!.recurso,
                 onReject = { reason, password ->
-                    rejectDonation(donationId = donationsEData!!.id, password) { success, message ->
+                    Log.d("DonationsDetails", "Rejecting donation: donationId=${donationsEData!!.id}, reason=$reason, password=$password")
+                    rejectDonation(donationId = donationsEData!!.id, password, reason) { success, message ->
+                        Log.d("DonationsDetails", "Reject donation result: success=$success, message=$message")
                         if (success) {
                             successMessage = "Donación rechazada exitosamente"
                             showSuccessDialog = true
@@ -297,6 +289,27 @@ fun DonationsDetails(
                     }
                 },
                 onDismiss = { showRejectDialog = false }
+            )
+        }
+
+        if (showAcceptDialog) {
+            DonationAcceptDialog(
+                parque = donationsEData!!.parqueDonado,
+                recurso = donationsEData!!.recurso,
+                onAccept = { password ->
+                    Log.d("DonationsDetails", "Accepting donation: donationId=${donationsEData!!.id}, password=$password")
+                    acceptDonation(donationId = donationsEData!!.id, password) { success, message ->
+                        Log.d("DonationsDetails", "Accept donation result: success=$success, message=$message")
+                        if (success) {
+                            successMessage = "Donación aprobada exitosamente"
+                            showSuccessDialog = true
+                            showAcceptDialog = false
+                        } else {
+                            errorMessage = message
+                        }
+                    }
+                },
+                onDismiss = { showAcceptDialog = false }
             )
         }
 
@@ -366,6 +379,23 @@ fun titulos(titulo: String) {
 }
 
 @Composable
+fun condicion(condition: String) {
+    Text(
+        text = condition,
+        modifier = Modifier.padding(horizontal = 16.dp),
+        style = TextStyle(
+            fontSize = 20.sp,
+            lineHeight = 20.sp,
+            fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+            fontWeight = FontWeight(700),
+            color = Color(0xFF78B153),
+            letterSpacing = 0.25.sp,
+        )
+    )
+}
+
+
+@Composable
 fun textos(texto: String) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
@@ -387,7 +417,7 @@ fun textRazones(tr: String) {
         Text(
             text = tr,
             style = TextStyle(
-                fontSize = 10.sp,
+                fontSize = 14.sp,
                 fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
                 fontWeight = FontWeight(500),
                 color = Color(0xFF565656),

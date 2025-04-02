@@ -72,7 +72,8 @@ fun getDonacionesEspecieFromFirebase(onSuccess: (List<DonationsEData>) -> Unit) 
                     registroEstado = document.getString("registro_estado") ?: "",
                     cantidad = document.getString("cantidad") ?: "",
                     recurso = document.getString("recurso") ?: "",
-                    condicion = document.getString("condicion") ?: ""
+                    condicion = document.getString("condicion") ?: "",
+                    razonRechazo = document.getString("razon_rechazo")
                 )
             }
             onSuccess(donacionesList)
@@ -94,5 +95,6 @@ data class DonationsEData(
     val donanteNombre: String,
     val donanteContacto: String,
     val registroEstado: String,
-    val recurso: String
+    val recurso: String,
+    val razonRechazo: String? = null //Null ya que este campo no aparece en todas las donaciones, solo en las que han sido rechazadas
 )

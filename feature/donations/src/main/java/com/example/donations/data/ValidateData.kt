@@ -1,6 +1,7 @@
 package com.example.donations.data
 
 
+import android.util.Log
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,8 +38,10 @@ fun acceptDonation(
 fun rejectDonation(
     donationId: String,
     password: String,
+    reason: String,
     onComplete: (Boolean, String?) -> Unit
 ) {
+    Log.d("RejectDonation", "donationId: $donationId, reason: $reason")
     verifyAdminPassword(password) { isValid ->
         if (!isValid) {
             onComplete(false, "Contraseña de administrador incorrecta")
@@ -47,16 +50,20 @@ fun rejectDonation(
 
         val db = FirebaseFirestore.getInstance()
         val updates = hashMapOf<String, Any>(
-            "registro_estado" to "Rechazada"
+            "registro_estado" to "Rechazada",
+            "razon_rechazo" to reason
         )
+        Log.d("RejectDonation", "updates: $updates") // Agregar esta linea.
 
         db.collection("donaciones_especie")
             .document(donationId)
             .update(updates)
             .addOnSuccessListener {
+                Log.d("RejectDonation", "Donation rejected successfully")
                 onComplete(true, null) // Éxito
             }
             .addOnFailureListener { e ->
+                Log.e("RejectDonation", "Error rejecting donation: ${e.message}")
                 onComplete(false, "Error al actualizar: ${e.message}")
             }
     }
