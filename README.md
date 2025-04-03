@@ -1,7 +1,7 @@
 
-# 🌳 VerdeXpress
+# 🌳 VerdeXpressAdmin
 
-VerdeXpress es una plataforma diseñada para impulsar la conservación de áreas verdes en Hermosillo. A través de la app, las personas y empresas podrán realizar donaciones en especie o monetarias para apoyar el mantenimiento de parques y jardines, además de monitorear el progreso y las mejoras realizadas en cada parque, fomentando la transparencia y el compromiso con el medio ambiente.
+VerdeXpressAdmin es la herramienta de gestión para la plataforma VerdeXpress, diseñada para facilitar la administración de donaciones y el seguimiento del mantenimiento de áreas verdes en Hermosillo. A través de esta app, los administradores pueden aceptar y registrar donaciones en especie o monetarias, gestionar el estado de los parques, documentar avances y coordinar mejoras. Además, permite mantener una comunicación transparente con los donantes y la comunidad, asegurando un uso eficiente de los recursos destinados a la conservación del medio ambiente.
 ## 🛠 Tecnologías
 
 **Entorno de desarrollo:** Android Studio
@@ -26,7 +26,7 @@ VerdeXpress es una plataforma diseñada para impulsar la conservación de áreas
 
 2. Selecciona **Clone Repository** en la pantalla de inicio.
 
-3. En el campo **URL**, pega el enlace del proyecto (https://github.com/tokwyoo/VerdeXpress).
+3. En el campo **URL**, pega el enlace del proyecto (https://github.com/whosnono/VerdeXpressAdmin).
 
 4. Android Studio descargará el proyecto automáticamente y lo abrirá en el IDE.
 
