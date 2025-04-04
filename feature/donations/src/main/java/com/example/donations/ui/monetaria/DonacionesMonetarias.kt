@@ -136,7 +136,7 @@ fun DonacionesMonetarias(navController: NavController) {
         ) {
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "Reciente",
+                text = "Recientes",
                 style = recienteTextStyle,
                 modifier = Modifier.clickable {
                     filtroActivo = "Reciente"
