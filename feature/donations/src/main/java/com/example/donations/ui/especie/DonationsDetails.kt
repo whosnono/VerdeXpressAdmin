@@ -55,7 +55,7 @@ fun DonationsDetails(
     navController: NavController,
     donationId: String
 ) {
-    var donationsEData by remember { mutableStateOf<DonationsEData?>(null) }
+    var donationsEData by remember { mutableStateOf<DonationsEData?>(null) } //Para recibir los datos necesarios de la base de datos (getDonationsFromBD)
     var isLoading by remember { mutableStateOf(true) }
 
 
@@ -68,7 +68,7 @@ fun DonationsDetails(
                 val fechaEstimada = document.getString("fecha_estimada_donacion")
                     ?: document.getString("estimatedDonationDate")
 
-                val fechaConvertida = fechaEstimada?.let { fechaStr ->
+                val fechaConvertida = fechaEstimada?.let { fechaStr -> //Para evitar crasheos o que no se muestre la fecha debido a como está escrita, se dividen las tres partes de la fecha (año, mes y día) y después se reescriben con el formato normal
                     try {
                         val partes = fechaStr.split("/")
                         if (partes.size == 3) {
@@ -82,7 +82,7 @@ fun DonationsDetails(
                     }
                 }
 
-                donationsEData = DonationsEData(
+                donationsEData = DonationsEData( //Los datos que se deben mostrar en la ventana de detalles (Falta integrar las imagenes)
                     id = document.id,
                     parqueDonado = document.getString("parque_donado") ?: "",
                     fecha = fechaConvertida ?: "",
@@ -94,7 +94,7 @@ fun DonationsDetails(
                     cantidad = document.getString("cantidad") ?: "",
                     recurso = document.getString("recurso") ?: "",
                     condicion = document.getString("condicion") ?: "",
-                    razonRechazo = document.getString("razon_rechazo")
+                    razonRechazo = document.getString("razon_rechazo") //No todas las donaciones lo tienen por eso es diferente a las demas, no es un campo que a fuerza se deba mostrar
                 )
                 isLoading = false
             }
@@ -106,11 +106,11 @@ fun DonationsDetails(
     if (isLoading) {
         Text("Cargando...")
     } else if (donationsEData != null) {
-        val fechaConvertida = donationsEData!!.fecha.replace("-", "/")
-        val cantidadFormateado = if (donationsEData!!.cantidad == "1") "1 pieza" else "${donationsEData!!.cantidad} piezas"
+        val fechaConvertida = donationsEData!!.fecha.replace("-", "/") //Para que la fecha tenga un formato "año/mes/día"
+        val cantidadFormateado = if (donationsEData!!.cantidad == "1") "1 pieza" else "${donationsEData!!.cantidad} piezas" //Para que detecte si se escribira en plural o no (basado en la cantidad de piezas)
 
-        var showAcceptDialog by remember { mutableStateOf(false) }
-        var showRejectDialog by remember { mutableStateOf(false) }
+        var showAcceptDialog by remember { mutableStateOf(false) } //Para mostrar el popup de Aprobar donaciones
+        var showRejectDialog by remember { mutableStateOf(false) } //Para mostrar el popup de Rechazar donaciones
         var showSuccessDialog by remember { mutableStateOf(false) }
         var successMessage by remember { mutableStateOf("") }
 
@@ -128,12 +128,13 @@ fun DonationsDetails(
             errorMessage = null
         }
 
-        Column(modifier = Modifier
+        Column(modifier = Modifier //Columna principal
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()) //Para poder scrollear hacia abajo de ser necesario
         ) {
             MainAppBar()
 
+            //Barra principal para donaciones en especie
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -161,6 +162,7 @@ fun DonationsDetails(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
+            //Detalles de la donación
             titulos(titulo = "Donado por")
             Spacer(modifier = Modifier.height(8.dp))
             detallesDonante(nombre = donationsEData!!.donanteNombre, numero = donationsEData!!.donanteContacto)
@@ -179,7 +181,7 @@ fun DonationsDetails(
             Spacer(modifier = Modifier.height(7.dp))
             titulos(titulo = "Condicion del recurso")
             Spacer(modifier = Modifier.height(7.dp))
-            condicion(condition = if (donationsEData!!.condicion.isNullOrEmpty()) "Desconocida" else donationsEData!!.condicion)
+            condicion(condition = if (donationsEData!!.condicion.isNullOrEmpty()) "Desconocida" else donationsEData!!.condicion) //En algunas donaciones este campo está vacío, cuando sea así, que muestre que la condición del recurso a donar es desconocida
             Spacer(modifier = Modifier.height(7.dp))
             titulos(titulo = "Fecha estimada de de entrega")
             Spacer(modifier = Modifier.height(7.dp))
@@ -187,6 +189,8 @@ fun DonationsDetails(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            //Cuando se detecte que el estado de la donación es "Pendiente" o "En revisión", mostrará la ventana de
+            //detalles con los botones para aprobar o rechazar la donación
             when (donationsEData!!.registroEstado.lowercase()) {
                 "pendiente" -> {
                     Column(
@@ -227,11 +231,17 @@ fun DonationsDetails(
                         }
                     }
                 }
+
+                //Cuando se detecta que el estado de la donación es "Aprobada", mostrará
+                //en vez de los botones el texto siguiente:
                 "aprobada" -> {
                     textoEstado(
                         EstadoDonacion = "Donación aprobada"
                     )
                 }
+
+                //Cuando se detecta que el estado de la donación es "Rechazada", muestra un
+                //texto de que fue rechazada, y un recuadro que contiene la razón que se dio para rechazar la donación
                 "rechazada" -> {
                     textoEstado(
                         EstadoDonacion = "Donación rechazada"
@@ -242,11 +252,11 @@ fun DonationsDetails(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    if (!donationsEData!!.razonRechazo.isNullOrEmpty()) {
+                    if (!donationsEData!!.razonRechazo.isNullOrEmpty()) { //Si la razón no está vacia, muestra lo que hay en el campo "razon_rechazo"
                         razonCuadro(
                             reason = donationsEData!!.razonRechazo!!
                         )
-                    } else {
+                    } else { //Si no encuentra nada (lo cuál no debería de pasar), muestra que no hubo una razón específica
                         Text(
                             text = "Razón no especificada",
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -255,7 +265,8 @@ fun DonationsDetails(
                     }
 
                 }
-                else -> {
+                else -> { //Si la aplicación no reconoce el estado registrado (tiene una palabra diferente a pendiente/aprobada/rechazada,
+                    // muestra lo siguiente
                     Text(
                         text = "Estado desconocido",
                         modifier = Modifier
@@ -271,7 +282,7 @@ fun DonationsDetails(
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        if (showRejectDialog) {
+        if (showRejectDialog) { //Abrir popup "DonationRejectDialog" y pasa el nombre del parque y recurso que se quieren rechazar
             DonationRejectDialog(
                 parque = donationsEData!!.parqueDonado,
                 recurso = donationsEData!!.recurso,
@@ -279,7 +290,7 @@ fun DonationsDetails(
                     Log.d("DonationsDetails", "Rejecting donation: donationId=${donationsEData!!.id}, reason=$reason, password=$password")
                     rejectDonation(donationId = donationsEData!!.id, password, reason) { success, message ->
                         Log.d("DonationsDetails", "Reject donation result: success=$success, message=$message")
-                        if (success) {
+                        if (success) { //Mensaje después que se rechazo exitosamente una donación
                             successMessage = "Donación rechazada exitosamente"
                             showSuccessDialog = true
                             showRejectDialog = false
@@ -292,7 +303,7 @@ fun DonationsDetails(
             )
         }
 
-        if (showAcceptDialog) {
+        if (showAcceptDialog) { //Abrir popup "DonationAcceptDialog" y pasa el nombre del parque y recurso que se quieren aprobar
             DonationAcceptDialog(
                 parque = donationsEData!!.parqueDonado,
                 recurso = donationsEData!!.recurso,
@@ -300,7 +311,7 @@ fun DonationsDetails(
                     Log.d("DonationsDetails", "Accepting donation: donationId=${donationsEData!!.id}, password=$password")
                     acceptDonation(donationId = donationsEData!!.id, password) { success, message ->
                         Log.d("DonationsDetails", "Accept donation result: success=$success, message=$message")
-                        if (success) {
+                        if (success) { //Mensaje después que se aprobo exitosamente una donación
                             successMessage = "Donación aprobada exitosamente"
                             showSuccessDialog = true
                             showAcceptDialog = false
@@ -313,7 +324,8 @@ fun DonationsDetails(
             )
         }
 
-        if (showSuccessDialog) {
+        if (showSuccessDialog) { //Al aprobar o rechazar una donación, se cierra el popup y se abre un mensaje de alerta que
+            //se realizaron los cambios
             AlertDialog(
                 onDismissRequest = {
                     showSuccessDialog = false

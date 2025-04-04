@@ -4,14 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn // Import LazyColumn
+import androidx.compose.foundation.lazy.items // Import items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,10 +38,7 @@ fun DonacionesEspecie(navController: NavController) {
         }
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         MainAppBar()
 
         Row(
@@ -112,12 +108,13 @@ fun DonacionesEspecie(navController: NavController) {
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp) // Espacio entre los items
         ) {
-            donaciones.forEach { donacion ->
+            items(donaciones) { donacion ->
                 DonacionesCuadro(
                     title = donacion.parqueDonado,
                     date = donacion.fecha,
@@ -132,7 +129,6 @@ fun DonacionesEspecie(navController: NavController) {
                         navController.navigate("DonationsDetails/${donacion.id}")
                     }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

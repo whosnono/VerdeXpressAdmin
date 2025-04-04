@@ -3,15 +3,21 @@ package com.example.donations.ui.monetaria
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +41,45 @@ import java.util.Locale
 @Composable
 fun DonacionesMonetarias(navController: NavController) {
     var donaciones by remember { mutableStateOf<List<DonacionItem>>(emptyList()) }
+    var ordenReciente by remember { mutableStateOf(true) } // Estado para el ordenamiento
+    var ordenMontoAscendente by remember { mutableStateOf(true) }
+    var filtroActivo by remember { mutableStateOf("") } //Detecta que tipo de sorteo se escogío, empieza vació para que todos los textos en la barra de filtros estén 'apagados' (en su color original)
+    var recienteTextStyle by remember {
+        mutableStateOf(
+            TextStyle(
+                fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (filtroActivo == "Reciente") Color(0xFF78B153) else Color(0xFF3F4946),
+                textDecoration = if (filtroActivo == "Reciente") TextDecoration.Underline else TextDecoration.None
+            )
+        )
+    }
+    var antiguasTextStyle by remember {
+        mutableStateOf(
+            TextStyle(
+                fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (filtroActivo == "Más antiguas") Color(0xFF78B153) else Color(0xFF3F4946),
+                textDecoration = if (filtroActivo == "Más antiguas") TextDecoration.Underline else TextDecoration.None
+            )
+        )
+    }
+    var montoTextStyle by remember {
+        mutableStateOf(
+            TextStyle(
+                fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (filtroActivo == "Monto") Color(0xFF78B153) else Color(0xFF3F4946),
+                textDecoration = if (filtroActivo == "Monto") TextDecoration.Underline else TextDecoration.None
+            )
+        )
+    }
+    var montoIcon by remember { mutableStateOf(Icons.Filled.KeyboardArrowUp) }
+
+
 
     LaunchedEffect(Unit) {
         getDonacionesMonetariaFromFirebase { items ->
@@ -42,7 +87,8 @@ fun DonacionesMonetarias(navController: NavController) {
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier
+        .fillMaxSize()) {
         MainAppBar()
 
         // Barra inferior "Donaciones en Especie"
@@ -91,35 +137,84 @@ fun DonacionesMonetarias(navController: NavController) {
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = "Reciente",
-                style = TextStyle(
-                    fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF3F4946)
-                )
+                style = recienteTextStyle,
+                modifier = Modifier.clickable {
+                    filtroActivo = "Reciente"
+                    ordenReciente = true
+                    ordenarDonaciones(donaciones, ordenReciente) { listaOrdenada ->
+                        donaciones = listaOrdenada
+                    }
+                    recienteTextStyle = recienteTextStyle.copy(
+                        color = Color(0xFF78B153),
+                        textDecoration = TextDecoration.Underline
+                    )
+                    antiguasTextStyle = antiguasTextStyle.copy(
+                        color = Color(0xFF3F4946),
+                        textDecoration = TextDecoration.None
+                    )
+                    montoTextStyle = montoTextStyle.copy(
+                        color = Color(0xFF3F4946),
+                        textDecoration = TextDecoration.None
+                    )
+                }
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = "Más antiguas",
-                style = TextStyle(
-                    fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF3F4946)
-                )
+                style = antiguasTextStyle,
+                modifier = Modifier.clickable {
+                    filtroActivo = "Más antiguas"
+                    ordenReciente = false
+                    ordenarDonaciones(donaciones, ordenReciente) { listaOrdenada ->
+                        donaciones = listaOrdenada
+                    }
+                    antiguasTextStyle = antiguasTextStyle.copy(
+                        color = Color(0xFF78B153),
+                        textDecoration = TextDecoration.Underline
+                    )
+                    recienteTextStyle = recienteTextStyle.copy(
+                        color = Color(0xFF3F4946),
+                        textDecoration = TextDecoration.None
+                    )
+                    montoTextStyle = montoTextStyle.copy(
+                        color = Color(0xFF3F4946),
+                        textDecoration = TextDecoration.None
+                    )
+                }
             )
             Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "Monto",
-                style = TextStyle(
-                    fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF3F4946)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    filtroActivo = "Monto"
+                    ordenMontoAscendente = !ordenMontoAscendente
+                    donaciones = ordenarDonacionesPorMonto(donaciones, ordenMontoAscendente)
+                    montoIcon = if (ordenMontoAscendente) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
+                    montoTextStyle = montoTextStyle.copy(
+                        color = Color(0xFF78B153),
+                        textDecoration = TextDecoration.Underline
+                    )
+                    recienteTextStyle = recienteTextStyle.copy(
+                        color = Color(0xFF3F4946),
+                        textDecoration = TextDecoration.None
+                    )
+                    antiguasTextStyle = antiguasTextStyle.copy(
+                        color = Color(0xFF3F4946),
+                        textDecoration = TextDecoration.None
+                    )
+                }
+            ) {
+                Text(
+                    text = "Monto",
+                    style = montoTextStyle
                 )
-            )
+                val montoA = filtroActivo.equals("Monto")
+                val flechaColor = if(montoA) Color(0xFF78B153) else Color(0xFF3F4946)
+                Icon(imageVector = montoIcon, contentDescription = "Ordenar por monto", tint = flechaColor)
+            }
             Spacer(modifier = Modifier.weight(1f))
         }
+
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -238,4 +333,37 @@ fun getDonacionesMonetariaFromFirebase(onSuccess: (List<DonacionItem>) -> Unit) 
 fun formatTimestamp(timestamp: Timestamp): String {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     return dateFormat.format(timestamp.toDate())
+}
+
+
+fun ordenarDonaciones(
+    donaciones: List<DonacionItem>,
+    ordenReciente: Boolean,
+    onOrdenado: (List<DonacionItem>) -> Unit
+) {
+    val listaOrdenada = donaciones.sortedWith(compareBy {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        try {
+            dateFormat.parse(it.fecha)
+        } catch (e: Exception) {
+            null // Manejar errores de formato de fecha
+        }
+    })
+
+    if (ordenReciente) {
+        onOrdenado(listaOrdenada) // Orden ascendente (horas más pequeñas primero)
+    } else {
+        onOrdenado(listaOrdenada.reversed()) // Orden descendente (horas más altas primero)
+    }
+}
+
+fun ordenarDonacionesPorMonto(
+    donaciones: List<DonacionItem>,
+    ordenAscendente: Boolean
+): List<DonacionItem> {
+    return if (ordenAscendente) {
+        donaciones.sortedBy { it.montoDonado.toInt() }
+    } else {
+        donaciones.sortedByDescending { it.montoDonado.toInt() }
+    }
 }
