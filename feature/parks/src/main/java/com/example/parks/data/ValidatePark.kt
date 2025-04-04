@@ -80,6 +80,47 @@ fun rejectPark(
     }
 }
 
+fun deletePark(
+    parkName: String,
+    confirmationText: String,
+    password: String,
+    onComplete: (Boolean, String?) -> Unit
+) {
+    // Verificar que el texto de confirmación sea correcto
+    if (confirmationText.lowercase() != "eliminar") {
+        onComplete(false, "Texto de confirmación incorrecto")
+        return
+    }
+
+    verifyAdminPassword(password) { isValid ->
+        if (!isValid) {
+            onComplete(false, "Contraseña de administrador incorrecta")
+            return@verifyAdminPassword
+        }
+
+        val db = FirebaseFirestore.getInstance()
+
+        db.collection("parques")
+            .whereEqualTo("nombre", parkName)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (querySnapshot.isEmpty) {
+                    onComplete(false, "Parque no encontrado")
+                    return@addOnSuccessListener
+                }
+
+                querySnapshot.documents.first().reference.delete()
+                    .addOnSuccessListener { onComplete(true, null) }
+                    .addOnFailureListener { e ->
+                        onComplete(false, "Error al eliminar: ${e.message}")
+                    }
+            }
+            .addOnFailureListener { e ->
+                onComplete(false, "Error al buscar parque: ${e.message}")
+            }
+    }
+}
+
 // Función para verificar contraseña de administrador (simplificada)
 private fun verifyAdminPassword(
     password: String,

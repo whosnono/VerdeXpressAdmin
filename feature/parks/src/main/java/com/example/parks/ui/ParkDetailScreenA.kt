@@ -29,7 +29,8 @@ import com.example.design.MainAppBar
 import com.example.parks.data.ImageUploadManager
 import com.example.parks.data.MapView
 import com.example.parks.data.ParkDataA
-import com.example.parks.data.ParkImageUploader
+import com.example.parks.data.ParkImageShow
+import com.example.parks.data.ParkProgressImagesUploader
 import com.example.parks.data.formatShortFirestoreDate
 import com.example.parks.data.getParkDetails
 import com.example.parks.data.rememberUserFullName
@@ -78,6 +79,7 @@ fun ParkDetailScreenA(parkName: String?, latitud: String? = null, longitud: Stri
 fun ParkDetailContent(park: ParkDataA, navController: NavController) {
     var showSuccessDialog by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     // Estados para controlar la expansión de los dropdowns
     var situacionExpanded by remember { mutableStateOf(false) }
     var estadoActualExpanded by remember { mutableStateOf(false) }
@@ -91,13 +93,16 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
     var selectedEstadoActual by remember { mutableStateOf(park.estado) }
     var isSaving by remember { mutableStateOf(false) }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
-    var newImageUrls by remember { mutableStateOf<List<String>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
+    var progressImages by remember { mutableStateOf<List<String>>(emptyList()) }
 
     // Listas de opciones para los dropdowns
     val situaciones = listOf("Recibiendo donaciones", "Financiación completada", "En desarrollo", "Mantenimiento requerido", "Inactivo")
     val estadosActuales = listOf("Excelente", "Buena", "Regular", "Deficiente", "Muy deficiente")
     val situacionesEditables = listOf("En desarrollo", "Mantenimiento requerido")
+
+    // Nuevo estado para imágenes marcadas para eliminación
+    var imagesMarkedForRemoval by remember { mutableStateOf<List<String>>(emptyList()) }
 
     fun saveAllChanges(
         parkName: String,
@@ -109,10 +114,12 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
         comNeed: String, // Añade este parámetro
         comAd: String,
         razonCierre: String,
+        imagesToRemove: List<String>,
         onComplete: (Boolean) -> Unit
     ) {
         // Verificar si hay cambios reales
         val hasChanges = newImageUris.isNotEmpty() ||
+                imagesToRemove.isNotEmpty() ||
                 selectedSituacion != currentParkSituacion ||
                 (situacionesEditables.contains(selectedSituacion) &&
                         selectedEstadoActual != currentParkEstado) ||
@@ -156,8 +163,15 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     val downloadUrls = imageUploadManager.uploadImages(newImageUris)
 
                     if (downloadUrls.isNotEmpty()) {
-                        val currentImages = document.get("imagenes") as? List<String> ?: emptyList()
-                        updates["imagenes"] = currentImages + downloadUrls
+                        if (selectedSituacion == "En desarrollo") {
+                            // Guardar en imágenes de avance
+                            val currentProgressImages = document.get("imagenes_avance") as? List<String> ?: emptyList()
+                            updates["imagenes_avance"] = currentProgressImages + downloadUrls
+                        } else {
+                            // Guardar en imágenes normales
+                            val currentImages = document.get("imagenes") as? List<String> ?: emptyList()
+                            updates["imagenes"] = currentImages + downloadUrls
+                        }
                     }
                 }
 
@@ -174,7 +188,13 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     updates["comentarios_ad"] = comAd
                 }
 
-                // 4. Aplicar actualizaciones si hay cambios
+                // 4. Eliminar imágenes marcadas para eliminación
+                if (imagesToRemove.isNotEmpty()) {
+                    val currentProgressImages = document.get("imagenes_avance") as? List<String> ?: emptyList()
+                    updates["imagenes_avance"] = currentProgressImages.filter { it !in imagesToRemove }
+                }
+
+                // 5. Aplicar actualizaciones si hay cambios
                 if (updates.isNotEmpty()) {
                     document.reference.update(updates).await()
                     onComplete(true)
@@ -187,6 +207,35 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
             }
         }
     }
+
+    fun removeSelectedImage(uri: Uri) {
+        selectedImageUris = selectedImageUris.filter { it != uri }
+    }
+
+    fun removeProgressImagesPermanently() {
+        coroutineScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val parkQuery = firestore.collection("parques")
+                    .whereEqualTo("nombre", park.nombre)
+                    .get()
+                    .await()
+
+                if (!parkQuery.isEmpty) {
+                    val document = parkQuery.documents[0]
+                    val currentImages = document.get("imagenes_avance") as? List<String> ?: emptyList()
+                    val updatedImages = currentImages.filter { it !in imagesMarkedForRemoval }
+
+                    document.reference.update("imagenes_avance", updatedImages).await()
+                    progressImages = updatedImages
+                    imagesMarkedForRemoval = emptyList() // Limpiar la lista después de eliminar
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 
     Column(
         modifier = Modifier
@@ -274,17 +323,8 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
 
             item {
                 // Componente de subida de imágenes modificado
-                ParkImageUploader(
-                    parkName = park.nombre,
-                    selectedImageUris = selectedImageUris,
-                    onImagesSelected = { uris ->
-                        selectedImageUris = uris
-                    },
-                    onImagesUploaded = { urls ->
-                        newImageUrls = urls
-                        selectedImageUris = emptyList() // Limpiar las URIs después de subir
-                    },
-                    situation = selectedSituacion
+                ParkImageShow(
+                    parkName = park.nombre
                 )
                 Spacer(modifier = Modifier.height(25.dp))
             }
@@ -583,6 +623,24 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+
+            if(selectedSituacion == "En desarrollo"){
+                item{
+                    ParkProgressImagesUploader(
+                        parkName = park.nombre,
+                        selectedImageUris = selectedImageUris,
+                        onImagesSelected = { uris -> selectedImageUris = uris },
+                        onImageRemoved = { uri -> selectedImageUris = selectedImageUris.filter { it != uri } },
+                        onProgressImageRemoved = { /* Ya no se usa directamente */ },
+                        onMarkImageForRemoval = { imageUrl ->
+                            imagesMarkedForRemoval = imagesMarkedForRemoval + imageUrl
+                        },
+                        imagesMarkedForRemoval = imagesMarkedForRemoval
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+
             // Comentarios
             item {
                 Text(
@@ -631,77 +689,100 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 }
             }
             item {
-                Button(
-                    onClick = {
-                        if (selectedImageUris.isEmpty() &&
-                            selectedSituacion == park.situacion &&
-                            selectedEstadoActual == park.estado &&
-                            (selectedSituacion != "Mantenimiento requerido" || comNeedState == park.comNeed) &&
-                            (selectedSituacion != "Inactivo" || razonCierreState == park.razonCierre)&&
-                            (selectedSituacion != "En desarrollo" || comAdState == park.comAd)) {
-                            navController.navigate("Parques")
-                        } else {
-                            isSaving = true
-                            coroutineScope.launch {
-                                saveAllChanges(
-                                    parkName = park.nombre,
-                                    newImageUris = selectedImageUris,
-                                    selectedSituacion = selectedSituacion,
-                                    selectedEstadoActual = selectedEstadoActual,
-                                    currentParkSituacion = park.situacion,
-                                    currentParkEstado = park.estado,
-                                    comNeed = comNeedState,
-                                    comAd = comAdState,
-                                    razonCierre = razonCierreState,
-                                    onComplete = { success ->
-                                        isSaving = false
-                                        if (success) {
-                                            selectedImageUris = emptyList()
-                                            showSuccessDialog = true
-                                            successMessage = "Los cambios se han guardado correctamente"
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    },
+                Row (
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                        .height(50.dp),
-                    enabled = !isSaving,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = verde,
-                        contentColor = Color.White
-                    )
+                        .padding(bottom = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    if (isSaving) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
+                    Button(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Red,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Eliminar parque", fontFamily = SFProDisplayBold, fontSize = 14.sp)
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = {
+                            if (imagesMarkedForRemoval.isNotEmpty()) {
+                                removeProgressImagesPermanently()
+                            }
+                            if (selectedImageUris.isEmpty() &&
+                                imagesMarkedForRemoval.isEmpty() &&
+                                selectedSituacion == park.situacion &&
+                                selectedEstadoActual == park.estado &&
+                                (selectedSituacion != "Mantenimiento requerido" || comNeedState == park.comNeed) &&
+                                (selectedSituacion != "Inactivo" || razonCierreState == park.razonCierre)&&
+                                (selectedSituacion != "En desarrollo" || comAdState == park.comAd)) {
+                                navController.navigate("Parques")
+                            } else {
+                                isSaving = true
+                                coroutineScope.launch {
+                                    saveAllChanges(
+                                        parkName = park.nombre,
+                                        newImageUris = selectedImageUris,
+                                        selectedSituacion = selectedSituacion,
+                                        selectedEstadoActual = selectedEstadoActual,
+                                        currentParkSituacion = park.situacion,
+                                        currentParkEstado = park.estado,
+                                        comNeed = comNeedState,
+                                        comAd = comAdState,
+                                        razonCierre = razonCierreState,
+                                        imagesToRemove = imagesMarkedForRemoval, //Pasar las imagenes a eliminar
+                                        onComplete = { success ->
+                                            isSaving = false
+                                            if (success) {
+                                                selectedImageUris = emptyList()
+                                                imagesMarkedForRemoval = emptyList()
+                                                showSuccessDialog = true
+                                                successMessage = "Los cambios se han guardado correctamente"
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isSaving,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = verde,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        if (isSaving) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Guardando...")
+                            }
+                        } else {
+                            Text(
+                                "Guardar cambios",
+                                fontFamily = SFProDisplayBold, fontSize = 14.sp
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Guardando...")
                         }
-                    } else {
-                        Text(
-                            "Guardar cambios",
-                            fontFamily = SFProDisplayBold
-                        )
                     }
                 }
-                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
-
+    // Mostrar el diálogo de éxito al guardar los cambios y al eliminar un parques
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = {
                 showSuccessDialog = false
                 navController.popBackStack()
+                navController.navigate("Parques") // Forzar recarga
             },
             containerColor = Color.White,
             title = { Text("Éxito") },
@@ -711,16 +792,30 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     onClick = {
                         showSuccessDialog = false
                         navController.popBackStack()
+                        navController.navigate("Parques") // Forzar recarga
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = verde,
                         contentColor = Color.White
                     )
                 ) {
-                    Text(
-                        text = "Aceptar"
-                    )
+                    Text("Aceptar")
                 }
+            }
+        )
+    }
+
+    // Mostrar el diálogo para eliminar un parque
+    if (showDeleteDialog) {
+        ParkDeleteDialog(
+            parkName = park.nombre,
+            onDelete = {
+                showDeleteDialog = false
+                successMessage = "El parque se ha eliminado correctamente"
+                showSuccessDialog = true
+            },
+            onDismiss = {
+                showDeleteDialog = false
             }
         )
     }
