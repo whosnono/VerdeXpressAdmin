@@ -4,11 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn // Import LazyColumn
-import androidx.compose.foundation.lazy.items // Import items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -33,7 +35,9 @@ import java.util.Locale
 
 @Composable
 fun DonacionesEspecie(navController: NavController) {
-    var donaciones by remember { mutableStateOf<List<DonationsEData>>(emptyList()) }
+    var donacionesOriginal by remember { mutableStateOf<List<DonationsEData>>(emptyList()) }
+    var donacionesFiltradas by remember { mutableStateOf<List<DonationsEData>>(emptyList()) }
+    var searchText by remember { mutableStateOf("") }
     var ordenReciente by remember { mutableStateOf(true) } // Estado para el ordenamiento
     var filtroActivo by remember { mutableStateOf("") } //Detecta que tipo de sorteo se escogío, empieza vació para que todos los textos en la barra de filtros estén 'apagados' (en su color original)
     var recienteTextStyle by remember {
@@ -61,8 +65,13 @@ fun DonacionesEspecie(navController: NavController) {
 
     LaunchedEffect(Unit) {
         getDonacionesEspecieFromFirebase { items ->
-            donaciones = items
+            donacionesOriginal = items
+            donacionesFiltradas = items // Inicialmente, mostrar todas las donaciones
         }
+    }
+
+    LaunchedEffect(searchText) {
+        donacionesFiltradas = filterDonacionesEspecie(searchText, donacionesOriginal)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -97,6 +106,43 @@ fun DonacionesEspecie(navController: NavController) {
 
         Row(
             Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            ) {
+                BasicTextField(
+                    value = searchText,
+                    onValueChange = { newText ->
+                        searchText = newText
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    textStyle = TextStyle(color = Color.Black),
+                    decorationBox = { innerTextField ->
+                        if (searchText.isEmpty()) {
+                            Text(
+                                "Buscar donación...",
+                                color = Color.Gray
+                            )
+                        }
+                        innerTextField()
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = Color.Gray)
+        }
+
+        Row(
+            Modifier
                 .width(412.dp)
                 .height(12.dp)
                 .background(color = Color(0xFFF5F6F7))
@@ -117,9 +163,8 @@ fun DonacionesEspecie(navController: NavController) {
                 modifier = Modifier.clickable {
                     filtroActivo = "Reciente"
                     ordenReciente = true
-                    ordenarDonaciones(donaciones, ordenReciente) { listaOrdenada ->
-                        donaciones = listaOrdenada
-                    }
+                    val listaOrdenada = ordenarDonacionesInternoEspecie(donacionesFiltradas, ordenReciente)
+                    donacionesFiltradas = listaOrdenada
                     recienteTextStyle = recienteTextStyle.copy(
                         color = Color(0xFF78B153),
                         textDecoration = TextDecoration.Underline
@@ -137,9 +182,8 @@ fun DonacionesEspecie(navController: NavController) {
                 modifier = Modifier.clickable {
                     filtroActivo = "Más antiguas"
                     ordenReciente = false
-                    ordenarDonaciones(donaciones, ordenReciente) { listaOrdenada ->
-                        donaciones = listaOrdenada
-                    }
+                    val listaOrdenada = ordenarDonacionesInternoEspecie(donacionesFiltradas, ordenReciente)
+                    donacionesFiltradas = listaOrdenada
                     antiguasTextStyle = antiguasTextStyle.copy(
                         color = Color(0xFF78B153),
                         textDecoration = TextDecoration.Underline
@@ -149,7 +193,7 @@ fun DonacionesEspecie(navController: NavController) {
                         textDecoration = TextDecoration.None
                     )
                 }
-                )
+            )
             Spacer(modifier = Modifier.weight(1f))
         }
 
@@ -159,9 +203,9 @@ fun DonacionesEspecie(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp) // Espacio entre los items
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(donaciones) { donacion ->
+            items(donacionesFiltradas) { donacion -> // Usamos la lista filtrada aquí
                 DonacionesCuadro(
                     title = donacion.parqueDonado,
                     date = donacion.fecha,
@@ -197,7 +241,7 @@ fun DonacionesCuadro(
     val isPendiente = status.equals("Pendiente", ignoreCase = true)
     val statusColor = if (isPendiente) Color(0xFF78B153) else Color.DarkGray
     val borderColor = if (isPendiente) Color(0xFF78B153) else Color.DarkGray
-    val statusText = if (isPendiente) "En revisión" else status
+    val statusText = if (isPendiente) "Pendiente" else status
 
 
     Box(
@@ -245,11 +289,25 @@ fun DonacionesCuadro(
     }
 }
 
-fun ordenarDonaciones(
+fun filterDonacionesEspecie(searchText: String, donaciones: List<DonationsEData>): List<DonationsEData> {
+    if (searchText.isBlank()) {
+        return donaciones
+    }
+    val lowerCaseSearchText = searchText.lowercase()
+
+    return donaciones.filter { donacion ->
+        donacion.parqueDonado.lowercase().contains(lowerCaseSearchText) ||
+                donacion.ubicacion.lowercase().contains(lowerCaseSearchText) ||
+                donacion.donanteNombre.lowercase().contains(lowerCaseSearchText) ||
+                donacion.donanteContacto.contains(lowerCaseSearchText) ||
+                donacion.registroEstado.lowercase().contains(lowerCaseSearchText)
+    }
+}
+
+fun ordenarDonacionesInternoEspecie(
     donaciones: List<DonationsEData>,
-    ordenReciente: Boolean,
-    onOrdenado: (List<DonationsEData>) -> Unit
-){
+    ordenReciente: Boolean
+): List<DonationsEData> {
     val listaOrdenada = donaciones.sortedWith(compareBy {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         try {
@@ -259,9 +317,9 @@ fun ordenarDonaciones(
         }
     })
 
-    if (ordenReciente) {
-        onOrdenado(listaOrdenada)
+    return if (ordenReciente) {
+        listaOrdenada
     } else {
-        onOrdenado(listaOrdenada.reversed())
+        listaOrdenada.reversed()
     }
 }
