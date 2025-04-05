@@ -9,11 +9,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,10 +42,12 @@ import java.util.Locale
 
 @Composable
 fun DonacionesMonetarias(navController: NavController) {
-    var donaciones by remember { mutableStateOf<List<DonacionItem>>(emptyList()) }
+    var donacionesOriginal by remember { mutableStateOf<List<DonacionItem>>(emptyList()) }
+    var donacionesFiltradas by remember { mutableStateOf<List<DonacionItem>>(emptyList()) }
     var ordenReciente by remember { mutableStateOf(true) } // Estado para el ordenamiento
     var ordenMontoAscendente by remember { mutableStateOf(true) }
-    var filtroActivo by remember { mutableStateOf("") } //Detecta que tipo de sorteo se escogío, empieza vació para que todos los textos en la barra de filtros estén 'apagados' (en su color original)
+    var filtroActivo by remember { mutableStateOf("") } //Detecta que tipo de sorteo se escogió, empieza vació para que todos los textos en la barra de filtros estén 'apagados' (en su color original)
+    var searchText by remember { mutableStateOf("") }
     var recienteTextStyle by remember {
         mutableStateOf(
             TextStyle(
@@ -83,15 +87,20 @@ fun DonacionesMonetarias(navController: NavController) {
 
     LaunchedEffect(Unit) {
         getDonacionesMonetariaFromFirebase { items ->
-            donaciones = items
+            donacionesOriginal = items
+            donacionesFiltradas = items // Inicialmente, mostrar todas las donaciones
         }
+    }
+
+    LaunchedEffect(searchText) {
+        donacionesFiltradas = filterDonaciones(searchText, donacionesOriginal)
     }
 
     Column(modifier = Modifier
         .fillMaxSize()) {
         MainAppBar()
 
-        // Barra inferior "Donaciones en Especie"
+        // Barra inferior "Donaciones monetarias"
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -121,6 +130,43 @@ fun DonacionesMonetarias(navController: NavController) {
 
         Row(
             Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            ) {
+                BasicTextField(
+                    value = searchText,
+                    onValueChange = { newText ->
+                        searchText = newText
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    textStyle = TextStyle(color = Color.Black),
+                    decorationBox = { innerTextField ->
+                        if (searchText.isEmpty()) {
+                            Text(
+                                "Buscar donación...",
+                                color = Color.Gray
+                            )
+                        }
+                        innerTextField()
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = Color.Gray)
+        }
+
+        Row(
+            Modifier
                 .width(412.dp)
                 .height(12.dp)
                 .background(color = Color(0xFFF5F6F7))
@@ -141,9 +187,8 @@ fun DonacionesMonetarias(navController: NavController) {
                 modifier = Modifier.clickable {
                     filtroActivo = "Reciente"
                     ordenReciente = true
-                    ordenarDonaciones(donaciones, ordenReciente) { listaOrdenada ->
-                        donaciones = listaOrdenada
-                    }
+                    val listaOrdenada = ordenarDonacionesInterno(donacionesFiltradas, ordenReciente)
+                    donacionesFiltradas = listaOrdenada
                     recienteTextStyle = recienteTextStyle.copy(
                         color = Color(0xFF78B153),
                         textDecoration = TextDecoration.Underline
@@ -165,9 +210,8 @@ fun DonacionesMonetarias(navController: NavController) {
                 modifier = Modifier.clickable {
                     filtroActivo = "Más antiguas"
                     ordenReciente = false
-                    ordenarDonaciones(donaciones, ordenReciente) { listaOrdenada ->
-                        donaciones = listaOrdenada
-                    }
+                    val listaOrdenada = ordenarDonacionesInterno(donacionesFiltradas, ordenReciente)
+                    donacionesFiltradas = listaOrdenada
                     antiguasTextStyle = antiguasTextStyle.copy(
                         color = Color(0xFF78B153),
                         textDecoration = TextDecoration.Underline
@@ -188,7 +232,7 @@ fun DonacionesMonetarias(navController: NavController) {
                 modifier = Modifier.clickable {
                     filtroActivo = "Monto"
                     ordenMontoAscendente = !ordenMontoAscendente
-                    donaciones = ordenarDonacionesPorMonto(donaciones, ordenMontoAscendente)
+                    donacionesFiltradas = ordenarDonacionesPorMonto(donacionesFiltradas, ordenMontoAscendente)
                     montoIcon = if (ordenMontoAscendente) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
                     montoTextStyle = montoTextStyle.copy(
                         color = Color(0xFF78B153),
@@ -220,7 +264,7 @@ fun DonacionesMonetarias(navController: NavController) {
 
 
         LazyColumn {
-            items(donaciones) { donacion ->
+            items(donacionesFiltradas) { donacion ->
                 DonacionesCuadro(
                     title = donacion.parqueDonado,
                     date = donacion.fecha,
@@ -335,12 +379,24 @@ fun formatTimestamp(timestamp: Timestamp): String {
     return dateFormat.format(timestamp.toDate())
 }
 
+fun filterDonaciones(searchText: String, donaciones: List<DonacionItem>): List<DonacionItem> {
+    if (searchText.isBlank()) {
+        return donaciones
+    }
+    val lowerCaseSearchText = searchText.lowercase()
+    return donaciones.filter { donacion ->
+        donacion.parqueDonado.lowercase().contains(lowerCaseSearchText) ||
+                donacion.ubicacion.lowercase().contains(lowerCaseSearchText) ||
+                donacion.donanteNombre.lowercase().contains(lowerCaseSearchText) ||
+                donacion.donanteContacto.lowercase().contains(lowerCaseSearchText) ||
+                donacion.montoDonado.contains(lowerCaseSearchText)
+    }
+}
 
-fun ordenarDonaciones(
+fun ordenarDonacionesInterno(
     donaciones: List<DonacionItem>,
-    ordenReciente: Boolean,
-    onOrdenado: (List<DonacionItem>) -> Unit
-) {
+    ordenReciente: Boolean
+): List<DonacionItem> {
     val listaOrdenada = donaciones.sortedWith(compareBy {
         val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         try {
@@ -350,10 +406,10 @@ fun ordenarDonaciones(
         }
     })
 
-    if (ordenReciente) {
-        onOrdenado(listaOrdenada) // Orden ascendente (horas más pequeñas primero)
+    return if (ordenReciente) {
+        listaOrdenada // Orden ascendente (horas más pequeñas primero)
     } else {
-        onOrdenado(listaOrdenada.reversed()) // Orden descendente (horas más altas primero)
+        listaOrdenada.reversed() // Orden descendente (horas más altas primero)
     }
 }
 
