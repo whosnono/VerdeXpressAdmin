@@ -18,7 +18,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
 
 @Composable
-fun MapView(latitud: String, longitud: String) {
+fun MapView(latitud: String, longitud: String, modifier: Modifier = Modifier) {
     val lat = latitud.toDoubleOrNull() ?: 0.0
     val long = longitud.toDoubleOrNull() ?: 0.0
 

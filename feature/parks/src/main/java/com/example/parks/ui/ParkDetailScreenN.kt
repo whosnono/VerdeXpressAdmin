@@ -34,9 +34,11 @@ import com.example.parks.data.rememberUserFullName
 
 @Composable
 fun ParkDetailScreenN(parkName: String?, latitud: String? = null, longitud: String? = null, navController: NavController) {
+    // Estados para almacenar los datos del parque y posibles errores
     val parkState = remember { mutableStateOf<ParkDataA?>(null) }
     val errorState = remember { mutableStateOf<String?>(null) }
 
+    // Efecto lanzado para obtener los detalles del parque desde Firestore
     LaunchedEffect(parkName) {
         if (parkName != null) {
             getParkDetails(
@@ -55,6 +57,7 @@ fun ParkDetailScreenN(parkName: String?, latitud: String? = null, longitud: Stri
         }
     }
 
+    // Renderiza el contenido según el estado actual
     when {
         parkState.value != null -> {
             ParkDetailContentN(park = parkState.value!!, navController)
@@ -70,29 +73,16 @@ fun ParkDetailScreenN(parkName: String?, latitud: String? = null, longitud: Stri
 
 @Composable
 fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
-    // Estados para controlar la expansión de los dropdowns
-    val context = LocalContext.current
+    // Estados para manejar dialogos, mensaje de exito y de error
     var showAcceptDialog by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
-
-    // Estados para los campos de formulario
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var rejectionReason by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    // Estados para almacenar las selecciones
+    // Estados para almacenar el estado actual
     var selectedEstadoActual by remember { mutableStateOf(park.estado) }
 
-    fun resetDialogStates() {
-        password = ""
-        confirmPassword = ""
-        rejectionReason = ""
-        errorMessage = null
-    }
-
+    // Contenido principal de la pantalla
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -106,6 +96,8 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
+            // A partir de aqui se definen los elementos que apareceran de la pantalla,
+            // como el nombre del parque, ubicación, etc.
             item {
                 Box(
                     modifier = Modifier
@@ -155,7 +147,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                         .padding(vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Columna para texto (ocupa más espacio)
+                    // Columna para texto
                     Column(
                         modifier = Modifier
                             .weight(0.5f)  // Ocupa la mayor parte del ancho
@@ -175,14 +167,15 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                         )
                     }
 
-                    // Contenedor para el MapView (ocupa menos espacio)
+                    // Contenedor para el MapView
                     Box(
                         modifier = Modifier
                             .weight(0.6f)  // Ocupa menos espacio
-                            .height(150.dp)  // Altura fija más baja
+                            .height(150.dp)
                             .aspectRatio(1.3f)
                             .clip(RoundedCornerShape(8.dp))
                     ) {
+                        // Con esta funcion se puede visualizar el mapa
                         MapView(
                             latitud = park.latitud,
                             longitud = park.longitud
@@ -261,7 +254,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Estado actual del parque (dropdown condicional)
+            // Estado actual del parque
             item {
                 Text(
                     text = "Estado actual del parque",
@@ -279,7 +272,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                 )
             }
 
-            // Comentarios
+            // Aqui se despliegan los comentarios que hizo el usuario sobre el parque
             item {
                 Text(
                     text = "Comentarios",
@@ -334,7 +327,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                         .padding(bottom = 40.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    // Botón Rechazar
+                    // Botón para rechazar el parque
                     Button(
                         onClick = { showRejectDialog = true },
                         modifier = Modifier.weight(1f),
@@ -350,7 +343,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // Botón Aceptar
+                    // Botón para aceptar el parque
                     Button(
                         onClick = { showAcceptDialog = true },
                         modifier = Modifier.weight(1f),
@@ -366,7 +359,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
             }
         }
     }
-
+    // Mostrar el dialogo para aceptar el parque
     if (showAcceptDialog) {
         ParkAcceptDialog(
             parkName = park.nombre,
@@ -384,7 +377,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
             onDismiss = { showAcceptDialog = false }
         )
     }
-
+    // Mostar el dialogo de rechazo del parque
     if (showRejectDialog) {
         ParkRejectDialog(
             parkName = park.nombre,
@@ -402,7 +395,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
             onDismiss = { showRejectDialog = false }
         )
     }
-
+    // Se muestrar el mensaje de exito al rechazar o aceptar el parque
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = {

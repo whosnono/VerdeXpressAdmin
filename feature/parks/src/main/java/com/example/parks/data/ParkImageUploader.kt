@@ -38,7 +38,6 @@ import kotlinx.coroutines.tasks.await
 fun ParkImageShow(
     parkName: String
 ) {
-    val context = LocalContext.current
     var existingImages by remember { mutableStateOf<List<String>>(emptyList()) }
 
     // Obtener imágenes existentes al iniciar

@@ -73,6 +73,7 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.stripe:stripe-android:20.35.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
 
 configurations.all {

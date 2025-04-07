@@ -28,6 +28,9 @@ fun MainScreen() {
                 "Perfil" -> true
                 "parkDetailA/{parkName}?latitud={latitud}&longitud={longitud}" -> true
                 "parkDetailN/{parkName}?latitud={latitud}&longitud={longitud}" -> true
+                "DonacionesEspecie" -> true
+                "DonacionesMonetarias" -> true
+                "DonationsDetails/{donationId}" -> true
                 else -> false
             }
         }
