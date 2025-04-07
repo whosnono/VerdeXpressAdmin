@@ -40,9 +40,11 @@ import kotlinx.coroutines.tasks.await
 
 @Composable
 fun ParkDetailScreenA(parkName: String?, latitud: String? = null, longitud: String? = null, navController: NavController) {
+    // Estados para almacenar los datos del parque y posibles errores
     val parkState = remember { mutableStateOf<ParkDataA?>(null) }
     val errorState = remember { mutableStateOf<String?>(null) }
 
+    // Efecto lanzado para obtener los detalles del parque desde Firestore
     LaunchedEffect(parkName) {
         if (parkName != null) {
             getParkDetails(
@@ -53,7 +55,6 @@ fun ParkDetailScreenA(parkName: String?, latitud: String? = null, longitud: Stri
                         latitud = latitud ?: park.latitud,  // Usa la latitud de navegación o la de Firestore
                         longitud = longitud ?: park.longitud  // Usa la longitud de navegación o la de Firestore
                     )
-                    println("Coordenadas finales: Latitud=${parkState.value?.latitud}, Longitud=${parkState.value?.longitud}")
                 },
                 onFailure = { exception ->
                     errorState.value = "Error: ${exception.message}"
@@ -62,6 +63,7 @@ fun ParkDetailScreenA(parkName: String?, latitud: String? = null, longitud: Stri
         }
     }
 
+    // Renderiza el contenido según el estado actual
     when {
         parkState.value != null -> {
             ParkDetailContent(park = parkState.value!!, navController)
@@ -77,17 +79,16 @@ fun ParkDetailScreenA(parkName: String?, latitud: String? = null, longitud: Stri
 
 @Composable
 fun ParkDetailContent(park: ParkDataA, navController: NavController) {
+    // Estados para manejar diálogos, dropdowns y otros datos
     var showSuccessDialog by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    // Estados para controlar la expansión de los dropdowns
     var situacionExpanded by remember { mutableStateOf(false) }
     var estadoActualExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var comNeedState by remember { mutableStateOf(park.comNeed ?: "") }
     var comAdState by remember { mutableStateOf(park.comAd ?: "") }
     var razonCierreState by remember { mutableStateOf(park.razonCierre ?: "") }
-
     // Estados para almacenar las selecciones e imagenes
     var selectedSituacion by remember { mutableStateOf(park.situacion) }
     var selectedEstadoActual by remember { mutableStateOf(park.estado) }
@@ -95,15 +96,13 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
     var progressImages by remember { mutableStateOf<List<String>>(emptyList()) }
-
     // Listas de opciones para los dropdowns
     val situaciones = listOf("Recibiendo donaciones", "Financiación completada", "En desarrollo", "Mantenimiento requerido", "Inactivo")
     val estadosActuales = listOf("Excelente", "Buena", "Regular", "Deficiente", "Muy deficiente")
     val situacionesEditables = listOf("En desarrollo", "Mantenimiento requerido")
-
-    // Nuevo estado para imágenes marcadas para eliminación
+    // Estado para imágenes marcadas para eliminación
     var imagesMarkedForRemoval by remember { mutableStateOf<List<String>>(emptyList()) }
-
+    // Función para guardar cambios en Firestore
     fun saveAllChanges(
         parkName: String,
         newImageUris: List<Uri>,
@@ -111,13 +110,13 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
         selectedEstadoActual: String,
         currentParkSituacion: String,
         currentParkEstado: String,
-        comNeed: String, // Añade este parámetro
+        comNeed: String,
         comAd: String,
         razonCierre: String,
         imagesToRemove: List<String>,
         onComplete: (Boolean) -> Unit
     ) {
-        // Verificar si hay cambios reales
+        // Verifica si hay cambios reales antes de guardar
         val hasChanges = newImageUris.isNotEmpty() ||
                 imagesToRemove.isNotEmpty() ||
                 selectedSituacion != currentParkSituacion ||
@@ -147,7 +146,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 val document = parkQuery.documents[0]
                 val updates = mutableMapOf<String, Any>()
 
-                // 1. Actualizar campos básicos si cambiaron
+                // Actualizar campos básicos si cambiaron
                 if (selectedSituacion != currentParkSituacion) {
                     updates["situacion_actual"] = selectedSituacion
                 }
@@ -157,7 +156,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     updates["estado_actual"] = selectedEstadoActual
                 }
 
-                // 2. Procesar imágenes nuevas si las hay
+                // Procesar imágenes nuevas si las hay
                 if (newImageUris.isNotEmpty()) {
                     val imageUploadManager = ImageUploadManager(context)
                     val downloadUrls = imageUploadManager.uploadImages(newImageUris)
@@ -175,26 +174,26 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     }
                 }
 
-                // 3. Actualizar comentarios de necesidades si es necesario
+                // Actualizar comentarios de necesidades si es necesario
                 if (selectedSituacion == "Mantenimiento requerido" && comNeed != park.comNeed) {
                     updates["necesidades_com"] = comNeed
                 }
-
+                // Agregar la razon de cierre si es necesario
                 if (selectedSituacion == "Inactivo" && razonCierre != park.razonCierre) {
                     updates["motivo_cierre"] = razonCierre
                 }
-
+                // Agregar comentarios adicionales si es necesario
                 if (selectedSituacion == "En desarrollo" && comAd != park.comAd) {
                     updates["comentarios_ad"] = comAd
                 }
 
-                // 4. Eliminar imágenes marcadas para eliminación
+                // Eliminar imágenes marcadas para eliminación
                 if (imagesToRemove.isNotEmpty()) {
                     val currentProgressImages = document.get("imagenes_avance") as? List<String> ?: emptyList()
                     updates["imagenes_avance"] = currentProgressImages.filter { it !in imagesToRemove }
                 }
 
-                // 5. Aplicar actualizaciones si hay cambios
+                // Aplicar actualizaciones si hay cambios
                 if (updates.isNotEmpty()) {
                     document.reference.update(updates).await()
                     onComplete(true)
@@ -207,11 +206,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
             }
         }
     }
-
-    fun removeSelectedImage(uri: Uri) {
-        selectedImageUris = selectedImageUris.filter { it != uri }
-    }
-
+    // Función para eliminar imágenes de progreso permanentemente
     fun removeProgressImagesPermanently() {
         coroutineScope.launch {
             try {
@@ -235,8 +230,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
             }
         }
     }
-
-
+    // Contenido principal de la pantalla
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -251,6 +245,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 .padding(horizontal = 16.dp)
                 .weight(1f)
         ) {
+            // A partir de aqui se definen los elementos de la pantalla, como el nombre del parque, ubicación, dropdowns, etc
             item {
                 Box(
                     modifier = Modifier
@@ -285,7 +280,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                         .padding(vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Columna para texto (ocupa más espacio)
+                    // Columna para texto
                     Column(
                         modifier = Modifier
                             .weight(0.5f)  // Ocupa la mayor parte del ancho
@@ -305,14 +300,15 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                         )
                     }
 
-                    // Contenedor para el MapView (ocupa menos espacio)
+                    // Contenedor para el MapView
                     Box(
                         modifier = Modifier
                             .weight(0.6f)  // Ocupa menos espacio
-                            .height(150.dp)  // Altura fija más baja
+                            .height(150.dp)
                             .aspectRatio(1.3f)
                             .clip(RoundedCornerShape(8.dp))
                     ) {
+                        // Con esta funcion se puede visualizar el mapa
                         MapView(
                             latitud = park.latitud,
                             longitud = park.longitud
@@ -322,7 +318,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
             }
 
             item {
-                // Componente de subida de imágenes modificado
+                // Componente para visualizar las imagenes del parque
                 ParkImageShow(
                     parkName = park.nombre
                 )
@@ -399,7 +395,8 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     }
                 }
             }
-
+            // Este apartado de comentarios adiciones solo se abre cuando la situacion esta "En desarrollo" para
+            // que el administrador agregue comentarios sobre los avances que lleva el parque
             if(selectedSituacion == "En desarrollo"){
                 item{
                     Text(
@@ -435,7 +432,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
-
+            // Campo para agregar la Razon de inactivadad
             if(selectedSituacion == "Inactivo"){
                 item{
                     Text(
@@ -444,6 +441,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                         fontFamily = SFProDisplayBold,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
+                    // Si no existe una razon se abre un campo como comentario para que se agregue una
                     if(park.razonCierre.isEmpty()){
                         BasicTextField(
                             value = razonCierreState,
@@ -452,7 +450,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .focusable() // ¡Importante para que funcione!
+                                .focusable()
                                 .background(
                                     color = Color.White.copy(alpha = 0.2f)
                                 )
@@ -470,6 +468,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                             )
                         )
                     }else{
+                        // Si ya existe una se agrega directamente como un texto
                         Text(
                             text = razonCierreState,
                             fontSize = 16.sp,
@@ -507,7 +506,8 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
-
+            // Este apartado solo se abre si la situacion del parque es "Mantenimiento requerido" para agregar
+            // comentarios si el parque tiene ciertas necesidades que no se comentaron anteriormente
             if(selectedSituacion == "Mantenimiento requerido"){
                 item{
                     Text(
@@ -523,7 +523,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusable() // ¡Importante para que funcione!
+                            .focusable()
                             .background(
                                 color = Color.White.copy(alpha = 0.2f)
                             )
@@ -544,7 +544,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 }
             }
 
-            // Estado actual del parque (dropdown condicional)
+            // Estado actual del parque
             item {
                 Text(
                     text = "Estado actual del parque",
@@ -552,7 +552,8 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                     fontFamily = SFProDisplayBold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-
+                // Si la situacion del parque esta dentro de "situacionesEditables" se abre el
+                // dropdown para editar el estado actual
                 if (situacionesEditables.contains(selectedSituacion)) {
                     Box(
                         modifier = Modifier
@@ -613,6 +614,8 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                         }
                     }
                 } else {
+                    // Si la situacion del parque no esta dentro de "situacionesEditables" se
+                    // muestra el estado actual directamente
                     Text(
                         text = selectedEstadoActual,
                         fontSize = 16.sp,
@@ -623,7 +626,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-
+            //Componente para subir imagenes de avance que solo se muestra si la situacion del parque es "En desarrollo"
             if(selectedSituacion == "En desarrollo"){
                 item{
                     ParkProgressImagesUploader(
@@ -641,7 +644,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                 }
             }
 
-            // Comentarios
+            // Aqui se despliegan los comentarios que hizo el usuario sobre el parque
             item {
                 Text(
                     text = "Comentarios",
@@ -695,6 +698,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                         .padding(bottom = 20.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
+                    // Boton para eliminar el parque
                     Button(
                         onClick = { showDeleteDialog = true },
                         modifier = Modifier.weight(1f),
@@ -707,6 +711,7 @@ fun ParkDetailContent(park: ParkDataA, navController: NavController) {
                         Text("Eliminar parque", fontFamily = SFProDisplayBold, fontSize = 14.sp)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
+                    // Boton para guardar los cambios hechos en los detalles
                     Button(
                         onClick = {
                             if (imagesMarkedForRemoval.isNotEmpty()) {

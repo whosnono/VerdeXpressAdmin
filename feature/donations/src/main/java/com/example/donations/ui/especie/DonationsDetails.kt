@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -43,11 +44,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.design.R.font
+import com.example.donations.data.DonationImageShow
 import com.example.donations.data.DonationsEData
 import com.example.donations.data.acceptDonation
 import com.example.donations.data.rejectDonation
+import com.example.parks.data.MapView
+import com.example.parks.data.ParkDataA
+import com.example.parks.data.getParkDetails
 import com.example.parks.ui.verde
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlin.io.println
 
 
 @Composable
@@ -57,9 +63,11 @@ fun DonationsDetails(
 ) {
     var donationsEData by remember { mutableStateOf<DonationsEData?>(null) } //Para recibir los datos necesarios de la base de datos (getDonationsFromBD)
     var isLoading by remember { mutableStateOf(true) }
-
+    var parkData by remember { mutableStateOf<ParkDataA?>(null) }
+    var mapLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(donationId) {
+        donationsEData = null
         FirebaseFirestore.getInstance()
             .collection("donaciones_especie")
             .document(donationId)
@@ -96,14 +104,35 @@ fun DonationsDetails(
                     condicion = document.getString("condicion") ?: "",
                     razonRechazo = document.getString("razon_rechazo") //No todas las donaciones lo tienen por eso es diferente a las demas, no es un campo que a fuerza se deba mostrar
                 )
-                isLoading = false
+
+                //En esta seccion se obtiene la informacion del parque (para obtener la latitud y la longitud)
+                val parqueDonado = document.getString("parque_donado") ?: ""
+                if (parqueDonado.isNotEmpty()) {
+                    getParkDetails(
+                        parkName = parqueDonado,
+                        onSuccess = { parkDetails ->
+                            parkData = parkDetails
+                            mapLoading = false
+                            isLoading = false
+                        },
+                        onFailure = { exception ->
+                            Log.e("ParkDetails", "Error al obtener detalles del parque: $exception")
+                            mapLoading = false
+                            isLoading = false
+                        }
+                    )
+                } else {
+                    mapLoading = false
+                    isLoading = false
+                }
             }
             .addOnFailureListener {
                 isLoading = false
+                mapLoading = false
             }
     }
 
-    if (isLoading) {
+    if (isLoading || mapLoading) {
         Text("Cargando...")
     } else if (donationsEData != null) {
         val fechaConvertida = donationsEData!!.fecha.replace("-", "/") //Para que la fecha tenga un formato "año/mes/día"
@@ -113,20 +142,7 @@ fun DonationsDetails(
         var showRejectDialog by remember { mutableStateOf(false) } //Para mostrar el popup de Rechazar donaciones
         var showSuccessDialog by remember { mutableStateOf(false) }
         var successMessage by remember { mutableStateOf("") }
-
-        var password by remember { mutableStateOf("") }
-        var confirmPassword by remember { mutableStateOf("") }
-        var rejectionReason by remember { mutableStateOf("") }
         var errorMessage by remember { mutableStateOf<String?>(null) }
-
-        var selectedEstadoActual by remember { mutableStateOf(donationsEData!!.registroEstado) }
-
-        fun resetDialogStates() {
-            password = ""
-            confirmPassword = ""
-            rejectionReason = ""
-            errorMessage = null
-        }
 
         Column(modifier = Modifier //Columna principal
             .fillMaxSize()
@@ -163,14 +179,46 @@ fun DonationsDetails(
             }
 
             //Detalles de la donación
-            titulos(titulo = "Donado por")
-            Spacer(modifier = Modifier.height(8.dp))
-            detallesDonante(nombre = donationsEData!!.donanteNombre, numero = donationsEData!!.donanteContacto)
-            Spacer(modifier = Modifier.height(7.dp))
-            parqueTitulo(Parque = donationsEData!!.parqueDonado)
-            Spacer(modifier = Modifier.height(7.dp))
+            Row(
+                modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Column (
+                    modifier = Modifier
+                        .weight(0.5f)
+                ){
+                    titulos(titulo = "Donado por")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    detallesDonante(nombre = donationsEData!!.donanteNombre, numero = donationsEData!!.donanteContacto)
+                    Spacer(modifier = Modifier.height(7.dp))
+                    parqueTitulo(Parque = donationsEData!!.parqueDonado)
+                }
+                // Contenedor para MapView (aqui se visualiza el mapa)
+                Box(
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .height(150.dp)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                ){
+                  if (parkData != null) {
+                      MapView(
+                          latitud = parkData!!.latitud,
+                          longitud = parkData!!.longitud,
+                          modifier = Modifier.fillMaxSize()
+                      )
+                  } else{
+                      Text("No se encontraron coordenadas para el parque.")
+                  }
+                }
+            }
             textos(texto = donationsEData!!.ubicacion)
             Spacer(modifier = Modifier.height(11.dp))
+            // Con esta funcion se despliegan las imagenes de la donación
+            DonationImageShow(images = donationsEData!!.imagenes)
+            Spacer(modifier = Modifier.height(15.dp))
             titulos(titulo = "Recurso a donar")
             Spacer(modifier = Modifier.height(7.dp))
             textos(texto = donationsEData!!.recurso)
@@ -186,7 +234,7 @@ fun DonationsDetails(
             titulos(titulo = "Fecha estimada de de entrega")
             Spacer(modifier = Modifier.height(7.dp))
             textos(texto = fechaConvertida)
-
+            Spacer(modifier = Modifier.height(10.dp))
             Spacer(modifier = Modifier.weight(1f))
 
             //Cuando se detecte que el estado de la donación es "Pendiente" o "En revisión", mostrará la ventana de
@@ -199,7 +247,8 @@ fun DonationsDetails(
                             .padding(horizontal = 16.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(bottom = 23.dp),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             Button(
@@ -215,7 +264,7 @@ fun DonationsDetails(
                                 Text("Rechazar donación")
                             }
 
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(modifier = Modifier.width(15.dp))
 
                             Button(
                                 onClick = { showAcceptDialog = true },
@@ -357,14 +406,13 @@ fun DonationsDetails(
     }
 }
 
-
 @Composable
 fun parqueTitulo(Parque: String) {
     Text(
         text = Parque,
         modifier = Modifier.padding(horizontal = 16.dp),
         style = TextStyle(
-            fontSize = 22.sp,
+            fontSize = 25.sp,
             lineHeight = 20.sp,
             fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
             fontWeight = FontWeight(700),
@@ -414,7 +462,7 @@ fun textos(texto: String) {
             text = texto,
             style = TextStyle(
                 fontSize = 15.sp,
-                fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                fontFamily = FontFamily(Font(font.sf_pro_display_medium)),
                 fontWeight = FontWeight(500),
                 color = Color(0xFF000000),
                 letterSpacing = 0.25.sp,
@@ -487,7 +535,7 @@ fun detallesDonante(nombre: String, numero: String) {
             text = nombre,
             style = TextStyle(
                 fontSize = 15.sp,
-                fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                fontFamily = FontFamily(Font(font.sf_pro_display_medium)),
                 fontWeight = FontWeight(500),
                 color = Color(0xFF000000),
                 letterSpacing = 0.25.sp,
@@ -498,7 +546,7 @@ fun detallesDonante(nombre: String, numero: String) {
             text = numero,
             style = TextStyle(
                 fontSize = 15.sp,
-                fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
+                fontFamily = FontFamily(Font(font.sf_pro_display_medium)),
                 fontWeight = FontWeight(500),
                 color = Color(0xFF000000),
                 letterSpacing = 0.25.sp,
