@@ -2,6 +2,7 @@ package com.example.parks.data
 
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
 fun acceptPark(
@@ -29,8 +30,25 @@ fun acceptPark(
                     return@addOnSuccessListener
                 }
 
-                querySnapshot.documents.first().reference.update(updates)
-                    .addOnSuccessListener { onComplete(true, null) }
+                val parkDoc = querySnapshot.documents.first()
+                val userId = parkDoc.getString("registro_usuario") ?: ""
+
+                parkDoc.reference.update(updates)
+                    .addOnSuccessListener {
+                        // Create notification for the user
+                        if (userId.isNotEmpty()) {
+                            createApprovalNotification(parkName, userId) { success, error ->
+                                if (!success) {
+                                    // Still consider the operation successful even if notification fails
+                                    onComplete(true, "Parque aprobado, pero hubo un error al crear la notificación: $error")
+                                } else {
+                                    onComplete(true, null)
+                                }
+                            }
+                        } else {
+                            onComplete(true, null)
+                        }
+                    }
                     .addOnFailureListener { e ->
                         onComplete(false, "Error al actualizar: ${e.message}")
                     }
@@ -68,8 +86,25 @@ fun rejectPark(
                     return@addOnSuccessListener
                 }
 
-                querySnapshot.documents.first().reference.update(updates)
-                    .addOnSuccessListener { onComplete(true, null) }
+                val parkDoc = querySnapshot.documents.first()
+                val userId = parkDoc.getString("registro_usuario") ?: ""
+
+                parkDoc.reference.update(updates)
+                    .addOnSuccessListener {
+                        // Create rejection notification for the user
+                        if (userId.isNotEmpty()) {
+                            createRejectionNotification(parkName, reason, userId) { success, error ->
+                                if (!success) {
+                                    // Still consider the operation successful even if notification fails
+                                    onComplete(true, "Parque rechazado, pero hubo un error al crear la notificación: $error")
+                                } else {
+                                    onComplete(true, null)
+                                }
+                            }
+                        } else {
+                            onComplete(true, null)
+                        }
+                    }
                     .addOnFailureListener { e ->
                         onComplete(false, "Error al actualizar: ${e.message}")
                     }
@@ -119,6 +154,58 @@ fun deletePark(
                 onComplete(false, "Error al buscar parque: ${e.message}")
             }
     }
+}
+
+// Nuevas funciones para crear notificaciones
+private fun createApprovalNotification(
+    parkName: String,
+    userId: String,
+    callback: (Boolean, String?) -> Unit
+) {
+    val db = FirebaseFirestore.getInstance()
+
+    val notificationData = hashMapOf(
+        "titulo" to "¡Tu parque ha sido aprobado!",
+        "mensaje" to "Tu solicitud para registrar el parque $parkName ha sido revisada y aprobada por un administrador. A partir de ahora puedes visualizar este cambio en la sección de Parques de la app. Tu acción hace la diferencia. ¡Gracias!",
+        "fecha" to FieldValue.serverTimestamp(),
+        "leido" to false,
+        "destinatario" to userId
+    )
+
+    db.collection("notificaciones_user")
+        .add(notificationData)
+        .addOnSuccessListener {
+            callback(true, null)
+        }
+        .addOnFailureListener { e ->
+            callback(false, e.message)
+        }
+}
+
+private fun createRejectionNotification(
+    parkName: String,
+    reason: String,
+    userId: String,
+    callback: (Boolean, String?) -> Unit
+) {
+    val db = FirebaseFirestore.getInstance()
+
+    val notificationData = hashMapOf(
+        "titulo" to "Tu parque ha sido rechazado",
+        "mensaje" to "La solicitud para registrar el parque $parkName fue revisada y rechazada por un administrador. Te recomendamos realizar los ajustes necesarios y volver a enviar tu solicitud. Motivo del rechazo: $reason",
+        "fecha" to FieldValue.serverTimestamp(),
+        "leido" to false,
+        "destinatario" to userId
+    )
+
+    db.collection("notificaciones_user")
+        .add(notificationData)
+        .addOnSuccessListener {
+            callback(true, null)
+        }
+        .addOnFailureListener { e ->
+            callback(false, e.message)
+        }
 }
 
 // Función para verificar contraseña de administrador (simplificada)
