@@ -17,12 +17,24 @@ fun SecondaryAppBar(showIcon: Boolean = false, onIconClick: () -> Unit = {}) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 32.dp),
+                    .padding(end = 32.dp, bottom = 19.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Text(
                     text = "VerdeXpress",
                     fontSize = 30.sp,
+                    fontFamily = SFProDisplayBold
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 32.dp, top = 30.dp),
+                contentAlignment = Alignment.CenterEnd
+            ){
+                Text(
+                    text = "Administrador",
+                    fontSize = 15.sp,
                     fontFamily = SFProDisplayBold
                 )
             }

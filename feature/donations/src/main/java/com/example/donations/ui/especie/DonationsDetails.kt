@@ -143,6 +143,7 @@ fun DonationsDetails(
         var showSuccessDialog by remember { mutableStateOf(false) }
         var successMessage by remember { mutableStateOf("") }
         var errorMessage by remember { mutableStateOf<String?>(null) }
+        var showErrorDialog by remember { mutableStateOf(false) }
 
         Column(modifier = Modifier //Columna principal
             .fillMaxSize()
@@ -345,6 +346,7 @@ fun DonationsDetails(
                             showRejectDialog = false
                         } else {
                             errorMessage = message
+                            showErrorDialog = true
                         }
                     }
                 },
@@ -366,6 +368,7 @@ fun DonationsDetails(
                             showAcceptDialog = false
                         } else {
                             errorMessage = message
+                            showErrorDialog = true
                         }
                     }
                 },
@@ -387,6 +390,34 @@ fun DonationsDetails(
                     Button(
                         onClick = {
                             showSuccessDialog = false
+                            navController.popBackStack()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = verde,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            text = "Aceptar"
+                        )
+                    }
+                }
+            )
+        }
+        if(showErrorDialog){ //Al aprobar o rechazar una donación, se cierra el popup y se abre un mensaje de alerta que
+            //avisa cualquier error que haya ocurrido
+            AlertDialog(
+                onDismissRequest = {
+                    showErrorDialog = false
+                    navController.popBackStack()
+                },
+                containerColor = Color.White,
+                title = { Text("Error") },
+                text = { Text(errorMessage.toString()) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showErrorDialog = false
                             navController.popBackStack()
                         },
                         colors = ButtonDefaults.buttonColors(

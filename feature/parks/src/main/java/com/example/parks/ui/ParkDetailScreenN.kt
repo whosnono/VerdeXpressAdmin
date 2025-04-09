@@ -77,6 +77,7 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
     var showAcceptDialog by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     // Estados para almacenar el estado actual
@@ -395,7 +396,8 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
             onDismiss = { showRejectDialog = false }
         )
     }
-    // Se muestrar el mensaje de exito al rechazar o aceptar el parque
+    //Al aprobar o rechazar un parque, se cierra el popup y se abre un mensaje de alerta que
+    //avisa que se a realizado con exito la accion
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = {
@@ -409,6 +411,35 @@ fun ParkDetailContentN(park: ParkDataA, navController: NavController) {
                 Button(
                     onClick = {
                         showSuccessDialog = false
+                        navController.popBackStack()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = verde,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Aceptar"
+                    )
+                }
+            }
+        )
+    }
+    //Al aprobar o rechazar un parque, se cierra el popup y se abre un mensaje de alerta que
+    //avisa cualquier error que haya ocurrido
+    if(showErrorDialog){
+        AlertDialog(
+            onDismissRequest = {
+                showErrorDialog = false
+                navController.popBackStack()
+            },
+            containerColor = Color.White,
+            title = { Text("Error") },
+            text = { Text(errorMessage.toString()) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showErrorDialog = false
                         navController.popBackStack()
                     },
                     colors = ButtonDefaults.buttonColors(
