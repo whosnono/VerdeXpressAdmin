@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.androidx.material3.android)
     implementation(libs.com.google.firebase.firebase.auth.ktx)
     implementation(libs.navigation.runtime.ktx)
+    implementation(project(":core:design"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
