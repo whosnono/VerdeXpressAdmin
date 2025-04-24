@@ -2,8 +2,6 @@ package com.example.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -17,22 +15,28 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.auth.data.SignUpValidator
 import com.example.auth.ui.ResetPasswordEmailSentScreen
 import com.example.auth.ui.ResetPasswordScreen
 import com.example.auth.ui.SignInScreen
 import com.example.auth.ui.SignUpScreen
 import com.example.auth.ui.SignUpSuccessScreen
-import com.example.home.HomeScreen
-import com.example.parks.ui.ParksScreen
-import com.example.notifications.NotificationsScreen
-import com.example.profile.ProfileScreen
-import com.example.auth.data.SignUpValidator
 import com.example.donations.ui.DonationsScreen
 import com.example.donations.ui.especie.DonacionesEspecie
 import com.example.donations.ui.especie.DonationsDetails
 import com.example.donations.ui.monetaria.DonacionesMonetarias
+import com.example.home.HomeScreen
+import com.example.notifications.NotificationsScreen
 import com.example.parks.ui.ParkDetailScreenA
 import com.example.parks.ui.ParkDetailScreenN
+import com.example.parks.ui.ParksScreen
+import com.example.profile.ui.datosCuenta.AccountDataScreen
+import com.example.profile.ui.datosCuenta.EditInfo.EditEmailScreen
+import com.example.profile.ui.datosCuenta.EditInfo.EditPasswordScreen
+import com.example.profile.ui.datosPersonales.EditInfo.EditNameScreen
+import com.example.profile.ui.datosPersonales.EditInfo.EditPhoneScreen
+import com.example.profile.ui.datosPersonales.PersonalDataScreen
+import com.example.profile.ui.inicio.ProfileScreen
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -216,8 +220,17 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
         // RUTAS DEL MÓDULO "PROFILE"
 
-        // ...
+        //rutas en la página de incio
+        composable("datosPersonales") { PersonalDataScreen(navController) }
+        composable("datosCuenta") { AccountDataScreen(navController) }
 
+        //rutas en la página de datos personales
+        composable("editName") { EditNameScreen(navController) }
+        composable("editPhone") { EditPhoneScreen(navController) }
+
+        //rutas de edición de datos de la cuenta
+        composable("editPassword") { EditPasswordScreen(navController) }
+        composable("editEmail") { EditEmailScreen(navController) }
         // ----------------------------------------------------------------
     }
 }
