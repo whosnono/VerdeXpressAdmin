@@ -1,6 +1,5 @@
 package com.example.profile.ui.datosCuenta
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,11 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,33 +38,15 @@ import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.design.R.font
 import com.example.design.SFProDisplayBold
-import com.example.profile.data.UserData
-import com.example.profile.data.obtenerIDUsuario
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountDataScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
-    val userId = currentUser?.uid
+    val currentUser: FirebaseUser? = auth.currentUser //Para obtener el usuario en Auth
 
-    var userData by remember { mutableStateOf<UserData?>(null) } // Estado para almacenar los datos del usuario
-
-    LaunchedEffect(userId) { // Ejecutar solo cuando userId cambie
-        if (userId != null) {
-            obtenerIDUsuario(
-                userId = userId,
-                onSuccess = { data ->
-                    userData = data
-                },
-                onFailure = { exception ->
-                    // Manejar el error
-                    Log.e("ProfileScreen", "Error al obtener datos del usuario", exception)
-                }
-            )
-        }
-    }
 
     Scaffold(
         containerColor = Color.White,
@@ -115,7 +91,7 @@ fun AccountDataScreen(navController: NavController) {
             AccountInfoItem(
                 icon = Icons.Default.Email,
                 title = "E-mail",
-                value = userData?.correoElectronico ?: "Cargando...",
+                value = currentUser?.email ?: "Cargando...", // Muestra el correo de Firebase Auth
                 onEdit = { navController.navigate("editEmail")}
             )
 
