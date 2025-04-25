@@ -42,10 +42,23 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     implementation(libs.androidx.runtime.android)
     implementation(libs.androidx.material3.android)
+
+    //FIREBASE
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth.ktx)
+
+
+    implementation(libs.material)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(project(":core:design"))
+    implementation(project(":feature:donations"))
+
+    implementation("androidx.compose.material:material:1.7.0")
+    implementation("androidx.navigation:navigation-runtime-ktx:2.6.0")
+    implementation("androidx.navigation:navigation-runtime:2.6.0")
 }
