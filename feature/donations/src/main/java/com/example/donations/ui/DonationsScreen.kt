@@ -216,7 +216,13 @@ fun DonationItemRow(donation: DonationItem) {
     } else {
         ""
     }
-    val description = parts.subList(0, amountIndex).joinToString(" ")
+    val description = if (amountIndex > 0) {
+        parts.subList(0, amountIndex).joinToString(" ")
+    } else {
+        // Si no se encuentra el índice del monto, usa toda la lista como descripción
+        // o proporciona un valor predeterminado
+        parts.joinToString(" ")
+    }
 
     Row(
         modifier = Modifier
