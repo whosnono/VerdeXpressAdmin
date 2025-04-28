@@ -2,8 +2,11 @@ package com.example.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,10 +14,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,14 +34,28 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.MainAppBar
+import com.example.design.R
 import com.example.design.R.font
+import com.example.notifications.GetAdminNotifications
+import com.example.notifications.NotificationItem
+import com.example.notifications.formatTimestamp
+import com.example.parks.data.rememberUserFullName
+import com.google.firebase.auth.FirebaseAuth
 
 
 @Composable
 fun HomeScreen() {
+
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    val userId = currentUser?.uid ?: ""
+    val userName = rememberUserFullName(userId)
+    val scrollState = rememberScrollState()
+
     Scaffold(
         topBar = { MainAppBar() }
     ) { paddingValues ->
@@ -40,7 +66,7 @@ fun HomeScreen() {
                 .padding(16.dp)
         ) {
             Greeting(
-                nombre = "Administrador" //Reemplazar por el nombre del usuario actual, se puede copiar del código de perfil de admin
+                nombre = userName
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -105,6 +131,34 @@ fun subtitulo(subtitle: String) { //Para los subtitulos de color verde
 @Composable
 fun NPSection() { //Recuadro principal para mostrar las notificaciones más recientes
 
+    val auth = FirebaseAuth.getInstance()
+    val currentUserUid = auth.currentUser?.uid ?: ""
+
+    // Estados para gestionar las notificaciones
+    var isLoading by remember { mutableStateOf(true) }
+    var notificationsList by remember { mutableStateOf<List<GetAdminNotifications.AdminNotification>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    // Instancia del gestor de notificaciones
+    val userNotificationManager = remember { GetAdminNotifications() }
+
+    // Add this LaunchedEffect to trigger the notification loading when the composable is displayed
+    LaunchedEffect(Unit) {
+        userNotificationManager.getAdminNotifications(
+            onSuccess = { allNotifications ->
+                // Filter notifications to only include those not read by current user
+                val unreadNotifications = allNotifications.filter { notification ->
+                    !notification.leido_por.contains(currentUserUid)
+                }
+                notificationsList = unreadNotifications
+                isLoading = false
+            },
+            onFailure = { exception ->
+                errorMessage = "Error al cargar notificaciones: ${exception.message}"
+                isLoading = false
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -112,6 +166,7 @@ fun NPSection() { //Recuadro principal para mostrar las notificaciones más reci
             .border(width = 1.dp, color = Color(0xFF78B153), shape = RoundedCornerShape(size = 10.dp))
             .background(color = Color(0xFFF5F6F7), shape = RoundedCornerShape(size = 10.dp))
             .padding(16.dp)
+            .height(200.dp)
     ) {
         Text(
             text = "Notificaciones pendientes", //Valor fijo, no cambiar
@@ -141,41 +196,110 @@ fun NPSection() { //Recuadro principal para mostrar las notificaciones más reci
 
         Spacer(modifier = Modifier.height(13.dp))
 
-        NotificationItem( //Reemplazar titulo(o tipoNotificación), usuario, tipo noti y fecha por valores reales
-            tipoNotificacion = TipoNotificacion.NUEVO_PARQUE,
-            usuario = "Adriana ",
-            texto = "ha subido un parque para su ",
-            tipoNoti = "revisión",
-            fecha = "dd/mm/2025"
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        NotificationItem(
-            tipoNotificacion = TipoNotificacion.DONACION_ESPECIE,
-            usuario = "Sofía ",
-            texto = "realizó una ",
-            tipoNoti = "donación en especie",
-            fecha = "dd/mm/2025"
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        NotificationItem(
-            tipoNotificacion = TipoNotificacion.DONACION_MONETARIA,
-            usuario = "Elda ",
-            texto = "ha realizado una ",
-            tipoNoti = "donación monetaria",
-            fecha = "dd/mm/2025"
-        )
+        // Mostrar el contenido según el estado dentro de un Box con altura fija
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f) // This will make the Box take the remaining space
+        ) {
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF78B153))
+                    }
+                }
+                errorMessage != null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = errorMessage ?: "Error desconocido",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = Color.Red
+                                ),
+                                fontFamily = FontFamily(Font(com.example.design.R.font.sf_pro_display_medium))
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Intentar de nuevo",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF78B153),
+                                    textDecoration = TextDecoration.Underline
+                                ),
+                                fontFamily = FontFamily(Font(com.example.design.R.font.sf_pro_display_medium)),
+                                modifier = Modifier.clickable {
+                                    isLoading = true
+                                    errorMessage = null
+                                    userNotificationManager.getAdminNotifications(
+                                        onSuccess = { allNotifications ->
+                                            // Apply the same filter when retrying
+                                            val unreadNotifications = allNotifications.filter { notification ->
+                                                !notification.leido_por.contains(currentUserUid)
+                                            }
+                                            notificationsList = unreadNotifications
+                                            isLoading = false
+                                        },
+                                        onFailure = { exception ->
+                                            errorMessage = "Error al cargar notificaciones: ${exception.message}"
+                                            isLoading = false
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+                notificationsList.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No tienes notificaciones pendientes.",
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            ),
+                            fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                        )
+                    }
+                }
+                else -> {
+                    // Lista deslizable de notificaciones
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 4.dp)
+                    ) {
+                        items(notificationsList) { notification ->
+                            NotificationItem(
+                                notification = notification,
+                                currentUserUid = currentUserUid,
+                                onMarkAsRead = {
+                                    // Implementar marcado como leído
+                                    userNotificationManager.markAsRead(notification.id)
+                                    // Remove this notification from the list after marking as read
+                                    notificationsList = notificationsList.filter { it.id != notification.id }
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 
 @Composable
-fun NotificationItem(tipoNotificacion: TipoNotificacion, usuario: String, texto: String, tipoNoti: String, fecha: String) { //Para los recuadros donde se verá la información de las notificaciones
-
-    val titulo = when (tipoNotificacion) { //Lo hice así para que solo se haga una lógica que se lea si es una donacion (y que se vea si es en epsecie o monetaria) o si se trata de un parque nuevo :)
-        TipoNotificacion.DONACION_ESPECIE -> "Nueva donación en especie"
-        TipoNotificacion.DONACION_MONETARIA -> "Nueva donación monetaria"
-        TipoNotificacion.NUEVO_PARQUE -> "Se ha subido un nuevo parque"
-    }
+fun NotificationItem(notification: GetAdminNotifications.AdminNotification,
+                     currentUserUid: String?) { //Para los recuadros donde se verá la información de las notificaciones
 
     Row(
         modifier = Modifier
@@ -190,7 +314,7 @@ fun NotificationItem(tipoNotificacion: TipoNotificacion, usuario: String, texto:
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
-                    text = titulo, //Lo puse así por que el titulo depende del tipo de notificación, no se como se debería hacer la lógica para esto
+                    text = notification.titulo, //Lo puse así por que el titulo depende del tipo de notificación, no se como se debería hacer la lógica para esto
                     style = TextStyle(
                         fontSize = 14.sp,
                         fontFamily = FontFamily(Font(font.sf_pro_display_bold)),
@@ -200,18 +324,9 @@ fun NotificationItem(tipoNotificacion: TipoNotificacion, usuario: String, texto:
                     )
                 )
                 Row {
+
                     Text(
-                        text = "$usuario",
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontFamily = FontFamily(Font(font.sf_pro_display_semibold)),
-                            fontWeight = FontWeight(600),
-                            color = Color(0xFF78B153),
-                            letterSpacing = 0.15.sp,
-                        )
-                    )
-                    Text(
-                        text = texto,
+                        text = notification.mensaje,
                         style = TextStyle(
                             fontSize = 12.sp,
                             fontFamily = FontFamily(Font(font.sf_pro_display_semibold)),
@@ -220,21 +335,11 @@ fun NotificationItem(tipoNotificacion: TipoNotificacion, usuario: String, texto:
                             letterSpacing = 0.15.sp,
                         )
                     )
-                    Text(
-                        text = tipoNoti,
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontFamily = FontFamily(Font(font.sf_pro_display_semibold)),
-                            fontWeight = FontWeight(600),
-                            color = Color(0xFF78B153),
-                            letterSpacing = 0.15.sp,
-                        )
-                    )
                 }
             }
         }
         Text(
-            text = "$fecha",
+            text = formatTimestamp(notification.fecha),
             style = TextStyle(
                 fontSize = 10.sp,
                 fontFamily = FontFamily(Font(font.sf_pro_display_semibold)),
@@ -325,10 +430,4 @@ fun ResumenItem(titulo: String, descripcion: String, elementos: List<String>, mo
             }
         }
     }
-}
-
-enum class TipoNotificacion { //Para los titulos que tendrán las notificaciones, si no resulta ser más fácil se pueden eliminar y poner algo nuevo :)
-    DONACION_ESPECIE,
-    DONACION_MONETARIA,
-    NUEVO_PARQUE
 }

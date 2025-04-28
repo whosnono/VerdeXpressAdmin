@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.androidx.runtime.android)
     implementation(libs.androidx.material3.android)
     implementation(project(":core:design"))
+    implementation(project(":feature:parks"))
+    implementation(project(":feature:notifications"))
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.core)
@@ -53,4 +55,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    // Firebase
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth.ktx)
 }
