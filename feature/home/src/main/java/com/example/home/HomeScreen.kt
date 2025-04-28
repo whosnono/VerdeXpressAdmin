@@ -22,6 +22,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +52,6 @@ import com.google.firebase.firestore.ListenerRegistration
 
 @Composable
 fun HomeScreen() {
-
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val userId = currentUser?.uid ?: ""
@@ -62,8 +62,13 @@ fun HomeScreen() {
     val parkManager = remember { ParkManager() }
     var parksInReview by remember { mutableStateOf<List<ParkData>>(emptyList()) }
 
-    // Load parks when the composable is displayed
+    // Donations manager instance
+    val donationsManager = remember { DonationsManager() }
+    var pendingDonations by remember { mutableStateOf<List<DonationData>>(emptyList()) }
+
+    // Load parks and donations when the composable is displayed
     LaunchedEffect(Unit) {
+        // Load parks in review
         parkManager.getParks(
             onSuccess = { parks ->
                 parksInReview = parks
@@ -72,6 +77,24 @@ fun HomeScreen() {
                 // Handle error if needed
             }
         )
+
+        // Load pending donations
+        donationsManager.getPendingDonations(
+            onSuccess = { donations ->
+                pendingDonations = donations
+            },
+            onFailure = { exception ->
+                // Handle error if needed
+            }
+        )
+    }
+
+    // Remember to clean up listeners when not needed
+    DisposableEffect(Unit) {
+        onDispose {
+            parkManager.cleanup()
+            donationsManager.cleanup()
+        }
     }
 
     Scaffold(
@@ -107,10 +130,8 @@ fun HomeScreen() {
 
             ResumenGeneralSection(
                 parksInReview = parksInReview,
-                nombreParqueD = "Miau", // Replace with actual donation park name
-                numeroDonaciones = 3 // Number of pending donations
+                pendingDonations = pendingDonations
             )
-
         }
     }
 }
@@ -372,8 +393,7 @@ fun NotificationItem(notification: GetAdminNotifications.AdminNotification,
 @Composable
 fun ResumenGeneralSection(
     parksInReview: List<ParkData>,
-    nombreParqueD: String,
-    numeroDonaciones: Int
+    pendingDonations: List<DonationData>
 ) {
     Row(
         modifier = Modifier
@@ -381,7 +401,7 @@ fun ResumenGeneralSection(
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Construimos la lista de elementos a mostrar
+        // Construimos la lista de elementos de parques a mostrar
         val parkElements = mutableListOf<String>()
         parksInReview.take(3).forEach { park ->
             parkElements.add("Parque \"${park.nombre}\"")
@@ -402,11 +422,24 @@ fun ResumenGeneralSection(
 
         Spacer(modifier = Modifier.width(8.dp))
 
+        // Construimos la lista de elementos de donaciones a mostrar
+        val donationElements = mutableListOf<String>()
+        val uniqueParkNames = pendingDonations.map { it.parkName }.distinct().take(3)
+
+        uniqueParkNames.forEach { parkName ->
+            donationElements.add("Parque \"$parkName\"")
+        }
+
+        // Si hay más de 3 parques con donaciones pendientes, agregamos un indicador
+        if (pendingDonations.map { it.parkName }.distinct().size > 3) {
+            donationElements.add("+ ${pendingDonations.map { it.parkName }.distinct().size - 3} más")
+        }
+
         // Donaciones pendientes section
         ResumenItem(
             titulo = "Donaciones pendientes",
-            descripcion = "$numeroDonaciones donaciones por aprobar",
-            elementos = listOf("Parque \"$nombreParqueD\"", "Parque \"$nombreParqueD\"", "Parque \"$nombreParqueD\""),
+            descripcion = "${pendingDonations.size} donaciones por aprobar",
+            elementos = donationElements,
             modifier = Modifier.weight(1f)
         )
     }
@@ -533,5 +566,79 @@ class ParkManager {
     // Don't forget to cancel the listener when not needed
     fun cleanup() {
         listenerRegistration?.remove()
+    }
+}
+
+// New data class for donations
+data class DonationData(
+    val id: String,
+    val parkName: String,
+    val type: String // "monetaria" or "especie"
+)
+
+// Donations Manager class
+class DonationsManager {
+    private val firestore = FirebaseFirestore.getInstance()
+    private var monetaryListenerRegistration: ListenerRegistration? = null
+    private var speciesListenerRegistration: ListenerRegistration? = null
+
+    fun getPendingDonations(onSuccess: (List<DonationData>) -> Unit, onFailure: (Exception) -> Unit) {
+        val allDonations = mutableListOf<DonationData>()
+        var completedQueries = 0
+        var errorOccurred = false
+
+        // Query for monetary donations
+        monetaryListenerRegistration = firestore.collection("donaciones_monetaria")
+            .whereEqualTo("registro_estado", "pendiente")
+            .addSnapshotListener { monetaryResult, monetaryException ->
+                if (monetaryException != null && !errorOccurred) {
+                    errorOccurred = true
+                    onFailure(monetaryException)
+                    return@addSnapshotListener
+                }
+
+                if (monetaryResult != null) {
+                    for (document in monetaryResult) {
+                        val donationId = document.id
+                        val parkName = document.getString("parque_seleccionado") ?: "Desconocido"
+                        allDonations.add(DonationData(donationId, parkName, "monetaria"))
+                    }
+                }
+
+                completedQueries++
+                if (completedQueries == 2 && !errorOccurred) {
+                    onSuccess(allDonations)
+                }
+            }
+
+        // Query for species donations
+        speciesListenerRegistration = firestore.collection("donaciones_especie")
+            .whereEqualTo("registro_estado", "pendiente")
+            .addSnapshotListener { speciesResult, speciesException ->
+                if (speciesException != null && !errorOccurred) {
+                    errorOccurred = true
+                    onFailure(speciesException)
+                    return@addSnapshotListener
+                }
+
+                if (speciesResult != null) {
+                    for (document in speciesResult) {
+                        val donationId = document.id
+                        val parkName = document.getString("parque_donado") ?: "Desconocido"
+                        allDonations.add(DonationData(donationId, parkName, "especie"))
+                    }
+                }
+
+                completedQueries++
+                if (completedQueries == 2 && !errorOccurred) {
+                    onSuccess(allDonations)
+                }
+            }
+    }
+
+    // Don't forget to cancel listeners when not needed
+    fun cleanup() {
+        monetaryListenerRegistration?.remove()
+        speciesListenerRegistration?.remove()
     }
 }
