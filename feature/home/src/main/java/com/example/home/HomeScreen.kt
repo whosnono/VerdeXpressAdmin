@@ -534,10 +534,11 @@ fun ResumenItem(titulo: String, descripcion: String, elementos: List<String>, mo
 // ParkData class definition
 data class ParkData(
     val id: String,
-    val nombre: String
+    val nombre: String,
+    val createdAt: Long // Timestamp for sorting
 )
 
-// ParkManager class with getParks implementation
+// Updated Park Manager class with sorting
 class ParkManager {
     private val firestore = FirebaseFirestore.getInstance()
     private var listenerRegistration: ListenerRegistration? = null
@@ -545,6 +546,7 @@ class ParkManager {
     fun getParks(onSuccess: (List<ParkData>) -> Unit, onFailure: (Exception) -> Unit) {
         listenerRegistration = firestore.collection("parques")
             .whereEqualTo("registro_estado", "pendiente")
+            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
             .addSnapshotListener { result, exception ->
                 if (exception != null) {
                     onFailure(exception)
@@ -556,7 +558,9 @@ class ParkManager {
                     for (document in result) {
                         val parkId = document.id
                         val nombre = document.getString("nombre") ?: "Desconocido"
-                        parks.add(ParkData(parkId, nombre))
+                        // Get timestamp, default to current time if not available
+                        val timestamp = document.getTimestamp("created_at")?.seconds ?: System.currentTimeMillis() / 1000
+                        parks.add(ParkData(parkId, nombre, timestamp))
                     }
                 }
                 onSuccess(parks)
@@ -573,10 +577,12 @@ class ParkManager {
 data class DonationData(
     val id: String,
     val parkName: String,
-    val type: String // "monetaria" or "especie"
+    val type: String, // "monetaria" or "especie"
+    val createdAt: Long // Timestamp for sorting
 )
 
-// Donations Manager class
+
+// Updated Donations Manager class with sorting
 class DonationsManager {
     private val firestore = FirebaseFirestore.getInstance()
     private var monetaryListenerRegistration: ListenerRegistration? = null
@@ -590,6 +596,7 @@ class DonationsManager {
         // Query for monetary donations
         monetaryListenerRegistration = firestore.collection("donaciones_monetaria")
             .whereEqualTo("registro_estado", "pendiente")
+            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
             .addSnapshotListener { monetaryResult, monetaryException ->
                 if (monetaryException != null && !errorOccurred) {
                     errorOccurred = true
@@ -601,19 +608,24 @@ class DonationsManager {
                     for (document in monetaryResult) {
                         val donationId = document.id
                         val parkName = document.getString("parque_seleccionado") ?: "Desconocido"
-                        allDonations.add(DonationData(donationId, parkName, "monetaria"))
+                        // Get timestamp, default to current time if not available
+                        val timestamp = document.getTimestamp("created_at")?.seconds ?: System.currentTimeMillis() / 1000
+                        allDonations.add(DonationData(donationId, parkName, "monetaria", timestamp))
                     }
                 }
 
                 completedQueries++
                 if (completedQueries == 2 && !errorOccurred) {
-                    onSuccess(allDonations)
+                    // Sort combined results by timestamp (most recent first)
+                    val sortedDonations = allDonations.sortedByDescending { it.createdAt }
+                    onSuccess(sortedDonations)
                 }
             }
 
         // Query for species donations
         speciesListenerRegistration = firestore.collection("donaciones_especie")
             .whereEqualTo("registro_estado", "pendiente")
+            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
             .addSnapshotListener { speciesResult, speciesException ->
                 if (speciesException != null && !errorOccurred) {
                     errorOccurred = true
@@ -625,13 +637,17 @@ class DonationsManager {
                     for (document in speciesResult) {
                         val donationId = document.id
                         val parkName = document.getString("parque_donado") ?: "Desconocido"
-                        allDonations.add(DonationData(donationId, parkName, "especie"))
+                        // Get timestamp, default to current time if not available
+                        val timestamp = document.getTimestamp("created_at")?.seconds ?: System.currentTimeMillis() / 1000
+                        allDonations.add(DonationData(donationId, parkName, "especie", timestamp))
                     }
                 }
 
                 completedQueries++
                 if (completedQueries == 2 && !errorOccurred) {
-                    onSuccess(allDonations)
+                    // Sort combined results by timestamp (most recent first)
+                    val sortedDonations = allDonations.sortedByDescending { it.createdAt }
+                    onSuccess(sortedDonations)
                 }
             }
     }
