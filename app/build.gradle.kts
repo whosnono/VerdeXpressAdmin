@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.coil.compose)
     debugImplementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.ui.tooling)
-    implementation("androidx.compose.material:material-icons-extended")
 
     implementation(project(":feature:auth"))
     implementation(project(":feature:home"))
