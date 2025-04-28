@@ -45,6 +45,8 @@ import com.example.notifications.NotificationItem
 import com.example.notifications.formatTimestamp
 import com.example.parks.data.rememberUserFullName
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 
 @Composable
@@ -55,6 +57,22 @@ fun HomeScreen() {
     val userId = currentUser?.uid ?: ""
     val userName = rememberUserFullName(userId)
     val scrollState = rememberScrollState()
+
+    // Park service instance for dynamically getting parks
+    val parkManager = remember { ParkManager() }
+    var parksInReview by remember { mutableStateOf<List<ParkData>>(emptyList()) }
+
+    // Load parks when the composable is displayed
+    LaunchedEffect(Unit) {
+        parkManager.getParks(
+            onSuccess = { parks ->
+                parksInReview = parks
+            },
+            onFailure = { exception ->
+                // Handle error if needed
+            }
+        )
+    }
 
     Scaffold(
         topBar = { MainAppBar() }
@@ -88,10 +106,9 @@ fun HomeScreen() {
             Spacer(modifier = Modifier.height(1.dp))
 
             ResumenGeneralSection(
-                nombreParqueN = "Pitic", //Reemplazar por el nombre del parque que coincida con la notificacion
-                nombreParqueD = "Miau", //Reemplazar por el nombre del parque que coincida con la notificacion
-                numeroParques = 3, //Aquí se reemplaza por el número de parques que están en estado de revisión
-                numeroDonaciones = 3 //Aquí el número de donaciones pendientes por aprobar o rechazar
+                parksInReview = parksInReview,
+                nombreParqueD = "Miau", // Replace with actual donation park name
+                numeroDonaciones = 3 // Number of pending donations
             )
 
         }
@@ -351,36 +368,52 @@ fun NotificationItem(notification: GetAdminNotifications.AdminNotification,
     }
 }
 
+
 @Composable
-fun ResumenGeneralSection(nombreParqueN: String, nombreParqueD: String, numeroParques: Int, numeroDonaciones: Int) { //Para los recuadros de la parte de abajo, donde se muestran cuantas donaciones o parques faltan por aprobar
+fun ResumenGeneralSection(
+    parksInReview: List<ParkData>,
+    nombreParqueD: String,
+    numeroDonaciones: Int
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Sección de Parques en revisión
+        // Construimos la lista de elementos a mostrar
+        val parkElements = mutableListOf<String>()
+        parksInReview.take(3).forEach { park ->
+            parkElements.add("Parque \"${park.nombre}\"")
+        }
+
+        // Si hay más de 3 parques, agregamos un indicador
+        if (parksInReview.size > 3) {
+            parkElements.add("+ ${parksInReview.size - 3} más")
+        }
+
+        // Parques en revisión section
         ResumenItem(
-            titulo = "Parques en revisión", //Valor fijo, no reemplazar
-            descripcion = "$numeroParques parques en revisión", //Reemplazar numeroParques por la suma de parques pendientes por revisar
-            elementos = listOf("Parque \"$nombreParqueN\"", "Parque \"$nombreParqueN\"", "Parque \"$nombreParqueN\""), //Reemplazar nombreParqueN por el nombre del parque nuevo por aprobar
+            titulo = "Parques en revisión",
+            descripcion = "${parksInReview.size} parques en revisión",
+            elementos = parkElements,
             modifier = Modifier.weight(1f)
         )
 
-        Spacer(modifier = Modifier.width(8.dp)) // Añadimos un Spacer entre las secciones
+        Spacer(modifier = Modifier.width(8.dp))
 
-        // Sección de Donaciones pendientes
+        // Donaciones pendientes section
         ResumenItem(
             titulo = "Donaciones pendientes",
-            descripcion = "$numeroDonaciones donaciones por aprobar", //Reemplazar numeroDonaciones por la suma de donaciones pendientes por revisar
-            elementos = listOf("Parque \"$nombreParqueD\"", "Parque \"$nombreParqueD\"", "Parque \"$nombreParqueD\""), //Reemplazar nombreParqueD por el nombre del parque al que se realizo una donacion
+            descripcion = "$numeroDonaciones donaciones por aprobar",
+            elementos = listOf("Parque \"$nombreParqueD\"", "Parque \"$nombreParqueD\"", "Parque \"$nombreParqueD\""),
             modifier = Modifier.weight(1f)
         )
     }
 }
 
 @Composable
-fun ResumenItem(titulo: String, descripcion: String, elementos: List<String>, modifier: Modifier = Modifier) { //Estilo de los recuadros :)
+fun ResumenItem(titulo: String, descripcion: String, elementos: List<String>, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .padding(horizontal = 4.dp)
@@ -412,22 +445,93 @@ fun ResumenItem(titulo: String, descripcion: String, elementos: List<String>, mo
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
+
         Column {
-            elementos.forEach { elemento -> //Son los recuadros verdes con los nombres de los parques donde están pendientes de aprobar/ donaciones por aprobar
+            if (elementos.isEmpty()) {
                 Text(
-                    text = elemento,
+                    text = "No hay elementos pendientes",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(color = Color(0xFF78B153), shape = RoundedCornerShape(size = 5.dp))
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     style = TextStyle(
                         fontSize = 14.sp,
-                        color = Color.White,
+                        color = Color.Gray,
                         fontWeight = FontWeight(500)
                     )
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+            } else {
+                elementos.forEachIndexed { index, elemento ->
+                    // El último elemento (si es "+X más") se muestra diferente
+                    if (index == elementos.size - 1 && elemento.startsWith("+")) {
+                        Text(
+                            text = elemento,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = Color(0xFFAED581), shape = RoundedCornerShape(size = 5.dp))
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                color = Color.Black,
+                                fontWeight = FontWeight(500),
+                            )
+                        )
+                    } else {
+                        Text(
+                            text = elemento,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = Color(0xFF78B153), shape = RoundedCornerShape(size = 5.dp))
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight(500)
+                            )
+                        )
+                    }
+                    if (index < elementos.size - 1) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
             }
         }
+    }
+}
+
+// ParkData class definition
+data class ParkData(
+    val id: String,
+    val nombre: String
+)
+
+// ParkManager class with getParks implementation
+class ParkManager {
+    private val firestore = FirebaseFirestore.getInstance()
+    private var listenerRegistration: ListenerRegistration? = null
+
+    fun getParks(onSuccess: (List<ParkData>) -> Unit, onFailure: (Exception) -> Unit) {
+        listenerRegistration = firestore.collection("parques")
+            .whereEqualTo("registro_estado", "pendiente")
+            .addSnapshotListener { result, exception ->
+                if (exception != null) {
+                    onFailure(exception)
+                    return@addSnapshotListener
+                }
+
+                val parks = mutableListOf<ParkData>()
+                if (result != null) {
+                    for (document in result) {
+                        val parkId = document.id
+                        val nombre = document.getString("nombre") ?: "Desconocido"
+                        parks.add(ParkData(parkId, nombre))
+                    }
+                }
+                onSuccess(parks)
+            }
+    }
+
+    // Don't forget to cancel the listener when not needed
+    fun cleanup() {
+        listenerRegistration?.remove()
     }
 }
