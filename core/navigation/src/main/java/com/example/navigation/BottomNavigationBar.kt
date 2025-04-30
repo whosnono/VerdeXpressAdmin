@@ -3,26 +3,12 @@ package com.example.navigation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -31,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -39,12 +24,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.design.R
 
+// Fuente personalizada para la barra de navegación
 val SFProDisplayMedium = FontFamily(Font(R.font.sf_pro_display_medium))
 
-// Data class for FAB configuration
+/**
+ * Configuración para el botón flotante (FAB) en la barra de navegación inferior.
+ * @property visible Indica si el FAB debe mostrarse.
+ * @property route Ruta de destino cuando se hace clic en el FAB.
+ * @property icon Icono que se mostrará en el FAB.
+ * @property contentDescription Descripción de accesibilidad para el FAB.
+ */
 data class FabConfig(
     val visible: Boolean = false,
     val route: String = "",
@@ -52,12 +45,32 @@ data class FabConfig(
     val contentDescription: String = "Add"
 )
 
+/**
+ * Barra de navegación inferior personalizada con soporte para un botón flotante (FAB).
+ * @param navController Controlador de navegación para manejar los cambios de ruta.
+ * @param items Lista de elementos de navegación que se mostrarán en la barra.
+ * @param fabConfig Configuración opcional para el botón flotante.
+ */
 @Composable
 fun BottomNavigationBar(
-    navController: NavController, items: List<NavigationItem>, fabConfig: FabConfig? = null
+    navController: NavController,
+    items: List<NavigationItem>,
+    fabConfig: FabConfig? = null
 ) {
+    // Obtiene la ruta actual de navegación
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    // Lógica mejorada para determinar el ítem seleccionado
+    val selectedNavItem = when {
+        // Rutas relacionadas con Parques
+        currentRoute?.startsWith("parkDetailA/") == true -> NavigationItem.Parks.route
+        currentRoute?.startsWith("parkDetailN/") == true -> NavigationItem.Parks.route
+        // Ruta relacionada con Donaciones
+        currentRoute?.startsWith("Donaciones") == true -> NavigationItem.Donations.route
+        // Caso por defecto (rutas principales)
+        else -> currentRoute
+    }
 
     Box(
         modifier = Modifier
@@ -65,7 +78,7 @@ fun BottomNavigationBar(
             .wrapContentHeight()
     ) {
         Column {
-            // Rounded top part with background
+            // Fondo superior redondeado de la barra de navegación
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -74,13 +87,12 @@ fun BottomNavigationBar(
                     .background(color = Color(0xFFF5F6F7))
             )
 
-            // Navigation menu with items
+            // Contenedor principal de la barra de navegación
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(color = Color(0xFFFFFFFF))
             ) {
-                // Row for the navigation items with proper padding
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -89,27 +101,40 @@ fun BottomNavigationBar(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.Bottom,
                 ) {
+                    // Itera sobre cada elemento de navegación
                     items.forEach { item ->
-                        val isSelected = currentRoute == item.route
+                        val isSelected = selectedNavItem == item.route
 
-                        Box(modifier = Modifier
-                            .weight(1f)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                if (currentRoute != item.route) {
-                                    navController.navigate(item.route) {
-                                        launchSingleTop = true
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    // Maneja la navegación de manera diferente para el elemento "Parks"
+                                    if (item.route == NavigationItem.Parks.route) {
+
+                                        navController.navigate(item.route) {
+                                            popUpTo(item.route) {
+                                                inclusive = true
+                                            }
+                                            launchSingleTop = true
                                         }
-                                        restoreState = true
+                                    } else {
+                                        navController.navigate(item.route) {
+                                            println("BOTTOM NAV - Intentando navegar a: ${item.route} desde: $currentRoute")
+
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = false
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = false
+                                        }
                                     }
                                 }
-                            }
-                            .background(Color.Transparent)) {
-                            // Green indicator line at the very top for selected items
+                        ) {
+                            // Indicador de selección (línea verde)
                             if (isSelected) {
                                 Box(
                                     modifier = Modifier
@@ -120,7 +145,7 @@ fun BottomNavigationBar(
                                 )
                             }
 
-                            // Column for icon and text, centered in the box
+                            // Contenido del elemento de navegación (icono + texto)
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
@@ -150,43 +175,28 @@ fun BottomNavigationBar(
             }
         }
 
-        // Optional FAB positioned to overlap exactly with the top edge of the gray box
-        // and aligned with the last icon horizontally
+        // Botón flotante (FAB)
         fabConfig?.let {
             if (it.visible) {
-                // Calculate the position of the last item
-                val itemWidth = with(LocalDensity.current) {
-                    (items.size).inv().dp.toPx()
-                }
-
-                val fabSize = 56.dp // Standard FAB size
-
-                // Position the FAB at the right edge, aligned with the top of the gray box
                 FloatingActionButton(
                     onClick = {
+                        // Manejo especial para la ruta "donations"
                         if (it.route == "donations") {
-                            // Envía el estado a DonationsScreen para abrir el diálogo
                             navController.currentBackStackEntry
                                 ?.savedStateHandle
                                 ?.set("showDonationDialog", true)
                         } else {
-                            // Para otras rutas, navega normalmente
                             navController.navigate(it.route)
                         }
                     },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(end = 25.dp)
-                        .offset(y = -(fabSize / 2)) // Position to overlap exactly at the halfway point of the button
-                        .zIndex(1f), // Ensure the FAB is drawn on top
+                        .offset(y = (-28).dp)
+                        .zIndex(1f),
                     containerColor = Color(0xFF78B153),
                     shape = CircleShape,
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 0.dp,
-                        pressedElevation = 0.dp,
-                        focusedElevation = 0.dp,
-                        hoveredElevation = 0.dp
-                    )
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp)
                 ) {
                     Icon(
                         imageVector = it.icon,
