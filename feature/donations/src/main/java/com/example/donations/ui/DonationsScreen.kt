@@ -266,9 +266,14 @@ fun DonationItemRow(donation: DonationItem) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(modifier = Modifier.weight(0.7f)) {
+        // Parte izquierda con descripción y monto
+        Row(
+            modifier = Modifier.weight(1f, fill = false),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = "$description ",
                 style = TextStyle(
@@ -296,6 +301,11 @@ fun DonationItemRow(donation: DonationItem) {
                 overflow = TextOverflow.Ellipsis
             )
         }
+
+        // Espaciador flexible
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Parte derecha con la fecha, alineada a la derecha
         Text(
             text = donation.details,
             style = TextStyle(
@@ -306,9 +316,9 @@ fun DonationItemRow(donation: DonationItem) {
                 color = Color(0xFF484C52),
                 letterSpacing = 0.15.sp,
             ),
-            modifier = Modifier.weight(0.3f),
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.wrapContentWidth(Alignment.End)
         )
     }
 }
