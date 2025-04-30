@@ -120,12 +120,12 @@ fun PersonalDataScreen(navController: NavController) {
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Spacer(modifier = Modifier.height(8.dp)) // Add space below the title
+                Spacer(modifier = Modifier.height(8.dp))
 
                 PersonalInfoItem(
                     icon = Icons.Default.Person,
                     title = "Nombre y apellido",
-                    value = "${userData?.nombre ?: ""} ${userData?.apellidos ?: ""}", // Concatenamos nombre y apellido
+                    value = "${userData?.nombre ?: ""} ${userData?.apellidos ?: ""}",
                     onEdit = {
                         navController.navigate("editName")
                     }
