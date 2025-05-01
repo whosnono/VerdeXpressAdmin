@@ -1,5 +1,6 @@
 package com.example.donations.ui.especie
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,6 +31,7 @@ import com.example.design.MainAppBar
 import com.example.design.R.font
 import com.example.donations.data.DonationsEData
 import com.example.donations.data.getDonacionesEspecieFromFirebase
+import com.example.donations.ui.monetaria.DonacionItem
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -208,7 +210,7 @@ fun DonacionesEspecie(navController: NavController) {
             items(donacionesFiltradas) { donacion -> // Usamos la lista filtrada aquí
                 DonacionesCuadro(
                     title = donacion.parqueDonado,
-                    date = donacion.fecha,
+                    date = donacion.created_at,
                     address = donacion.ubicacion,
                     person = donacion.donanteNombre,
                     telefono = donacion.donanteContacto,
@@ -308,18 +310,29 @@ fun ordenarDonacionesInternoEspecie(
     donaciones: List<DonationsEData>,
     ordenReciente: Boolean
 ): List<DonationsEData> {
-    val listaOrdenada = donaciones.sortedWith(compareBy {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    // Usamos la fecha formateada de created_at para ordenar
+    val listaOrdenada = donaciones.sortedWith(compareBy { donacion ->
         try {
-            dateFormat.parse(it.fecha)
+            // Ajustamos el formato para que coincida con "17/03/2025 15:37"
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            dateFormat.parse(donacion.created_at)
         } catch (e: Exception) {
-            null // Manejar errores de formato de fecha
+            // Si hay un error con el formato principal, intentamos con formatos alternativos
+            try {
+                // Intentamos con otro formato posible
+                val alternateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                alternateFormat.parse(donacion.created_at)
+            } catch (e2: Exception) {
+                Log.e("OrdenarDonaciones", "Error al parsear fecha: ${donacion.created_at}", e)
+                null // Si todos los intentos fallan, retornamos null
+            }
         }
     })
 
+    // Si queremos ordenar de más reciente a más antiguo, invertimos el resultado
     return if (ordenReciente) {
-        listaOrdenada
+        listaOrdenada.reversed() // Lo más reciente primero
     } else {
-        listaOrdenada.reversed()
+        listaOrdenada // Lo más antiguo primero
     }
 }

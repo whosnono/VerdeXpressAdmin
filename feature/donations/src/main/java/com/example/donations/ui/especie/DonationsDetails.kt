@@ -102,7 +102,8 @@ fun DonationsDetails(
                     cantidad = document.getString("cantidad") ?: "",
                     recurso = document.getString("recurso") ?: "",
                     condicion = document.getString("condicion") ?: "",
-                    razonRechazo = document.getString("razon_rechazo") //No todas las donaciones lo tienen por eso es diferente a las demas, no es un campo que a fuerza se deba mostrar
+                    razonRechazo = document.getString("razon_rechazo"), //No todas las donaciones lo tienen por eso es diferente a las demas, no es un campo que a fuerza se deba mostrar
+                    created_at = document.getString("created_at") ?: ""
                 )
 
                 //En esta seccion se obtiene la informacion del parque (para obtener la latitud y la longitud)

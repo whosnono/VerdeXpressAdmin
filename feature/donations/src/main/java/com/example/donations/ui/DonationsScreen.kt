@@ -36,6 +36,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import com.example.donations.ui.monetaria.formatTimestamp
+import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -147,9 +149,15 @@ fun DonationsScreen(navController: NavController) {
 
 fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
     val db = FirebaseFirestore.getInstance()
-    db.collection("donaciones_especie").get()
+    db.collection("donaciones_especie")
+        .orderBy("created_at", Query.Direction.DESCENDING) // Ordenar de más reciente a más antiguo
+        .get()
         .addOnSuccessListener { result ->
             val donationsList = result.map { document ->
+
+                val timestamp = document.getTimestamp("created_at")
+                val formattedDate = timestamp?.let { formatTimestamp(it) } ?: "Sin fecha"
+
                 val registroEstado = document.getString("registro_estado")
                 var fechaEstimada = document.getString("fecha_estimada_donacion")
 
@@ -159,7 +167,7 @@ fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
                 }
 
                 val detalles = if (registroEstado != null && fechaEstimada != null) {
-                    "$registroEstado - $fechaEstimada"
+                    "$registroEstado - $formattedDate"
                 } else {
                     "Información de estado o fecha no disponible"
                 }
@@ -168,7 +176,7 @@ fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
                 val primerRecurso = recursoCompleto.split(" ").firstOrNull() ?: ""
 
                 DonationItem(
-                    description = "El parque \"${document.getString("parque_donado")}\" recibió ${document.getString("cantidad")} $primerRecurso",
+                    description = "El parque ${document.getString("parque_donado")} recibió ${document.getString("cantidad")} $primerRecurso",
                     details = detalles
                 )
 
@@ -184,13 +192,15 @@ fun getEspecieDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
 
 fun getMonetariaDonationsFromFirebase(onSuccess: (List<DonationItem>) -> Unit) {
     val db = FirebaseFirestore.getInstance()
-    db.collection("donaciones_monetaria").get()
+    db.collection("donaciones_monetaria")
+        .orderBy("created_at", Query.Direction.DESCENDING) // Ordenar de más reciente a más antiguo
+        .get()
         .addOnSuccessListener { result ->
             val donationsList = result.map { document ->
                 val timestamp = document.getTimestamp("created_at")
                 val formattedDate = timestamp?.let { formatTimestamp(it) } ?: "Sin fecha"
                 DonationItem(
-                    description = "El parque \"${document.getString("parque_seleccionado")}\" recibió ${document.getString("cantidad")} mxn",
+                    description = "El parque ${document.getString("parque_seleccionado")} recibió ${document.getString("cantidad")} MXN",
                     details = formattedDate
                 )
             }

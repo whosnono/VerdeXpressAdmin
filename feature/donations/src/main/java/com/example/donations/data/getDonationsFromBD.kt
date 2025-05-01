@@ -7,7 +7,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.donations.ui.monetaria.formatTimestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 
 @Composable
@@ -41,7 +43,9 @@ fun rememberUserFullName(userId: String): String {
 
 fun getDonacionesEspecieFromFirebase(onSuccess: (List<DonationsEData>) -> Unit) {
     val db = FirebaseFirestore.getInstance()
-    db.collection("donaciones_especie").get()
+    db.collection("donaciones_especie")
+        .orderBy("created_at", Query.Direction.DESCENDING) // Ordenar de más reciente a más antiguo
+        .get()
         .addOnSuccessListener { result ->
             val donacionesList = result.map { document ->
                 val fechaEstimada = document.getString("fecha_estimada_donacion")
@@ -61,6 +65,10 @@ fun getDonacionesEspecieFromFirebase(onSuccess: (List<DonationsEData>) -> Unit) 
                     }
                 }
 
+                // Manejar el campo created_at como Timestamp en lugar de String
+                val timestamp = document.getTimestamp("created_at")
+                val formattedCreatedAt = timestamp?.let { formatTimestamp(it) } ?: ""
+
                 DonationsEData(
                     id = document.id,
                     parqueDonado = document.getString("parque_donado") ?: "",
@@ -73,7 +81,8 @@ fun getDonacionesEspecieFromFirebase(onSuccess: (List<DonationsEData>) -> Unit) 
                     cantidad = document.getString("cantidad") ?: "",
                     recurso = document.getString("recurso") ?: "",
                     condicion = document.getString("condicion") ?: "",
-                    razonRechazo = document.getString("razon_rechazo")
+                    razonRechazo = document.getString("razon_rechazo"),
+                    created_at = formattedCreatedAt
                 )
             }
             onSuccess(donacionesList)
@@ -96,5 +105,6 @@ data class DonationsEData(
     val donanteContacto: String,
     val registroEstado: String,
     val recurso: String,
-    val razonRechazo: String? = null //Null ya que este campo no aparece en todas las donaciones, solo en las que han sido rechazadas
+    val razonRechazo: String? = null, //Null ya que este campo no aparece en todas las donaciones, solo en las que han sido rechazadas
+    val created_at: String,
 )
