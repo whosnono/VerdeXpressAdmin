@@ -588,8 +588,7 @@ class ParkManager {
 
     fun getParks(onSuccess: (List<ParkData>) -> Unit, onFailure: (Exception) -> Unit) {
         listenerRegistration = firestore.collection("parques")
-            .whereEqualTo("registro_estado", "pendiente")
-            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
+            .whereIn("registro_estado", listOf("pendiente", "Pendiente"))            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
             .addSnapshotListener { result, exception ->
                 if (exception != null) {
                     onFailure(exception)
@@ -635,8 +634,7 @@ class DonationsManager {
 
         // Query for species donations only
         speciesListenerRegistration = firestore.collection("donaciones_especie")
-            .whereEqualTo("registro_estado", "Pendiente")
-            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
+            .whereIn("registro_estado", listOf("pendiente", "Pendiente"))            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
             .addSnapshotListener { speciesResult, speciesException ->
                 if (speciesException != null) {
                     onFailure(speciesException)
