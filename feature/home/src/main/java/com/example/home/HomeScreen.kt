@@ -403,13 +403,18 @@ fun ResumenGeneralSection(
     ) {
         // Construimos la lista de elementos de parques a mostrar
         val parkElements = mutableListOf<String>()
-        parksInReview.take(3).forEach { park ->
+        // Limitamos a mostrar solo los primeros 3 parques
+        val parksToShow = if(parksInReview.size > 3) parksInReview.take(3) else parksInReview
+
+        parksToShow.forEach { park ->
             parkElements.add("Parque \"${park.nombre}\"")
         }
 
         // Si hay más de 3 parques, agregamos un indicador
-        if (parksInReview.size > 3) {
-            parkElements.add("+ ${parksInReview.size - 3} más")
+        val parkShowMore = if (parksInReview.size > 3) {
+            "+ ${parksInReview.size - 3} más"
+        } else {
+            null
         }
 
         // Parques en revisión section
@@ -417,6 +422,7 @@ fun ResumenGeneralSection(
             titulo = "Parques en revisión",
             descripcion = "${parksInReview.size} parques en revisión",
             elementos = parkElements,
+            showMore = parkShowMore,
             modifier = Modifier.weight(1f)
         )
 
@@ -424,15 +430,20 @@ fun ResumenGeneralSection(
 
         // Construimos la lista de elementos de donaciones a mostrar
         val donationElements = mutableListOf<String>()
-        val uniqueParkNames = pendingDonations.map { it.parkName }.distinct().take(3)
+        val uniqueParkNames = pendingDonations.map { it.parkName }.distinct()
 
-        uniqueParkNames.forEach { parkName ->
+        // Limitamos a mostrar solo los primeros 3 parques con donaciones
+        val parksToShowDonations = if(uniqueParkNames.size > 3) uniqueParkNames.take(3) else uniqueParkNames
+
+        parksToShowDonations.forEach { parkName ->
             donationElements.add("Parque \"$parkName\"")
         }
 
         // Si hay más de 3 parques con donaciones pendientes, agregamos un indicador
-        if (pendingDonations.map { it.parkName }.distinct().size > 3) {
-            donationElements.add("+ ${pendingDonations.map { it.parkName }.distinct().size - 3} más")
+        val donationShowMore = if (uniqueParkNames.size > 3) {
+            "+ ${uniqueParkNames.size - 3} más"
+        } else {
+            null
         }
 
         // Donaciones pendientes section
@@ -440,13 +451,20 @@ fun ResumenGeneralSection(
             titulo = "Donaciones pendientes",
             descripcion = "${pendingDonations.size} donaciones por aprobar",
             elementos = donationElements,
+            showMore = donationShowMore,
             modifier = Modifier.weight(1f)
         )
     }
 }
 
 @Composable
-fun ResumenItem(titulo: String, descripcion: String, elementos: List<String>, modifier: Modifier = Modifier) {
+fun ResumenItem(
+    titulo: String,
+    descripcion: String,
+    elementos: List<String>,
+    showMore: String? = null,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .padding(horizontal = 4.dp)
@@ -479,51 +497,76 @@ fun ResumenItem(titulo: String, descripcion: String, elementos: List<String>, mo
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        Column {
-            if (elementos.isEmpty()) {
+        // Replace static Column with LazyColumn for scrollability
+        if (elementos.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
                     text = "No hay elementos pendientes",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     style = TextStyle(
                         fontSize = 14.sp,
                         color = Color.Gray,
                         fontWeight = FontWeight(500)
                     )
                 )
-            } else {
-                elementos.forEachIndexed { index, elemento ->
-                    // El último elemento (si es "+X más") se muestra diferente
-                    if (index == elementos.size - 1 && elemento.startsWith("+")) {
-                        Text(
-                            text = elemento,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(color = Color(0xFFAED581), shape = RoundedCornerShape(size = 5.dp))
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                color = Color.Black,
-                                fontWeight = FontWeight(500),
-                            )
-                        )
-                    } else {
-                        Text(
-                            text = elemento,
+            }
+        } else {
+            // Use LazyColumn for scrollable content
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Display a maximum of all items
+                    items(elementos.size) { index ->
+                        val elemento = elementos[index]
+
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(color = Color(0xFF78B153), shape = RoundedCornerShape(size = 5.dp))
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight(500)
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = elemento,
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = Color.White,
+                                    fontWeight = FontWeight(500)
+                                )
                             )
-                        )
+                        }
+
+                        if (index < elementos.size - 1) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
                     }
-                    if (index < elementos.size - 1) {
-                        Spacer(modifier = Modifier.height(4.dp))
+
+                    // Show the "+X más" indicator at the bottom if applicable
+                    if (showMore != null) {
+                        item {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(color = Color(0xFFAED581), shape = RoundedCornerShape(size = 5.dp))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    text = showMore,
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        color = Color.Black,
+                                        fontWeight = FontWeight(500)
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -585,55 +628,23 @@ data class DonationData(
 // Updated Donations Manager class with sorting
 class DonationsManager {
     private val firestore = FirebaseFirestore.getInstance()
-    private var monetaryListenerRegistration: ListenerRegistration? = null
     private var speciesListenerRegistration: ListenerRegistration? = null
 
     fun getPendingDonations(onSuccess: (List<DonationData>) -> Unit, onFailure: (Exception) -> Unit) {
         val allDonations = mutableListOf<DonationData>()
-        var completedQueries = 0
-        var errorOccurred = false
 
-        // Query for monetary donations
-        monetaryListenerRegistration = firestore.collection("donaciones_monetaria")
-            .whereEqualTo("registro_estado", "pendiente")
-            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
-            .addSnapshotListener { monetaryResult, monetaryException ->
-                if (monetaryException != null && !errorOccurred) {
-                    errorOccurred = true
-                    onFailure(monetaryException)
-                    return@addSnapshotListener
-                }
-
-                if (monetaryResult != null) {
-                    for (document in monetaryResult) {
-                        val donationId = document.id
-                        val parkName = document.getString("parque_seleccionado") ?: "Desconocido"
-                        // Get timestamp, default to current time if not available
-                        val timestamp = document.getTimestamp("created_at")?.seconds ?: System.currentTimeMillis() / 1000
-                        allDonations.add(DonationData(donationId, parkName, "monetaria", timestamp))
-                    }
-                }
-
-                completedQueries++
-                if (completedQueries == 2 && !errorOccurred) {
-                    // Sort combined results by timestamp (most recent first)
-                    val sortedDonations = allDonations.sortedByDescending { it.createdAt }
-                    onSuccess(sortedDonations)
-                }
-            }
-
-        // Query for species donations
+        // Query for species donations only
         speciesListenerRegistration = firestore.collection("donaciones_especie")
-            .whereEqualTo("registro_estado", "pendiente")
+            .whereEqualTo("registro_estado", "Pendiente")
             .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING) // Sort by most recent
             .addSnapshotListener { speciesResult, speciesException ->
-                if (speciesException != null && !errorOccurred) {
-                    errorOccurred = true
+                if (speciesException != null) {
                     onFailure(speciesException)
                     return@addSnapshotListener
                 }
 
                 if (speciesResult != null) {
+                    allDonations.clear() // Clear previous results
                     for (document in speciesResult) {
                         val donationId = document.id
                         val parkName = document.getString("parque_donado") ?: "Desconocido"
@@ -643,18 +654,14 @@ class DonationsManager {
                     }
                 }
 
-                completedQueries++
-                if (completedQueries == 2 && !errorOccurred) {
-                    // Sort combined results by timestamp (most recent first)
-                    val sortedDonations = allDonations.sortedByDescending { it.createdAt }
-                    onSuccess(sortedDonations)
-                }
+                // Sort by timestamp (most recent first) and return results
+                val sortedDonations = allDonations.sortedByDescending { it.createdAt }
+                onSuccess(sortedDonations)
             }
     }
 
     // Don't forget to cancel listeners when not needed
     fun cleanup() {
-        monetaryListenerRegistration?.remove()
         speciesListenerRegistration?.remove()
     }
 }
