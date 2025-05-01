@@ -13,14 +13,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,6 +53,10 @@ fun DonationRejectDialog(
     var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showAlertDialog by remember { mutableStateOf(false) }
+
+    // Nuevos estados para controlar el clic único y mostrar el estado de carga
+    var isButtonClicked by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -128,7 +133,8 @@ fun DonationRejectDialog(
                                 }
                                 innerTextField()
                             },
-                            maxLines = 4
+                            maxLines = 4,
+                            enabled = !isLoading && !isButtonClicked // Deshabilitar durante carga o después de clic
                         )
                     }
 
@@ -175,7 +181,8 @@ fun DonationRejectDialog(
                                     innerTextField()
                                 }
                             },
-                            singleLine = true
+                            singleLine = true,
+                            enabled = !isLoading && !isButtonClicked // Deshabilitar durante carga o después de clic
                         )
 
                         Icon(
@@ -184,12 +191,12 @@ fun DonationRejectDialog(
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
                                 .padding(end = 12.dp)
-                                .clickable { passwordVisible = !passwordVisible },
+                                .clickable(enabled = !isLoading && !isButtonClicked) { passwordVisible = !passwordVisible },
                             tint = Color.Gray
                         )
                     }
 
-                    // Reject Button
+                    // Botones
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -201,9 +208,11 @@ fun DonationRejectDialog(
                                 .width(130.dp)
                                 .height(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Gray
+                                containerColor = Color.Gray,
+                                disabledContainerColor = Color.Gray.copy(alpha = 0.5f)
                             ),
-                            shape = RoundedCornerShape(5.dp)
+                            shape = RoundedCornerShape(5.dp),
+                            enabled = !isLoading && !isButtonClicked // Deshabilitar también el botón de cancelar
                         ) {
                             Text(
                                 text = "Cancelar",
@@ -225,11 +234,11 @@ fun DonationRejectDialog(
                                         showAlertDialog = true
                                     }
                                     else -> {
+                                        isButtonClicked = true
+                                        isLoading = true
+                                        // Procesar el rechazo
                                         onReject(rejectionReason, password)
-                                        rejectionReason = ""
-                                        password = ""
-                                        errorMessage = null
-                                        onDismiss()
+                                        // No se cierra el diálogo automáticamente para mostrar el estado de carga
                                     }
                                 }
                             },
@@ -237,22 +246,33 @@ fun DonationRejectDialog(
                                 .width(130.dp)
                                 .height(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = verde
+                                containerColor = verde,
+                                disabledContainerColor = verde.copy(alpha = 0.5f)
                             ),
-                            shape = RoundedCornerShape(5.dp)
+                            shape = RoundedCornerShape(5.dp),
+                            enabled = !isLoading && !isButtonClicked // Deshabilitar el botón después del primer clic
                         ) {
-                            Text(
-                                text = "Aceptar",
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                fontFamily = SFProDisplayBold
-                            )
+                            if (isLoading) {
+                                // Mostrar indicador de carga cuando está procesando
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Color.White
+                                )
+                            } else {
+                                Text(
+                                    text = "Aceptar",
+                                    color = Color.White,
+                                    fontSize = 20.sp,
+                                    fontFamily = SFProDisplayBold
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
+
     if (showAlertDialog){
         AlertDialog(
             onDismissRequest = { showAlertDialog = false },

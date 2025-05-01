@@ -14,8 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,6 +51,10 @@ fun DonationAcceptDialog(
     var passwordVisible by remember { mutableStateOf(false) }
     var passwordVisibleC by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Nuevos estados para controlar el clic único y mostrar el estado de carga
+    var isButtonClicked by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -136,7 +140,8 @@ fun DonationAcceptDialog(
                                     innerTextField()
                                 }
                             },
-                            singleLine = true
+                            singleLine = true,
+                            enabled = !isLoading && !isButtonClicked // Deshabilitar durante carga o después de clic
                         )
 
                         Icon(
@@ -145,7 +150,7 @@ fun DonationAcceptDialog(
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
                                 .padding(end = 12.dp)
-                                .clickable { passwordVisible = !passwordVisible },
+                                .clickable(enabled = !isLoading && !isButtonClicked) { passwordVisible = !passwordVisible },
                             tint = Color.Gray
                         )
                     }
@@ -194,7 +199,8 @@ fun DonationAcceptDialog(
                                     innerTextField()
                                 }
                             },
-                            singleLine = true
+                            singleLine = true,
+                            enabled = !isLoading && !isButtonClicked // Deshabilitar durante carga o después de clic
                         )
 
                         Icon(
@@ -203,7 +209,7 @@ fun DonationAcceptDialog(
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
                                 .padding(end = 12.dp)
-                                .clickable { passwordVisibleC = !passwordVisibleC },
+                                .clickable(enabled = !isLoading && !isButtonClicked) { passwordVisibleC = !passwordVisibleC },
                             tint = Color.Gray
                         )
                     }
@@ -229,7 +235,11 @@ fun DonationAcceptDialog(
                                     errorMessage = "Las contraseñas no coinciden"
                                 }
                                 else -> {
+                                    isButtonClicked = true
+                                    isLoading = true
+                                    // Enviar la contraseña para procesamiento
                                     onAccept(password)
+                                    // No se cierra el diálogo automáticamente para mostrar el estado de carga
                                 }
                             }
                         },
@@ -238,22 +248,29 @@ fun DonationAcceptDialog(
                             .height(50.dp)
                             .align(Alignment.CenterHorizontally),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = verde
+                            containerColor = verde,
+                            disabledContainerColor = verde.copy(alpha = 0.5f)
                         ),
-                        shape = RoundedCornerShape(5.dp)
+                        shape = RoundedCornerShape(5.dp),
+                        enabled = !isLoading && !isButtonClicked // Deshabilitar el botón después del primer clic
                     ) {
-                        Text(
-                            text = "Aceptar",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontFamily = FontFamily(Font(font.sf_pro_display_bold))
-                        )
+                        if (isLoading) {
+                            // Mostrar indicador de carga cuando está procesando
+                            CircularProgressIndicator(
+                                modifier = Modifier.width(24.dp).height(24.dp),
+                                color = Color.White
+                            )
+                        } else {
+                            Text(
+                                text = "Aceptar",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontFamily = FontFamily(Font(font.sf_pro_display_bold))
+                            )
+                        }
                     }
                 }
-
             }
         }
     }
 }
-
-

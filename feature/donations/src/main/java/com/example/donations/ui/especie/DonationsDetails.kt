@@ -1,3 +1,6 @@
+// Modify the DonationsEData class first to properly handle different types for created_at
+// In your DonationsEData class, update the created_at field type or make it nullable
+
 package com.example.donations.ui.especie
 
 import android.util.Log
@@ -90,6 +93,25 @@ fun DonationsDetails(
                     }
                 }
 
+                // Handle created_at field properly by checking its type first
+                val createdAt = try {
+                    // Try to handle different possible types
+                    when {
+                        document.contains("created_at") && document.get("created_at") != null -> {
+                            val createdAtValue = document.get("created_at")
+                            when (createdAtValue) {
+                                is String -> createdAtValue
+                                is com.google.firebase.Timestamp -> createdAtValue.toDate().toString()
+                                else -> "" // Default empty string for any other type
+                            }
+                        }
+                        else -> ""
+                    }
+                } catch (e: Exception) {
+                    Log.e("FirestoreData", "Error retrieving created_at: ${e.message}")
+                    "" // Default empty string if there's an error
+                }
+
                 donationsEData = DonationsEData( //Los datos que se deben mostrar en la ventana de detalles (Falta integrar las imagenes)
                     id = document.id,
                     parqueDonado = document.getString("parque_donado") ?: "",
@@ -103,7 +125,7 @@ fun DonationsDetails(
                     recurso = document.getString("recurso") ?: "",
                     condicion = document.getString("condicion") ?: "",
                     razonRechazo = document.getString("razon_rechazo"), //No todas las donaciones lo tienen por eso es diferente a las demas, no es un campo que a fuerza se deba mostrar
-                    created_at = document.getString("created_at") ?: ""
+                    created_at = createdAt
                 )
 
                 //En esta seccion se obtiene la informacion del parque (para obtener la latitud y la longitud)
@@ -183,8 +205,8 @@ fun DonationsDetails(
             //Detalles de la donación
             Row(
                 modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp),
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Column (
@@ -205,15 +227,15 @@ fun DonationsDetails(
                         .padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
                 ){
-                  if (parkData != null) {
-                      MapView(
-                          latitud = parkData!!.latitud,
-                          longitud = parkData!!.longitud,
-                          modifier = Modifier.fillMaxSize()
-                      )
-                  } else{
-                      Text("No se encontraron coordenadas para el parque.")
-                  }
+                    if (parkData != null) {
+                        MapView(
+                            latitud = parkData!!.latitud,
+                            longitud = parkData!!.longitud,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else{
+                        Text("No se encontraron coordenadas para el parque.")
+                    }
                 }
             }
             textos(texto = donationsEData!!.ubicacion)
@@ -438,6 +460,7 @@ fun DonationsDetails(
     }
 }
 
+// Resto de funciones composable sin cambios
 @Composable
 fun parqueTitulo(Parque: String) {
     Text(
